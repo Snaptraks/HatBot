@@ -1,5 +1,4 @@
 # HatBot
-Repository for HatBot on the Hatventures Community Discord server
 Repository for HatBot on the Hatventures Community Discord server.
 
 ## Description
@@ -16,3 +15,5 @@ You can help contributing to HatBot by forking the repository and creating pull 
 ### License
 This repository is provided for education purposes, and community contributions only. Please do not create personal instances of the bot with this code without explicit written permission from me (Snaptraks#2606 on Discord).
 
+### Requirements
+Nevertheless, to run the bot you will need Python 3.7.3 (anything up from 3.5 should work, but all is tested with 3.7.3) and the packages from `requirements.txt`.
