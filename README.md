@@ -12,6 +12,8 @@ You are welcome and encouraged to create issues here, either for bug fixes or fe
 ## Contributing
 You can help contributing to HatBot by forking the repository and creating pull requests in the `dev` branch. Contributions can be in the form of bug fixes, code syntax improvement, and additions to the lines that HatBot can reply with (like when mentionned for example)
 
+For more details check `CONTRIBUTING.md`.
+
 ### License
 This repository is provided for education purposes, and community contributions only. Please do not create personal instances of the bot with this code without explicit written permission from me (Snaptraks#2606 on Discord).
 
