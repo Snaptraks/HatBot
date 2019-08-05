@@ -21,7 +21,7 @@ This repository is provided for education purposes, and community contributions 
 Nevertheless, to run the bot you will need Python 3.7.3 (anything up from 3.5 should work, but all is tested with 3.7.3) and the packages from `requirements.txt`.
 
 ### Running the bot locally
-With all this in mind, to run the bot locally and help with the developpement, you will need a few things. Assuming your Python environment is correctly set up:
+With all this in mind, to run the bot locally and help with the development, you will need a few things. Assuming your Python environment is correctly set up:
 
 1. [Create a bot account](https://discordpy.readthedocs.io/en/latest/discord.html#creating-a-bot-account).
 2. Copy your secret token in a file named `config.py` under `hatbot_token` (see `config.py.example` for more details). The rest of the configuration file is not necessary to run the bot and should not prevent it from running.
