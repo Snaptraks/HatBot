@@ -115,6 +115,7 @@ if __name__ == '__main__':
         'cogs.Dev',
         'cogs.Feesh',
         'cogs.Fun',
+        'cogs.Git',
         'cogs.Info',
         'cogs.Levels',
         'cogs.Moderation',

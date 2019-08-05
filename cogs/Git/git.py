@@ -10,6 +10,6 @@ class Git(BasicCog):
     def __init__(self, bot):
         super().__init__(bot)
 
-    @commands.command()
+    @commands.command(aliases=['github'])
     async def git(self, ctx):
         await ctx.send('https://github.com/Snaptraks/HatBot')
