@@ -104,7 +104,7 @@ class Fun(FunCog):
 
         # If choice is not valid tell the user
         if player_choice not in options_text:
-            await ctx.send('Wait, that''s not a valid move!')
+            await ctx.send('Wait, that\'s not a valid move!')
             return
 
         bot_choice = np.random.randint(0, 3)
