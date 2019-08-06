@@ -99,10 +99,10 @@ class Fun(FunCog):
         options_text: List[str] = ['rock', 'paper', 'scissors']
         options_emoji: List[str] = [':full_moon:', ':newspaper:', ':scissors:']
 
-        "Convert answer to lowercase"
+        # Convert answer to lowercase
         player_choice = player_choice.lower()
 
-        "If choice is not valid tell the user"
+        # If choice is not valid tell the user
         if player_choice not in options_text:
             await ctx.send('Wait, that''s not a valid move!')
             return
@@ -110,8 +110,8 @@ class Fun(FunCog):
         bot_choice = np.random.randint(0, 3)
         await ctx.send('I choose ' + options_text[bot_choice] + '! ' + options_emoji[bot_choice])
 
-        "Now to work out who won"
         if player_choice == options_text[bot_choice]:
+        # Now to work out who won"
             await ctx.send('It''s a draw!')
 
         player_win_message = 'You won! :cry:'
