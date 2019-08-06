@@ -3,6 +3,7 @@ import asyncio
 from discord.ext import commands
 import numpy as np
 import json
+import random
 
 from PIL import Image
 import requests
