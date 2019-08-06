@@ -95,7 +95,8 @@ class Fun(FunCog):
 
     @commands.command()
     async def rps(self, ctx, player_choice):
-        """Plays Rock Paper Scissors with you."""
+        """Plays Rock Paper Scissors with you.
+        Contributed by danjono#8310!"""
         options_text: List[str] = ['rock', 'paper', 'scissors']
         options_emoji: List[str] = [':full_moon:', ':newspaper:', ':scissors:']
 
