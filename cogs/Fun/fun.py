@@ -97,7 +97,7 @@ class Fun(FunCog):
     async def rps(self, ctx, player_choice):
         """Plays Rock Paper Scissors with you."""
         options_text: List[str] = ['rock', 'paper', 'scissors']
-        options_emoji = [':full_moon:', ':newspaper:', ':scissors:']
+        options_emoji: List[str] = [':full_moon:', ':newspaper:', ':scissors:']
 
         "Convert answer to lowercase"
         player_choice = player_choice.lower()
