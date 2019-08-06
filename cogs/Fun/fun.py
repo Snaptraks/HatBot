@@ -107,25 +107,26 @@ class Fun(FunCog):
             await ctx.send('Wait, that\'s not a valid move!')
             return
 
-        bot_choice = np.random.randint(0, 3)
-        await ctx.send('I choose ' + options_text[bot_choice] + '! ' + options_emoji[bot_choice])
+        i = np.random.randint(3)
+        bot_choice = options_text[i]
+        await ctx.send('I choose ' + bot_choice + '! ' + options_emoji[i])
 
-        if player_choice == options_text[bot_choice]:
         # Now to work out who won"
+        if player_choice == bot_choice:
             await ctx.send('It''s a draw!')
 
         player_win_message = 'You won! :cry:'
         bot_win_message = 'You lose! :stuck_out_tongue_closed_eyes:'
 
-        if (player_choice == 'rock') and (options_text[bot_choice] == 'scissors'):
+        if (player_choice == 'rock') and (bot_choice == 'scissors'):
             await ctx.send(player_win_message)
-        elif (player_choice == 'rock') and (options_text[bot_choice] == 'paper'):
+        elif (player_choice == 'rock') and (bot_choice == 'paper'):
             await ctx.send(bot_win_message)
-        elif (player_choice == 'paper') and (options_text[bot_choice] == 'rock'):
+        elif (player_choice == 'paper') and (bot_choice == 'rock'):
             await ctx.send(player_win_message)
-        elif (player_choice == 'paper') and (options_text[bot_choice] == 'scissors'):
+        elif (player_choice == 'paper') and (bot_choice == 'scissors'):
             await ctx.send(bot_win_message)
-        elif (player_choice == 'scissors') and (options_text[bot_choice] == 'paper'):
+        elif (player_choice == 'scissors') and (bot_choice == 'paper'):
             await ctx.send(player_win_message)
-        elif (player_choice == 'scissors') and (options_text[bot_choice] == 'rock'):
+        elif (player_choice == 'scissors') and (bot_choice == 'rock'):
             await ctx.send(bot_win_message)
