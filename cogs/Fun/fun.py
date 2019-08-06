@@ -3,7 +3,6 @@ import asyncio
 from discord.ext import commands
 import numpy as np
 import json
-import random
 
 from PIL import Image
 import requests
@@ -108,11 +107,11 @@ class Fun(FunCog):
             await ctx.send('Wait, that''s not a valid move!')
             return
 
-        bot_choice = random.randint(0, 2)
+        bot_choice = np.random.randint(0, 2)
         await ctx.send('I choose ' + options_text[bot_choice] + '! ' + options_emoji[bot_choice])
 
         "Now to work out who won"
-        if player_choice is options_text[bot_choice]:
+        if player_choice == options_text[bot_choice]:
             await ctx.send('It''s a draw!')
 
         player_win_message = 'You won! :smile:'
