@@ -92,3 +92,42 @@ class Fun(FunCog):
             new.save('cogs/Fun/8ball/magic_8ball_avatar.png')
             img = discord.File('cogs/Fun/8ball/magic_8ball_avatar.png')
             await ctx.send(file=img)
+
+    @commands.command()
+    async def rps(self, ctx, player_choice):
+        """Plays Rock Paper Scissors with you.
+        Contributed by danjono#8310!"""
+        options_text: List[str] = ['rock', 'paper', 'scissors']
+        options_emoji: List[str] = [':full_moon:', ':newspaper:', ':scissors:']
+
+        # Convert answer to lowercase
+        player_choice = player_choice.lower()
+
+        # If choice is not valid tell the user
+        if player_choice not in options_text:
+            await ctx.send('Wait, that\'s not a valid move!')
+            return
+
+        i = np.random.randint(3)
+        bot_choice = options_text[i]
+        await ctx.send('I choose ' + bot_choice + '! ' + options_emoji[i])
+
+        # Now to work out who won"
+        if player_choice == bot_choice:
+            await ctx.send('It''s a draw!')
+
+        player_win_message = 'You won! :cry:'
+        bot_win_message = 'You lose! :stuck_out_tongue_closed_eyes:'
+
+        if (player_choice == 'rock') and (bot_choice == 'scissors'):
+            await ctx.send(player_win_message)
+        elif (player_choice == 'rock') and (bot_choice == 'paper'):
+            await ctx.send(bot_win_message)
+        elif (player_choice == 'paper') and (bot_choice == 'rock'):
+            await ctx.send(player_win_message)
+        elif (player_choice == 'paper') and (bot_choice == 'scissors'):
+            await ctx.send(bot_win_message)
+        elif (player_choice == 'scissors') and (bot_choice == 'paper'):
+            await ctx.send(player_win_message)
+        elif (player_choice == 'scissors') and (bot_choice == 'rock'):
+            await ctx.send(bot_win_message)
