@@ -94,7 +94,7 @@ class Fun(FunCog):
             await ctx.send(file=img)
 
     @commands.command()
-    async def rps(self, ctx, player_choice):
+    async def rps(self, ctx, player_choice=''):
         """Plays Rock Paper Scissors with you.
         Contributed by danjono#8310!"""
         options_text: List[str] = ['rock', 'paper', 'scissors']
