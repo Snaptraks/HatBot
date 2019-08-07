@@ -103,23 +103,21 @@ class Fun(FunCog):
         # Convert answer to lowercase
         player_choice = player_choice.lower()
 
-        # If choice is not valid tell the user
-        if player_choice not in options_text:
-            await ctx.send('Wait, that\'s not a valid move!')
-            return
-
+        # Give the bot a random choice
         i = np.random.randint(3)
         bot_choice = options_text[i]
-        await ctx.send('I choose ' + bot_choice + '! ' + options_emoji[i])
+        bot_choice_message = 'I choose ' + bot_choice + '! ' + options_emoji[i]
 
-        # Now to work out who won"
-        if player_choice == bot_choice:
-            await ctx.send('It''s a draw!')
+        if player_choice in options_text:
+            await ctx.send(bot_choice_message)
 
         player_win_message = 'You won! :cry:'
         bot_win_message = 'You lose! :stuck_out_tongue_closed_eyes:'
 
-        if (player_choice == 'rock') and (bot_choice == 'scissors'):
+        # Now to work out who won"
+        if player_choice == bot_choice:
+            await ctx.send('It\'s a draw!')
+        elif (player_choice == 'rock') and (bot_choice == 'scissors'):
             await ctx.send(player_win_message)
         elif (player_choice == 'rock') and (bot_choice == 'paper'):
             await ctx.send(bot_win_message)
@@ -131,3 +129,13 @@ class Fun(FunCog):
             await ctx.send(player_win_message)
         elif (player_choice == 'scissors') and (bot_choice == 'rock'):
             await ctx.send(bot_win_message)
+        # Easter eggs!
+        elif player_choice == 'spock':
+            await ctx.send('Live long and prosper :vulcan:')
+        elif player_choice == 'dynamite' or player_choice == 'tnt':
+            await ctx.send(bot_choice_message)
+            await ctx.send('No wait that\'s cheati.. :fire: :fire: :fire:')
+        elif player_choice == 'lizard':
+            await ctx.send(':lizard:')
+        else:
+            await ctx.send('Wait, that\'s not a valid move!')
