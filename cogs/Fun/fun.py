@@ -93,7 +93,7 @@ class Fun(FunCog):
             img = discord.File('cogs/Fun/8ball/magic_8ball_avatar.png')
             await ctx.send(file=img)
 
-    @commands.command()
+    @commands.command(aliases=['rockpaperscissors'])
     async def rps(self, ctx, player_choice=''):
         """Plays Rock Paper Scissors with you.
         Contributed by danjono#8310!"""
