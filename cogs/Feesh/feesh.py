@@ -23,7 +23,10 @@ class Feesh(FunCog):
 
     def __init__(self, bot):
         super().__init__(bot)
-        self.stats = pkl_load(FEESH_STATS)
+        try:
+            self.stats = pkl_load(FEESH_STATS)
+        except FileNotFoundError:
+            self.stats = {'members': {}, 'total': 0}
 
         # Tasks
         self.remove_tasks = {}
