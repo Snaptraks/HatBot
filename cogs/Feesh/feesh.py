@@ -528,7 +528,7 @@ class Feesh(FunCog):
                     # if the member was not found, for some reason
                     pass
 
-        out_str = f'member(s) with {amount} {self.feesh_emoji}:\n'
+        out_str = f'Member(s) with {amount} {self.feesh_emoji}:\n'
         out_str += '```\n' + '\n'.join(sorted(who)) + '\n```'
         await ctx.send(out_str)
 
