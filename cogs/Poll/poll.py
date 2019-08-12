@@ -4,7 +4,6 @@ import asyncio
 import matplotlib.pyplot as plt
 import numpy as np
 import json
-import aiohttp
 
 from ..utils.cog import BasicCog
 
@@ -15,12 +14,6 @@ class Poll(BasicCog):
 
         # https://en.wikipedia.org/wiki/Regional_Indicator_Symbol#Unicode_block
         self.emojiLetters = [chr(i) for i in range(0x1F1E6, 0x1F200)]
-
-        self.http_session = aiohttp.ClientSession()
-
-    def cog_unload(self):
-        super().cog_unload()
-        self.bot.loop.create_task(self.http_session.close())
 
     @commands.command()
     async def poll(self, ctx):
@@ -172,7 +165,7 @@ class Poll(BasicCog):
             data = {"title": title,
                     "options": option[:(len(option) - 1)],
                     "multi": "false"}
-            async with self.http_session.post(
+            async with self.bot.http_session.post(
                     'https://www.strawpoll.me/api/v2/polls',
                     data=json.dumps(data),
                     headers={"Content Type": "application/json"}) as resp:
