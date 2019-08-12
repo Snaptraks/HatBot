@@ -228,7 +228,10 @@ class Overwatch(commands.Cog):
                     'If you want to change it, run `!ow register Name#01234`.')
                     )
             else:
-                await ctx.send
+                await ctx.send(
+                    ('I do not have your BattleTag. If you want to '
+                    'register it, run `!ow register Name#01234`.')
+                    )
         else:
             raise error
 
