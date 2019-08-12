@@ -11,8 +11,8 @@ import numpy as np
 import pickle
 from PIL import Image
 import re
-import requests
 
+import aiohttp
 import discord
 from discord.ext import commands
 
@@ -153,10 +153,11 @@ class Overwatch(commands.Cog):
             self.voice_lines['Kills'] + \
             self.voice_lines['Ultimate']
         vl = np.random.choice(vl)
+        # gif_url = await self.random_gif('overwatch zenyatta')
+        gif_url = await self.random_gif('overwatch')
         out_str = (
             f'{vl} {member.display_name} is {_ing}, join the fight.\n'
-            # f'{random_gif("overwatch zenyatta")}'
-            f'{random_gif("overwatch")}'
+            f'{gif_url}'
             )
 
         await channel.send(out_str)
@@ -187,25 +188,26 @@ class Overwatch(commands.Cog):
                 'battletag': battletag.replace('#', '-'),
                 'heroes': '',
                 }
-            r = requests.get(self.api_url.format(**payload))
-            try:
-                r.raise_for_status()
-            except requests.exceptions.HTTPError as e:
-                # this is raised only if the status code is 4xx or 5xx
-                if r.status_code < 500:  # is a 4xx error code
-                    out_str = (
-                        'Could not find that BattleTag. '
-                        'Make sure you entered it correctly.'
-                        )
-                else:  # is a 5xx error code
-                    out_str = (
-                        'Something went wrong but the BattleTag '
-                        'seemed correct. I registered it anyway.'
-                        )
+            async with self.bot.http_session.get(
+                    self.api_url.format(**payload)) as resp:
+                try:
+                    resp.raise_for_status()
+                except aiohttp.ClientResponseError as e:
+                    # this is raised only if the status code is 4xx or 5xx
+                    if resp.status < 500:  # is a 4xx error code
+                        out_str = (
+                            'Could not find that BattleTag. '
+                            'Make sure you entered it correctly.'
+                            )
+                    else:  # is a 5xx error code
+                        out_str = (
+                            'Something went wrong but the BattleTag '
+                            'seemed correct. I registered it anyway.'
+                            )
+                        self.battletags[ctx.author.id] = battletag
+                else:
+                    out_str = 'BattleTag registered successfully! Thank you!'
                     self.battletags[ctx.author.id] = battletag
-            else:
-                out_str = 'BattleTag registered successfully! Thank you!'
-                self.battletags[ctx.author.id] = battletag
 
             with open('cogs/Overwatch/battletags.pkl', 'wb') as f:
                 pickle.dump(self.battletags, f)
@@ -254,27 +256,29 @@ class Overwatch(commands.Cog):
             'heroes': hero,
             }
 
-        r = requests.get(self.api_url.format(**payload))
-        try:
-            r.raise_for_status()
-        except requests.exceptions.HTTPError as e:
-            await ctx.send(f':warning: Error code {r.status_code}.')
-            raise e
+        async with self.bot.http_session.get(
+                self.api_url.format(**payload)) as resp:
+            try:
+                resp.raise_for_status()
+            except aiohttp.ClientResponseError as e:
+                await ctx.send(f':warning: Error code {resp.status}.')
+                raise e
 
-        data = r.json()
-        with open('cogs/Overwatch/data.json', 'w') as f:
-            # for debugging
-            json.dump(data, f, indent=2, sort_keys=True)
-        data = AttrDict.from_nested_dict(data)
+            data = await resp.json()
+            with open('cogs/Overwatch/data.json', 'w') as f:
+                # for debugging
+                json.dump(data, f, indent=2, sort_keys=True)
+            data = AttrDict.from_nested_dict(data)
 
         imgs = ['icon', 'levelIcon']
         if data['prestige'] % 6 != 0:
             imgs.append('prestigeIcon')
         for img in imgs:
-            img_r = requests.get(data[img].strip())  # remove possible spaces
-            if img_r.status_code == 200:
-                with open(f'cogs/Overwatch/{img}.png', 'wb') as f:
-                    f.write(img_r.content)
+            async with self.bot.http_session.get(
+                    data[img].strip()) as resp:  # remove possible spaces
+                if resp.status == 200:
+                    with open(f'cogs/Overwatch/{img}.png', 'wb') as f:
+                        f.write(await resp.content.read())
 
         # load pictures
         icon = Image.open('cogs/Overwatch/icon.png')
@@ -541,24 +545,26 @@ class Overwatch(commands.Cog):
         await self.bot.change_presence(activity=None)
 
 
-def random_gif(query):
-    """Random gifs from Tenor"""
-    query = query.split()
-    if len(query) >= 1:
-        search_random = (
-            f'https://api.tenor.com/v1/random?key={config.tenor_api_key}'
-            f'&q={query}&limit=1&media_filter=basic'
-            )
-        random_request = requests.get(search_random)
-        if random_request.status_code == 200:
-            try:
-                json_random = random_request.json()['results']
-                gif = json_random[0]
-                gif = gif.get('media')
-                gif = gif[0]
-                gif = gif.get('gif')
-                gif = gif.get('url')
-                return gif
-            except Exception:
-                pass
-    return ''
+    async def random_gif(self, query):
+        """Random gifs from Tenor"""
+        query = query.split()
+        if len(query) >= 1:
+            search_random = (
+                f'https://api.tenor.com/v1/random?key={config.tenor_api_key}'
+                f'&q={query}&limit=1&media_filter=basic'
+                )
+            async with self.bot.http_session.get(search_random) as resp:
+                if resp.status == 200:
+                    try:
+                        # json_random = await resp.json()['results']
+                        json_random = await resp.json()
+                        json_random = json_random['results']
+                        gif = json_random[0]
+                        gif = gif.get('media')
+                        gif = gif[0]
+                        gif = gif.get('gif')
+                        gif = gif.get('url')
+                        return gif
+                    except Exception as e:
+                        pass
+        return ''
