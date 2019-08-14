@@ -175,14 +175,15 @@ class Feesh(FunCog):
                     except KeyError:
                         # if the member doesn't have a levels entry, it is 0
                         weights.append(0)
+                weights = np.asarray(weights, dtype='float')
 
             if weights.sum() == 0:
                 # if the sum of the weights is 0, don't use weights
                 # to avoid a division by 0 below.
                 weights = None
             else:
-                # normalize the weights, np.rancom.choice expects the sum to be
-                # 1
+                # normalize the weights, np.rancom.choice expects the
+                # sum to be 1
                 weights /= weights.sum()
 
             if len(members_list) == 0:
