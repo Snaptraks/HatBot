@@ -121,13 +121,17 @@ class Feesh(FunCog):
 
         await self.bot.wait_until_ready()
 
+        cog_level = self.bot.get_cog('Levels')
+
         while not self.bot.is_closed():
 
             t = datetime.now()
             wait = period - (t % period)
             await asyncio.sleep(wait.total_seconds())
 
-            members_list = [m for m in self.guild.members if is_not_offline(m)]
+            # members_list = [m for m in self.guild.members if is_not_offline(m)]
+            # no need to be online if we use Levels
+            members_list = self.guild.members
 
             won = []
             for m in members_list:
@@ -145,19 +149,38 @@ class Feesh(FunCog):
             # PROGRESSIVE WEIGHTS - EXPONENTIAL
             # If the member has the less feesh, give weight of 1 before
             # normalization, with exponential decrease for each more feesh.
+            # UNIFORM WEIGHTS - LEVELS
+            # If the member has a (positive) non-zero amount of exp,
+            # then they have a chance. It is the same for all members
+            # with a valid amount of exp, normalized
 
-            method = 'exponential'
+            method = 'level'
             if method == 'linear':
                 a = np.array([[0, 1], [won.max(), 1]])
                 b = np.array([1, 0.1])
                 x = np.linalg.solve(a, b)
                 w = np.poly1d(x)  # function to give the weights
+                weights = w(won)
             elif method == 'exponential':
-                def w(x):
-                    return np.exp(-(x - won.min()))
-            weights = w(won)
-            weights /= weights.sum()
-            # weights = None
+                weights = np.exp(-(won - won.min()))
+            elif method == 'level':
+                weights = []
+                for m in members_list:
+                    try:
+                        exp = cog_level.data[m.id].exp
+                        # 1 if above 0, 0 if equal to 0, never under 0 anyway
+                        weights.append(np.sign(exp))
+                    except KeyError:
+                        # if the member doesn't have a levels entry, it is 0
+                        weights.append(0)
+
+            if weights.sum() == 0:
+                # if the sum of the weights is 0, don't use weights
+                # to avoid a division by 0 below.
+                weights = None
+            else:
+                # normalize the weights, np.rancom.choice expects the sum to be 1
+                weights /= weights.sum()
 
             if len(members_list) == 0:
                 out_str = ('No one is online, I guess I\'ll have a snack! '
