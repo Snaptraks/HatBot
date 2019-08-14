@@ -76,10 +76,12 @@ class Feesh(FunCog):
                 self.stats['members'][member.id]['is_member'] = True
             except KeyError:
                 # Create new stats entry
-                ustats = {'amount': 0,
-                          'bot_given': 0,
-                          'last_nickname': member.display_name,
-                          'is_member': True}
+                ustats = {
+                    'amount': 0,
+                    'bot_given': 0,
+                    'last_nickname': member.display_name,
+                    'is_member': True,
+                    }
                 self.stats['members'][member.id] = ustats
 
                 pkl_dump(self.stats, FEESH_STATS)
@@ -121,13 +123,17 @@ class Feesh(FunCog):
 
         await self.bot.wait_until_ready()
 
+        cog_level = self.bot.get_cog('Levels')
+
         while not self.bot.is_closed():
 
             t = datetime.now()
             wait = period - (t % period)
             await asyncio.sleep(wait.total_seconds())
 
-            members_list = [m for m in self.guild.members if is_not_offline(m)]
+            # members_list = [m for m in self.guild.members if is_not_offline(m)]
+            # no need to be online if we use Levels
+            members_list = self.guild.members
 
             won = []
             for m in members_list:
@@ -142,38 +148,64 @@ class Feesh(FunCog):
             # normalization), if the member has the most feesh of the members
             # online, the weight is minimal (0.1 before normalization).
             # We solve the matrix system A * x = b.
-            # PROGRESSIVE WEIGTH - EXPONENTIAL
+            # PROGRESSIVE WEIGHTS - EXPONENTIAL
             # If the member has the less feesh, give weight of 1 before
             # normalization, with exponential decrease for each more feesh.
+            # UNIFORM WEIGHTS - LEVELS
+            # If the member has a (positive) non-zero amount of exp,
+            # then they have a chance. It is the same for all members
+            # with a valid amount of exp, normalized
 
-            method = 'exponential'
+            method = 'level'
             if method == 'linear':
                 a = np.array([[0, 1], [won.max(), 1]])
                 b = np.array([1, 0.1])
                 x = np.linalg.solve(a, b)
                 w = np.poly1d(x)  # function to give the weights
+                weights = w(won)
             elif method == 'exponential':
-                def w(x):
-                    return np.exp(-(x - won.min()))
-            weights = w(won)
-            weights /= weights.sum()
-            # weights = None
+                weights = np.exp(-(won - won.min()))
+            elif method == 'level':
+                weights = []
+                for m in members_list:
+                    try:
+                        exp = cog_level.data[m.id].exp
+                        # 1 if above 0, 0 if equal to 0, never under 0 anyway
+                        weights.append(np.sign(exp))
+                    except KeyError:
+                        # if the member doesn't have a levels entry, it is 0
+                        weights.append(0)
+
+            if weights.sum() == 0:
+                # if the sum of the weights is 0, don't use weights
+                # to avoid a division by 0 below.
+                weights = None
+            else:
+                # normalize the weights, np.rancom.choice expects the sum to be
+                # 1
+                weights /= weights.sum()
 
             if len(members_list) == 0:
-                out_str = ('No one is online, I guess I\'ll have a snack! '
-                           ':sushi:')
+                out_str = (
+                    'No one is online, I guess I\'ll have a snack! '
+                    ':sushi:'
+                    )
                 await self.channel_msg.send(out_str)
             else:
                 winner = np.random.choice(members_list, p=weights)
                 out_str = f'{winner.display_name} got a feesh !'
-                out_str = (f'{escape(winner.display_name)} got a '
-                           f'{self.feesh_emoji} !')
+                out_str = (
+                    f'{escape(winner.display_name)} got a '
+                    f'{self.feesh_emoji} !'
+                    )
 
                 # 1337 feesh
                 if self.stats['total'] == 1337 - 1:
-                    out_str = (f'{leet(winner.display_name)} '
-                               f'({winner.display_name}) 607 4 '
-                               f'{self.feesh_emoji}')
+                    out_str = (
+                        f'{leet(winner.display_name)} '
+                        f'({winner.display_name}) 607 4 '
+                        f'{self.feesh_emoji}'
+                        )
 
                 await self.channel_msg.send(out_str)
 
@@ -195,8 +227,10 @@ class Feesh(FunCog):
             except KeyError as e:
                 amount = 0
 
-            out_str = (f'{total} {self.feesh_emoji} were given in total, '
-                       f'{escape(member.display_name)} has {amount}.')
+            out_str = (
+                f'{total} {self.feesh_emoji} were given in total, '
+                f'{escape(member.display_name)} has {amount}.'
+                )
 
             await channel.send(out_str)
 
@@ -225,13 +259,17 @@ class Feesh(FunCog):
                 out_str = 'Nice try.'
 
             elif x - amount < 0:
-                out_str = ('That\'s very nice of you, but you don\'t '
-                           f'have enough {self.feesh_emoji}!')
+                out_str = (
+                    'That\'s very nice of you, but you don\'t '
+                    f'have enough {self.feesh_emoji}!'
+                    )
 
             else:
                 self.feesh_stats(member=member, donor=donor, amount=amount)
-                out_str = (f'You gave {amount} {self.feesh_emoji} to '
-                           f'{escape(member.display_name)}. Yay!')
+                out_str = (
+                    f'You gave {amount} {self.feesh_emoji} to '
+                    f'{escape(member.display_name)}. Yay!'
+                    )
 
         await channel.send(out_str)
 
@@ -259,9 +297,8 @@ class Feesh(FunCog):
                 reaction.emoji in (bomb, cancel)
 
         try:
-            reaction, member = await self.bot.wait_for('reaction_add',
-                                                     check=check,
-                                                     timeout=60)
+            reaction, member = await self.bot.wait_for(
+                'reaction_add', check=check, timeout=60)
         except asyncio.TimeoutError:
             out_str = 'You didn\'t confirm quickly enough, I must cancel.'
             await channel.send(out_str)
@@ -285,8 +322,8 @@ class Feesh(FunCog):
             out_str += feesh_wall().format(self.feesh_emoji)
 
             pm_str = 'You sent a feesh to\n```\n' + \
-                     '\n'.join([m.display_name for m in targets]) +\
-                     '\n```'
+                '\n'.join([m.display_name for m in targets]) + \
+                '\n```'
 
             await author.send(pm_str)
             await channel.send(out_str)
@@ -319,8 +356,10 @@ class Feesh(FunCog):
                     )
 
         plural = 's' if len(top_members) > 1 else ''
-        out_str = (f'Member{plural} with the most {self.feesh_emoji} '
-                   f'(**{top_amount}**):\n')
+        out_str = (
+            f'Member{plural} with the most {self.feesh_emoji} '
+            f'(**{top_amount}**):\n'
+            )
         out_str += '```\n' + '\n'.join(top_members) + '\n```'
 
         await ctx.channel.send(out_str)
@@ -363,8 +402,10 @@ class Feesh(FunCog):
             feesh_diff = feesh_target - feesh_thief
 
             if feesh_target == 0:
-                out_str = (f'That person has no {self.feesh_emoji}, '
-                           f'you can\'t {ctx.invoked_with} from them.')
+                out_str = (
+                    f'That person has no {self.feesh_emoji}, '
+                    f'you can\'t {ctx.invoked_with} from them.'
+                    )
                 await channel.send(out_str)
                 raise ValueError('Target has no feesh')
 
@@ -410,9 +451,7 @@ class Feesh(FunCog):
                             reaction.emoji == self.feesh_emoji
 
                     reaction, member = await self.bot.wait_for(
-                        'reaction_add',
-                        check=check
-                        )
+                        'reaction_add', check=check)
 
                     # take a feesh from thief, give to member
                     out_str = out_str[0] + \
@@ -422,8 +461,10 @@ class Feesh(FunCog):
                     self.feesh_stats(member, donor=thief, amount=1)
 
                 else:
-                    out_str = (f'You failed to {ctx.invoked_with} and '
-                               'got caught! THIEF!')
+                    out_str = (
+                        f'You failed to {ctx.invoked_with} and '
+                        'got caught! THIEF!'
+                        )
                     await channel.send(out_str)
                     try:
                         # change nickname
@@ -446,8 +487,10 @@ class Feesh(FunCog):
 
             else:
                 # steal
-                out_str = (f'You {_ed} a {self.feesh_emoji} from '
-                           f'{escape(target.display_name)}! How could you...')
+                out_str = (
+                    f'You {_ed} a {self.feesh_emoji} from '
+                    f'{escape(target.display_name)}! How could you...'
+                    )
                 await channel.send(out_str)
                 # edit stats
                 self.feesh_stats(thief, donor=target, amount=1)
@@ -491,10 +534,12 @@ class Feesh(FunCog):
         ax.set_ylabel('Number of members')
         fig.suptitle(f'Total: {total} feesh')
 
-        annotation = (f'Average: {np.mean(won):>5.2f}\n'
-                      f'Median: {np.median(won):>6.1f}\n'
-                      f'Mode: {max(set(won), key=list(won).count):>7d}\n'
-                      fr'$\sigma$: {np.std(won):>5.2f}')
+        annotation = (
+            f'Average: {np.mean(won):>5.2f}\n'
+            f'Median: {np.median(won):>6.1f}\n'
+            f'Mode: {max(set(won), key=list(won).count):>7d}\n'
+            fr'$\sigma$: {np.std(won):>5.2f}'
+            )
 
         ax.annotate(annotation, xy=(0.98, 0.97), xycoords='axes fraction',
                     size=14, ha='right', va='top',
@@ -505,8 +550,10 @@ class Feesh(FunCog):
 
         fig.savefig('cogs/Feesh/feesh_stats.png')
         plt.close(fig)
-        out_str = (f'{escape(member.display_name)} has {member_amount} '
-                   f'{self.feesh_emoji}.')
+        out_str = (
+            f'{escape(member.display_name)} has {member_amount} '
+            f'{self.feesh_emoji}.'
+            )
         img = discord.File('cogs/Feesh/feesh_stats.png')
         await ctx.send(out_str, file=img)
 
@@ -528,7 +575,7 @@ class Feesh(FunCog):
                     # if the member was not found, for some reason
                     pass
 
-        out_str = f'member(s) with {amount} {self.feesh_emoji}:\n'
+        out_str = f'Member(s) with {amount} {self.feesh_emoji}:\n'
         out_str += '```\n' + '\n'.join(sorted(who)) + '\n```'
         await ctx.send(out_str)
 
@@ -564,8 +611,10 @@ class Feesh(FunCog):
                 # hours
                 retry_after = '{:.0f} hour(s)'.format(error.retry_after / 3600)
 
-            out_str = (f'You have already tried to {ctx.invoked_with} today, '
-                       f'wait for {retry_after}.')
+            out_str = (
+                f'You have already tried to {ctx.invoked_with} today, '
+                f'wait for {retry_after}.'
+                )
 
             await ctx.author.send(out_str)
 
@@ -595,10 +644,12 @@ class Feesh(FunCog):
             self.stats['members'][mid]['amount'] += amount
             self.stats['members'][mid]['last_nickname'] = member.display_name
         except KeyError as e:
-            ustats = {'amount': amount,
-                      'bot_given': 0,
-                      'last_nickname': member.display_name,
-                      'is_member': True}
+            ustats = {
+                'amount': amount,
+                'bot_given': 0,
+                'last_nickname': member.display_name,
+                'is_member': True
+                }
             self.stats['members'][mid] = ustats
 
         if donor is None:  # Bot gives a feesh

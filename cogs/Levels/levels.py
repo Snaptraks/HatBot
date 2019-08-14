@@ -1,7 +1,5 @@
 import asyncio
-from datetime import datetime, timedelta
 import logging
-import json
 import pickle
 
 import discord

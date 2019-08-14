@@ -1,6 +1,4 @@
-import discord
 import asyncio
-import aiohttp
 import json
 import logging
 import pickle
@@ -8,6 +6,8 @@ import platform
 import sys
 import time
 
+import aiohttp
+import discord
 from discord.ext.commands import Bot
 from discord.ext import commands
 import numpy as np
@@ -30,6 +30,12 @@ handler.setFormatter(logging.Formatter(
 logger.addHandler(handler)
 
 
+async def create_http_session(loop):
+    """Creates an async HTTP session. Required to be from an async function
+    by aiohttp 3.5.4"""
+    return aiohttp.ClientSession(loop=loop)
+
+
 class MyBot(Bot):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -37,6 +43,15 @@ class MyBot(Bot):
         # background tasks
         game_period = timedelta(hours=1)
         self.bg_game = self.loop.create_task(self.change_game(game_period))
+
+        # Create HTTP session
+        self.http_session = self.loop.run_until_complete(
+            create_http_session(self.loop))
+
+    async def close(self):
+        """Subclasses the close() method to close the HTTP Session."""
+        await self.http_session.close()
+        await super().close()
 
     async def on_ready(self):
         print('Logged in as ' +

@@ -5,7 +5,6 @@ import numpy as np
 import json
 
 from PIL import Image
-import requests
 
 from ..utils.cog import FunCog
 
@@ -70,21 +69,21 @@ class Fun(FunCog):
 
             avatar_url = member.avatar_url_as(format='png')
 
-            Picture_request = requests.get(avatar_url)
-            if Picture_request.status_code == 200:
-                with open('cogs/Fun/8ball/avatar.png', 'wb') as f:
-                    f.write(Picture_request.content)
+            async with self.bot.http_session.get(str(avatar_url)) as resp:
+                if resp.status == 200:
+                    with open('cogs/Fun/8ball/avatar.png', 'wb') as f:
+                        f.write(await resp.content.read())
 
             # needed files
             avatar = Image.open('cogs/Fun/8ball/avatar.png')
             template = Image.open('cogs/Fun/8ball/magic_8ball_filter.png')
             new = Image.new('RGBA', template.size)
 
-            # big one
+            # big profile picture
             big = avatar.resize((375, 375), Image.ANTIALIAS)
             new.paste(big, (349, 70))
 
-            # small one
+            # small profile picture
             small = avatar.resize((204, 204), Image.ANTIALIAS)
             new.paste(small, (105, 301))
 
