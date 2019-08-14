@@ -142,7 +142,7 @@ class Feesh(FunCog):
             # normalization), if the member has the most feesh of the members
             # online, the weight is minimal (0.1 before normalization).
             # We solve the matrix system A * x = b.
-            # PROGRESSIVE WEIGTH - EXPONENTIAL
+            # PROGRESSIVE WEIGHTS - EXPONENTIAL
             # If the member has the less feesh, give weight of 1 before
             # normalization, with exponential decrease for each more feesh.
 
