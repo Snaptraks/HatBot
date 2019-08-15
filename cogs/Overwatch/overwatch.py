@@ -171,8 +171,8 @@ class Overwatch(commands.Cog):
         if ctx.invoked_subcommand is None:
             await ctx.send('Unknown subcommand.')
 
-    @overwatch.command()
-    async def register(self, ctx, battletag):
+    @overwatch.command(name='register')
+    async def overwatch_register(self, ctx, battletag):
         """Links the Discord User to their BattleTag."""
         # check if the provided BattleTag is in the right format
         valid = re.match(r'.*?#\d{4,5}', battletag)
@@ -214,7 +214,7 @@ class Overwatch(commands.Cog):
 
         await ctx.send(out_str)
 
-    @register.error
+    @overwatch_register.error
     async def register_error(self, ctx, error):
         if isinstance(error, commands.MissingRequiredArgument):
             try:
@@ -327,8 +327,8 @@ class Overwatch(commands.Cog):
         e.set_thumbnail(url='attachment://full.png')
         return data, e
 
-    @overwatch.command()
-    async def profile(self, ctx, member: discord.Member = None):
+    @overwatch.command(name='profile')
+    async def overwatch_profile(self, ctx, member: discord.Member = None):
         if member is None:
             member = ctx.author
 
@@ -357,8 +357,8 @@ class Overwatch(commands.Cog):
 
         await ctx.send(embed=e, file=discord.File('cogs/Overwatch/full.png'))
 
-    @overwatch.command()
-    async def quickplay(self, ctx, member: discord.Member = None):
+    @overwatch.command(name='quickplay')
+    async def overwatch_quickplay(self, ctx, member: discord.Member = None):
         if member is None:
             member = ctx.author
 
@@ -428,8 +428,8 @@ class Overwatch(commands.Cog):
 
         await ctx.send(embed=e, file=discord.File('cogs/Overwatch/full.png'))
 
-    @overwatch.command()
-    async def competitive(self, ctx, member: discord.Member = None):
+    @overwatch.command(name='competitive')
+    async def overwatch_competitive(self, ctx, member: discord.Member = None):
         if member is None:
             member = ctx.author
 
@@ -499,8 +499,8 @@ class Overwatch(commands.Cog):
 
         await ctx.send(embed=e, file=discord.File('cogs/Overwatch/full.png'))
 
-    @overwatch.command()
-    async def hero(self, ctx, member, hero=''):
+    @overwatch.command(name='hero')
+    async def overwatch_hero(self, ctx, member, hero=''):
         # try to see if first member is a discord.Member
         try:
             converter = commands.MemberConverter()
