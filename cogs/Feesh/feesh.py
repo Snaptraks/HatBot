@@ -15,7 +15,7 @@ from datetime import timedelta
 from ..utils.cog import FunCog
 
 
-FEESH_STATS = 'cogs/Feesh/feesh_stats.pkl'
+FEESH_DATA_FILE = 'cogs/Feesh/feesh_data.pkl'
 
 
 class Feesh(FunCog):
@@ -24,9 +24,9 @@ class Feesh(FunCog):
     def __init__(self, bot):
         super().__init__(bot)
         try:
-            self.stats = pkl_load(FEESH_STATS)
+            self.data = pkl_load(FEESH_DATA_FILE)
         except FileNotFoundError:
-            self.stats = {'members': {}, 'total': 0}
+            self.data = {'members': {}, 'total': 0}
 
         # Tasks
         self.remove_tasks = {}
@@ -73,7 +73,7 @@ class Feesh(FunCog):
             # The member has no removal tasks, check if he joined before
             try:
                 # Mark member as in guild again
-                self.stats['members'][member.id]['is_member'] = True
+                self.data['members'][member.id]['is_member'] = True
             except KeyError:
                 # Create new stats entry
                 ustats = {
@@ -82,9 +82,9 @@ class Feesh(FunCog):
                     'last_nickname': member.display_name,
                     'is_member': True,
                     }
-                self.stats['members'][member.id] = ustats
+                self.data['members'][member.id] = ustats
 
-                pkl_dump(self.stats, FEESH_STATS)
+                pkl_dump(self.data, FEESH_DATA_FILE)
 
     @commands.Cog.listener()
     async def on_member_remove(self, member):
@@ -100,9 +100,9 @@ class Feesh(FunCog):
             print(f'{member} left. Waiting 24 hours.')
             await asyncio.sleep(24 * 3600)  # sleep for 24 hours
 
-            amount = self.stats['members'][member.id]['amount']
-            self.stats['members'][member.id]['is_member'] = False
-            self.feesh_stats(self.bot.user, member, amount=amount)
+            amount = self.data['members'][member.id]['amount']
+            self.data['members'][member.id]['is_member'] = False
+            self.transfer_feesh(self.bot.user, member, amount=amount)
 
         except KeyError:
             print('member did not have feesh entry.')
@@ -138,7 +138,7 @@ class Feesh(FunCog):
             won = []
             for m in members_list:
                 try:
-                    won.append(self.stats['members'][m.id]['bot_given'])
+                    won.append(self.data['members'][m.id]['bot_given'])
                 except KeyError as e:
                     won.append(0)
             won = np.asarray(won)
@@ -175,14 +175,15 @@ class Feesh(FunCog):
                     except KeyError:
                         # if the member doesn't have a levels entry, it is 0
                         weights.append(0)
+                weights = np.asarray(weights, dtype='float')
 
             if weights.sum() == 0:
                 # if the sum of the weights is 0, don't use weights
                 # to avoid a division by 0 below.
                 weights = None
             else:
-                # normalize the weights, np.rancom.choice expects the sum to be
-                # 1
+                # normalize the weights, np.rancom.choice expects the
+                # sum to be 1
                 weights /= weights.sum()
 
             if len(members_list) == 0:
@@ -200,7 +201,7 @@ class Feesh(FunCog):
                     )
 
                 # 1337 feesh
-                if self.stats['total'] == 1337 - 1:
+                if self.data['total'] == 1337 - 1:
                     out_str = (
                         f'{leet(winner.display_name)} '
                         f'({winner.display_name}) 607 4 '
@@ -210,7 +211,7 @@ class Feesh(FunCog):
                 await self.channel_msg.send(out_str)
 
                 # statistics
-                self.feesh_stats(member=winner, amount=1)
+                self.transfer_feesh(member=winner, amount=1)
 
     @commands.group()
     async def feesh(self, ctx):
@@ -220,10 +221,10 @@ class Feesh(FunCog):
             member = ctx.author
             channel = ctx.channel
 
-            total = self.stats['total']
+            total = self.data['total']
 
             try:
-                amount = self.stats['members'][member.id]['amount']
+                amount = self.data['members'][member.id]['amount']
             except KeyError as e:
                 amount = 0
 
@@ -235,7 +236,7 @@ class Feesh(FunCog):
             await channel.send(out_str)
 
     @feesh.command(name='give')
-    async def _give(self, ctx, member: discord.Member, amount=1):
+    async def feesh_give(self, ctx, member: discord.Member, amount=1):
         """Give a feesh from your feesh to a member."""
         donor = ctx.author
         guild = ctx.guild
@@ -250,7 +251,7 @@ class Feesh(FunCog):
 
         else:  # It is valid:
             try:
-                x = self.stats['members'][donor.id]['amount']
+                x = self.data['members'][donor.id]['amount']
 
             except KeyError:
                 x = 0
@@ -265,7 +266,7 @@ class Feesh(FunCog):
                     )
 
             else:
-                self.feesh_stats(member=member, donor=donor, amount=amount)
+                self.transfer_feesh(member=member, donor=donor, amount=amount)
                 out_str = (
                     f'You gave {amount} {self.feesh_emoji} to '
                     f'{escape(member.display_name)}. Yay!'
@@ -274,7 +275,7 @@ class Feesh(FunCog):
         await channel.send(out_str)
 
     @feesh.command(name='bomb', hidden=True, aliases=['yeet'])
-    async def _bomb(self, ctx):
+    async def feesh_bomb(self, ctx):
         """Sends all your feesh to random online members (1 per member)."""
 
         bomb = '\U0001F4A3'  # bomb
@@ -283,7 +284,7 @@ class Feesh(FunCog):
         channel = ctx.channel
         message = ctx.message
 
-        if self.stats['members'][author.id]['amount'] == 0:
+        if self.data['members'][author.id]['amount'] == 0:
             out_str = f'You have no {self.feesh_emoji} though.'
             await channel.send(out_str)
             return
@@ -313,7 +314,7 @@ class Feesh(FunCog):
             await channel.send(out_str)
 
         elif reaction.emoji == bomb:
-            amount = self.stats['members'][author.id]['amount']
+            amount = self.data['members'][author.id]['amount']
             amount = min(amount, len(members_list))
             targets = np.random.choice(
                 members_list, size=amount, replace=False)
@@ -329,17 +330,17 @@ class Feesh(FunCog):
             await channel.send(out_str)
 
             for member in targets:
-                self.feesh_stats(member=member, donor=author, amount=1)
+                self.transfer_feesh(member=member, donor=author, amount=1)
 
     @feesh.command(name='top')
-    async def _top(self, ctx):
+    async def feesh_top(self, ctx):
         """Displays the member(s) with the most feesh."""
 
         L = []
-        for x in self.stats['members']:
+        for x in self.data['members']:
             if x == 460499306223239188:
                 continue  # Exclude HatBot
-            L.append((x, self.stats['members'][x]['amount']))
+            L.append((x, self.data['members'][x]['amount']))
 
         L = np.array(L, dtype=[('ID', '<i8'), ('amount', '<i8'), ])
         top_amount = L['amount'].max()
@@ -352,7 +353,7 @@ class Feesh(FunCog):
                 top_members.append(member.display_name)
             else:
                 top_members.append(
-                    self.stats['members'][u['ID']]['last_nickname']
+                    self.data['members'][u['ID']]['last_nickname']
                     )
 
         plural = 's' if len(top_members) > 1 else ''
@@ -366,7 +367,7 @@ class Feesh(FunCog):
 
     @commands.cooldown(1, 24 * 3600, commands.BucketType.member)
     @feesh.command(name='steal', hidden=True, aliases=['yoink'])
-    async def _steal(self, ctx, target: discord.Member):
+    async def feesh_steal(self, ctx, target: discord.Member):
         """Attempts to steal a feesh from a given member.
         This is a secret command! Shhhhhhhhh..."""
 
@@ -397,8 +398,8 @@ class Feesh(FunCog):
             t = 2.5 * r + 0.5  # [0.5, 2)
             await asyncio.sleep(t)
 
-            feesh_thief = self.stats['members'][thief.id]['amount']
-            feesh_target = self.stats['members'][target.id]['amount']
+            feesh_thief = self.data['members'][thief.id]['amount']
+            feesh_target = self.data['members'][target.id]['amount']
             feesh_diff = feesh_target - feesh_thief
 
             if feesh_target == 0:
@@ -458,7 +459,7 @@ class Feesh(FunCog):
                         f'{escape(member.display_name)} took it!'
                     await msg.edit(content=out_str)
                     # edit stats
-                    self.feesh_stats(member, donor=thief, amount=1)
+                    self.transfer_feesh(member, donor=thief, amount=1)
 
                 else:
                     out_str = (
@@ -493,10 +494,10 @@ class Feesh(FunCog):
                     )
                 await channel.send(out_str)
                 # edit stats
-                self.feesh_stats(thief, donor=target, amount=1)
+                self.transfer_feesh(thief, donor=target, amount=1)
 
     @feesh.command(name='stats')
-    async def _stats(self, ctx, member: discord.Member = None):
+    async def feesh_stats(self, ctx, member: discord.Member = None):
         """Generates a plot of the feesh distribution."""
         await ctx.trigger_typing()
 
@@ -505,7 +506,7 @@ class Feesh(FunCog):
 
         fig, ax = plt.subplots()
 
-        members = self.stats['members']
+        members = self.data['members']
         won = []
         for u in members:
             if (members[u]['amount'] != 0 or
@@ -515,7 +516,7 @@ class Feesh(FunCog):
                     continue  # Exclude HatBot
                 won.append(members[u]['amount'])
         won = np.asarray(won)
-        total = self.stats['total']
+        total = self.data['total']
 
         d = np.diff(np.unique(won)).min()
         l = won.min() - d / 2
@@ -558,13 +559,13 @@ class Feesh(FunCog):
         await ctx.send(out_str, file=img)
 
     @feesh.command(name='whohas')
-    async def _whohas(self, ctx, amount: int):
+    async def feesh_whohas(self, ctx, amount: int):
         """Returns the member(s) with the amount of feesh asked."""
         await ctx.trigger_typing()
         if amount < 0:
             raise commands.BadArgument('amount needs to be positive.')
 
-        members = self.stats['members']
+        members = self.data['members']
         who = []
         for u in members:
             if members[u]['amount'] == amount:
@@ -579,23 +580,25 @@ class Feesh(FunCog):
         out_str += '```\n' + '\n'.join(sorted(who)) + '\n```'
         await ctx.send(out_str)
 
-    @_give.error
-    @_stats.error
+    @feesh_give.error
+    @feesh_stats.error
     async def feesh_error(self, ctx, error):
         """Error handling for feesh subcommands."""
         if isinstance(error, commands.BadArgument):
             await ctx.send('Unknown member! :dizzy_face:')
+        elif isinstance(error, commands.MissingRequiredArgument):
+            await ctx.send('You need to target someone!')
         else:
             raise error
 
-    @_whohas.error
+    @feesh_whohas.error
     async def feesh_whohas_error(self, ctx, error):
         if isinstance(error, commands.BadArgument):
             await ctx.send('The amount needs to be a positive whole number.')
         else:
             raise error
 
-    @_steal.error
+    @feesh_steal.error
     async def feesh_steal_error(self, ctx, error):
         """Error handling for the feesh steal subcommand."""
         if isinstance(error, commands.CommandOnCooldown):
@@ -636,13 +639,13 @@ class Feesh(FunCog):
             bucket = ctx.command._buckets.get_bucket(ctx)
             bucket._tokens += 1
 
-    def feesh_stats(self, member, donor=None, amount=1):
+    def transfer_feesh(self, member, donor=None, amount=1):
         # TODO: change name to something better
         # Give feesh to member
         mid = member.id
         try:
-            self.stats['members'][mid]['amount'] += amount
-            self.stats['members'][mid]['last_nickname'] = member.display_name
+            self.data['members'][mid]['amount'] += amount
+            self.data['members'][mid]['last_nickname'] = member.display_name
         except KeyError as e:
             ustats = {
                 'amount': amount,
@@ -650,40 +653,40 @@ class Feesh(FunCog):
                 'last_nickname': member.display_name,
                 'is_member': True
                 }
-            self.stats['members'][mid] = ustats
+            self.data['members'][mid] = ustats
 
         if donor is None:  # Bot gives a feesh
-            self.stats['total'] += amount
-            self.stats['members'][mid]['bot_given'] += amount
+            self.data['total'] += amount
+            self.data['members'][mid]['bot_given'] += amount
 
         else:  # Takes feesh from the donor (if it is not the Bot)
             did = donor.id
-            self.stats['members'][did]['amount'] -= amount
-            self.stats['members'][did]['last_nickname'] = donor.display_name
+            self.data['members'][did]['amount'] -= amount
+            self.data['members'][did]['last_nickname'] = donor.display_name
 
-        pkl_dump(self.stats, FEESH_STATS)
+        pkl_dump(self.data, FEESH_DATA_FILE)
 
     @commands.command()
     @commands.has_permissions(administrator=True)
     async def collect_feesh(self, ctx):
         """Give the feesh from members that left to the bot."""
         n = 0
-        for id in self.stats['members'].keys():
-            if self.stats['members'][id]['is_member']:
+        for id in self.data['members'].keys():
+            if self.data['members'][id]['is_member']:
                 member = discord.utils.get(self.guild.members, id=id)
                 if member is None:
-                    amount = self.stats['members'][id]['amount']
-                    print(self.stats['members'][id]['last_nickname'], 'left',
+                    amount = self.data['members'][id]['amount']
+                    print(self.data['members'][id]['last_nickname'], 'left',
                           amount, 'feesh.')
                     n += amount
 
-                    self.stats['members'][self.bot.user.id]['amount'] += amount
-                    self.stats['members'][id]['amount'] = 0
-                    self.stats['members'][id]['is_member'] = False
+                    self.data['members'][self.bot.user.id]['amount'] += amount
+                    self.data['members'][id]['amount'] = 0
+                    self.data['members'][id]['is_member'] = False
 
         print(f'Collected {n} feesh.')
 
-        pkl_dump(self.stats, FEESH_STATS)
+        pkl_dump(self.data, FEESH_DATA_FILE)
 
 
 def feesh_wall():

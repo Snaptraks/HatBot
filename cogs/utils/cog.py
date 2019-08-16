@@ -84,13 +84,6 @@ class FunCog(BasicCog):
         else:
             return True
 
-    async def cog_command_error(self, ctx, error):
-        if isinstance(error, commands.CheckFailure):
-            # Add a reaction if the command is not allowed in the channel
-            await ctx.message.add_reaction('\N{NO ENTRY}')
-        else:
-            raise
-
 
 def extract_cooldown(cooldown):
     """Assume we already checked it exists (is not None)."""

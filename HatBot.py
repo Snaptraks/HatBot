@@ -137,7 +137,6 @@ if __name__ == '__main__':
         'cogs.Poll',
         'cogs.Responses',
         'cogs.Roles',
-        'cogs.Snake',
         ]
 
     for extension in startup_extensions:
