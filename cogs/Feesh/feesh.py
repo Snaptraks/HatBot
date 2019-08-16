@@ -15,7 +15,7 @@ from datetime import timedelta
 from ..utils.cog import FunCog
 
 
-FEESH_DATA_FILE = 'cogs/Feesh/feesh_stats.pkl'
+FEESH_DATA_FILE = 'cogs/Feesh/feesh_data.pkl'
 
 
 class Feesh(FunCog):
