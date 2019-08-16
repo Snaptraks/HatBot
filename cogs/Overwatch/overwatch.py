@@ -215,7 +215,7 @@ class Overwatch(commands.Cog):
         await ctx.send(out_str)
 
     @overwatch_register.error
-    async def register_error(self, ctx, error):
+    async def overwatch_register_error(self, ctx, error):
         if isinstance(error, commands.MissingRequiredArgument):
             try:
                 battletag = self.battletags[ctx.author.id]
