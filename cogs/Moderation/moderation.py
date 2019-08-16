@@ -13,6 +13,7 @@ logger = logging.getLogger('discord')
 
 class Moderation(BasicCog):
     """Cog for moderation of a Discord Guild."""
+    
     def __init__(self, bot):
         super().__init__(bot)
 

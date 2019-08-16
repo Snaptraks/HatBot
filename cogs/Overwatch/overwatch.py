@@ -216,6 +216,7 @@ class Overwatch(commands.Cog):
 
     @overwatch_register.error
     async def overwatch_register_error(self, ctx, error):
+        """Error handling for the overwatch register subcommand."""
         if isinstance(error, commands.MissingRequiredArgument):
             try:
                 battletag = self.battletags[ctx.author.id]

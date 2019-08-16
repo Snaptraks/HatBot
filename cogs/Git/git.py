@@ -7,6 +7,7 @@ from ..utils.cog import BasicCog
 
 class Git(BasicCog):
     """Commands for the GitHub repository."""
+    
     def __init__(self, bot):
         super().__init__(bot)
         self.repo_url = 'https://github.com/Snaptraks/HatBot'

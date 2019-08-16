@@ -70,6 +70,7 @@ class Roles(BasicCog):
     @join.error
     @leave.error
     async def join_leave_error(self, ctx, error):
+        """Error handling for the join and leave commands."""
         if isinstance(error, commands.BadArgument):
             bot_msg = await ctx.send('I did not find that role, I\'m sorry!')
             await asyncio.sleep(30)

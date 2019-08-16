@@ -19,7 +19,7 @@ FEESH_DATA_FILE = 'cogs/Feesh/feesh_data.pkl'
 
 
 class Feesh(FunCog):
-    """Cog for the periodic feesh, and the stats."""
+    """Cog for the periodic feesh, and the general trading of feesh."""
 
     def __init__(self, bot):
         super().__init__(bot)
@@ -583,7 +583,7 @@ class Feesh(FunCog):
     @feesh_give.error
     @feesh_stats.error
     async def feesh_error(self, ctx, error):
-        """Error handling for feesh subcommands."""
+        """Error handling for feesh give and stats subcommands."""
         if isinstance(error, commands.BadArgument):
             await ctx.send('Unknown member! :dizzy_face:')
         elif isinstance(error, commands.MissingRequiredArgument):
@@ -593,6 +593,7 @@ class Feesh(FunCog):
 
     @feesh_whohas.error
     async def feesh_whohas_error(self, ctx, error):
+        """Error handling for the feesh whohas subcommand."""
         if isinstance(error, commands.BadArgument):
             await ctx.send('The amount needs to be a positive whole number.')
         else:
@@ -600,7 +601,9 @@ class Feesh(FunCog):
 
     @feesh_steal.error
     async def feesh_steal_error(self, ctx, error):
-        """Error handling for the feesh steal subcommand."""
+        """Error handling for the feesh steal subcommand.
+        In case of an error in the command's invocation, do not
+        count it towards the cooldown."""
         if isinstance(error, commands.CommandOnCooldown):
             await ctx.message.add_reaction('\U0000231B')  # :hourglass:
 
@@ -640,8 +643,8 @@ class Feesh(FunCog):
             bucket._tokens += 1
 
     def transfer_feesh(self, member, donor=None, amount=1):
-        # TODO: change name to something better
-        # Give feesh to member
+        """Transfers feesh from donor to member, or gives a new one
+        if donor is None."""
         mid = member.id
         try:
             self.data['members'][mid]['amount'] += amount
