@@ -70,7 +70,12 @@ class Moderation(BasicCog):
 
     @mute.error
     async def mute_error(self, ctx, error):
-        raise error
+        """Handles errors."""
+        if isinstance(error, commands.MissingRequiredArgument):
+            await ctx.send('You need to provide someone to mute.')
+
+        elif isinstance(error, commands.BadArgument):
+            await ctx.send('Unknown member.')
 
 
 def parse_time(time):
