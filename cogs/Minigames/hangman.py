@@ -65,10 +65,10 @@ class Hangman:
         """Plays a game of Hangman!"""
 
         def check(message):
-            valid = (message.author == self.ctx.author and
-                     message.channel == self.ctx.channel and
-                     len(message.content) == 1) or \
-                message.content.lower() == 'cancel'
+            valid = (message.author == self.ctx.author and \
+                message.channel == self.ctx.channel) and
+                (len(message.content) == 1 or \
+                message.content.lower() == 'cancel')
             return valid
 
         hint_message = 'Guess the word! Enter a letter to begin.'
