@@ -4,6 +4,7 @@ import discord
 from discord.ext import commands
 
 from ..utils.cog import FunCog
+from .hangman import Hangman
 
 class Minigames(FunCog):
     """Collection of minigames to play!"""
@@ -27,6 +28,8 @@ class Minigames(FunCog):
 
     @commands.command()
     async def hangman(self, ctx):
+        game = Hangman(ctx, self.bot)
+        await game.play()
         pass
 
     @commands.command()
