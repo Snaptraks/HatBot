@@ -65,9 +65,9 @@ class Hangman:
         """Plays a game of Hangman!"""
 
         def check(message):
-            valid = (message.author == self.ctx.author and \
-                message.channel == self.ctx.channel and \
-                len(message.content) == 1) or \
+            valid = (message.author == self.ctx.author and
+                     message.channel == self.ctx.channel and
+                     len(message.content) == 1) or \
                 message.content.lower() == 'cancel'
             return valid
 
@@ -79,7 +79,6 @@ class Hangman:
 
             guess_message = await self.bot.wait_for('message', check=check)
             guess = guess_message.content.lower()
-
 
             if guess.lower() == 'cancel':
                 break
@@ -102,7 +101,7 @@ class Hangman:
             await guess_message.delete()
 
             self.won = all([x in self.good_guesses
-                for x in set(self.word_to_guess)])
+                            for x in set(self.word_to_guess)])
 
             if not self.won:
                 self.update_embed(hint_message)
@@ -120,8 +119,7 @@ class Hangman:
         """Edits the Embed, the progress on the word to guess, chances,
         and the graphics of the hangman."""
 
-        current_progress = ' '.join(x if x in self.good_guesses else '\_'
-            for x in self.word_to_guess)
+        current_progress = ' '.join(
 
         bad_guesses_str = ' '.join(c.upper() for c in self.bad_guesses)
         # if it is an empty string, the Embed will complain
