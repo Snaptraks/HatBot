@@ -49,7 +49,7 @@ class Hangman:
             icon_url=self.ctx.author.avatar_url_as(static_format='png'),
             ).add_field(
             name='Hangman',
-            value='Nothing',
+            value=None,  # will be filled later
             inline=True,
             ).add_field(
             name='Bad Guesses',
@@ -57,7 +57,7 @@ class Hangman:
             inline=True,
             ).add_field(
             name='Guess the word!',
-            value=' '.join(['\_']*len(self.word_to_guess)),
+            value=None,  # will be filled after
             inline=False,
             )
 
@@ -120,6 +120,9 @@ class Hangman:
         and the graphics of the hangman."""
 
         current_progress = ' '.join(
+            emoji.Alphabet[x.upper()].value if x in self.good_guesses
+            else emoji.Hangman.BLANK.value for x in self.word_to_guess
+            )
 
         bad_guesses_str = ' '.join(c.upper() for c in self.bad_guesses)
         # if it is an empty string, the Embed will complain
