@@ -133,6 +133,7 @@ if __name__ == '__main__':
         'cogs.Git',
         'cogs.Info',
         'cogs.Levels',
+        'cogs.Minigames',
         'cogs.Moderation',
         'cogs.Poll',
         'cogs.Responses',
