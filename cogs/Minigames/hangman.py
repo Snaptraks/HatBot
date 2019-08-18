@@ -96,7 +96,7 @@ class Hangman:
                 self.good_guesses.append(guess)
                 hint_message = 'Correct! Try another letter.'
 
-            await guess_message.delete()
+            await guess_message.delete(delay=1)
 
             self.won = all([x in self.good_guesses
                             for x in set(self.word_to_guess)])
