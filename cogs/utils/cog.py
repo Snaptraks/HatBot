@@ -78,9 +78,12 @@ class FunCog(BasicCog):
     """Cogs with commands that can only be run in hatbot channels."""
 
     def cog_check(self, ctx):
-        if ctx.guild.name == 'Hatventures Community':
-            ch_name = ctx.channel.name
-            return ch_name.startswith('hatbot')
+        if ctx.guild:
+            if ctx.guild.name == 'Hatventures Community':
+                ch_name = ctx.channel.name
+                return ch_name.startswith('hatbot')
+            else:
+                return True
         else:
             return True
 
