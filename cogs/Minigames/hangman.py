@@ -38,8 +38,6 @@ class Hangman:
         self.bad_guesses = []
         self.good_guesses = []
 
-        print('DEBUG:', self.word_to_guess)
-
         self.embed = discord.Embed(
             title=None,
             type='rich',
