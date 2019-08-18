@@ -64,7 +64,7 @@ class Hangman:
 
         def check(message):
             valid = (message.author == self.ctx.author and \
-                message.channel == self.ctx.channel) and
+                message.channel == self.ctx.channel) and \
                 (len(message.content) == 1 or \
                 message.content.lower() == 'cancel')
             return valid
