@@ -75,7 +75,16 @@ class Hangman:
 
         while self.chances > 0 and not self.won:
 
-            guess_message = await self.bot.wait_for('message', check=check)
+            try:
+                guess_message = await self.bot.wait_for(
+                    'message',
+                    timeout=2 * 60,  # 2 minutes
+                    check=check,
+                    )
+            except asyncio.TimeoutError as e:
+                # we don't want games to run indefinetly
+                break
+
             guess = guess_message.content.lower()
 
             if guess.lower() == 'cancel':
