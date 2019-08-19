@@ -31,17 +31,17 @@ class Minigames(FunCog):
         else:
             raise error
 
-    @commands.command()
+    @commands.command(hidden=True)
     async def blackjack(self, ctx):
         # Proposed by Kootiepatra
         pass
 
-    @commands.command()
+    @commands.command(hidden=True)
     async def boogle(self, ctx):
         # Proposed by Kootiepatra
         pass
 
-    @commands.command()
+    @commands.command(hidden=True)
     async def connect4(self, ctx):
         pass
 
@@ -50,22 +50,22 @@ class Minigames(FunCog):
         game = Hangman(ctx, self.bot)
         await game.play()
 
-    @commands.command()
+    @commands.command(hidden=True)
     async def higherlower(self, ctx):
         # Proposed by Outerwebs
         pass
 
-    @commands.command()
+    @commands.command(hidden=True)
     async def mancala(self, ctx):
         # Proposed by Princerbang
         pass
 
-    @commands.command()
+    @commands.command(hidden=True)
     async def tictactoe(self, ctx):
         # Proposed by Princerbang
         pass
 
-    @commands.command()
+    @commands.command(hidden=True)
     async def wordsearch(self, ctx):
         # Proposed by Tant
         pass
