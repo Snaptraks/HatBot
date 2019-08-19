@@ -12,17 +12,17 @@ class Minigames(FunCog):
 
     def __init__(self, bot):
         super().__init__(bot)
-        self.is_game_running = False
+        self._sessions = set()
 
     def cog_check(self, ctx):
-        """Checks if a game is currently running."""
-        return super().cog_check(ctx) and not self.is_game_running
+        """Checks if a game is currently running in the channel."""
+        return super().cog_check(ctx) and ctx.channel.id not in self._sessions
 
     async def cog_before_invoke(self, ctx):
-        self.is_game_running = True
+        self._sessions.add(ctx.channel.id)
 
     async def cog_after_invoke(self, ctx):
-        self.is_game_running = False
+        self._sessions.remove(ctx.channel.id)
 
     async def cog_command_error(self, ctx, error):
         if isinstance(error, commands.CheckFailure):
