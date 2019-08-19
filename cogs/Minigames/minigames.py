@@ -47,6 +47,9 @@ class Minigames(FunCog):
 
     @commands.command()
     async def hangman(self, ctx):
+        """A game of Hangman with a random word.
+        You guess letters by typing them in chat.
+        """
         game = Hangman(ctx, self.bot)
         await game.play()
 
