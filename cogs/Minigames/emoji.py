@@ -7,10 +7,24 @@ Alphabet = Enum(
     {
         chr(char): chr(emoji) for char, emoji in zip(
             range(ord('A'), ord('Z') + 1),
-            range(0x1F1E6, 0x1F200)
+            range(0x1F1E6, 0x1F200)  # :regional_indicator_#:
             )
         }
     )
+
+
+class Numbers(Enum):
+    _0 = '\u0030\u20e3'  # :zero:
+    _1 = '\u0031\u20e3'  # :one:
+    _2 = '\u0032\u20e3'  # :two:
+    _3 = '\u0033\u20e3'  # :three:
+    _4 = '\u0034\u20e3'  # :four:
+    _5 = '\u0035\u20e3'  # :five:
+    _6 = '\u0036\u20e3'  # :six:
+    _7 = '\u0037\u20e3'  # :seven:
+    _8 = '\u0038\u20e3'  # :eight
+    _9 = '\u0039\u20e3'  # :nine:
+    _10 = '\U0001F51F'  # :keycap_ten:
 
 
 class Hangman(Enum):
