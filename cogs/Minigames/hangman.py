@@ -78,7 +78,7 @@ class Hangman:
             try:
                 guess_message = await self.bot.wait_for(
                     'message',
-                    timeout=2 * 60,  # 2 minutes
+                    timeout=5 * 60,  # 5 minutes
                     check=check,
                     )
             except asyncio.TimeoutError as e:
