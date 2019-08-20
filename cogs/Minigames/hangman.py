@@ -110,7 +110,7 @@ class Hangman:
             self.won = all([x in self.good_guesses
                             for x in set(self.word_to_guess)])
 
-            if not self.won:
+            if not self.won and self.chances > 0:
                 self.update_embed(hint_message)
                 await self.message_game.edit(embed=self.embed)
 
