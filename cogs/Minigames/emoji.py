@@ -36,3 +36,11 @@ class Hangman(Enum):
     JEANS = '\U0001F456'  # :jeans:
     SHOE = '\U0001F45E'  # :mans_shoe:
     BLANK = '\U000023F9'  # :stop_button:
+
+
+class Connect4(Enum):
+    BLACK = '\U000026AB'  # :black_circle:
+    RED = '\U0001F534'  # :red_cirle:
+    BLUE = '\U0001F535'  # :large_blue_circle:
+    RED_WIN = '\U00002B55'  # :o:
+    BLUE_WIN = '\U0001F518'  # :radio_button:
