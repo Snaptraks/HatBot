@@ -132,7 +132,15 @@ class Connect4:
             column = self.emoji_numbers.index(reaction.emoji)
             await reaction.remove(user)
 
-            self.board.player_play(player + 1, column)
+            try:
+                self.board.player_play(player + 1, column)
+            except ValueError:
+                hint_message = 'Column is full, you can\'t do that!'
+                self.update_embed(hint_message, player)
+                await self.message_game.edit(embed=self.embed)
+                await asyncio.sleep(2)
+                continue # skips the rest, restart the iteration
+
             if self.board.check_winner(player + 1):
                 self.winner = player + 1
 
