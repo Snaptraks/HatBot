@@ -5,6 +5,7 @@ from discord.ext import commands
 
 from ..utils.cog import FunCog
 from .hangman import Hangman
+from .connect4 import Connect4
 
 
 class Minigames(FunCog):
@@ -42,8 +43,21 @@ class Minigames(FunCog):
         pass
 
     @commands.command(hidden=True)
-    async def connect4(self, ctx):
-        pass
+    async def connect4(self, ctx, other_player: discord.Member):
+        """A game of Connect-4 with another member.
+        Each player takes turn in placing a token on the board,
+        the winner is the first to put four tokens in a row.
+        """
+        game = Connect4(ctx, self.bot, other_player)
+        await game.play()
+
+    @connect4.error
+    async def connect4_error(self, ctx, error):
+        """Error handling for connect4 command."""
+        if isinstance(error, commands.MissingRequiredArgument):
+            await ctx.send('You need another player to play that game.')
+        else:
+            raise error
 
     @commands.command()
     async def hangman(self, ctx):
