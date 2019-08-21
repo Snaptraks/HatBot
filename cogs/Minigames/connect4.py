@@ -1,16 +1,70 @@
+import asyncio
+
+import discord
 import numpy as np
+
+from . import emoji
 
 
 class Board:
+    """Class that contains the board of the game, allows to add a token in it,
+    and checks if the board has a winning configuration."""
+
     def __init__(self, size_x, size_y):
         self.size_x = size_x
         self.size_y = size_y
-
         self.board = np.zeros((size_x, size_y), dtype=int)
+        self.winning_move = None
 
     def player_play(self, player, column):
         """Adds a player token (1 or 2) to the requested column."""
-        pass
+        if self.board[column, 0] == 0:  # if there is room
+            for i, r in enumerate(self.board[column]):
+                if r != 0:
+                    row = i - 1
+                    break
+            else:
+                row = -1
+
+            self.board[column, row] = player
+
+        else:
+            raise ValueError('Column is full.')
+
+    def check_winner(self, player):
+        """Checks if the board has a winning configuration for the player."""
+        # THIS IS A MESS
+        # vertical
+        for c in range(self.size_x):
+            for r in range(self.size_y - 3):
+                s = (c, slice(r, r + 4))
+                if (self.board[s] == player).all():
+                    self.winning_move = s
+                    return True
+        # horizontal
+        for c in range(self.size_x - 3):
+            for r in range(self.size_y):
+                s = (slice(c, c + 4), r)
+                if (self.board[s] == player).all():
+                    self.winning_move = s
+                    return True
+        # diagonal down
+        for c in range(self.size_x - 3):
+            for r in range(self.size_y -3):
+                s = (np.arange(c, c + 4), np.arange(r, r + 4))
+                if (self.board[s] == player).all():
+                    self.winning_move = s
+                    return True
+        # diagonal up
+        for c in range(3, self.size_x):
+            for r in range(self.size_y - 3):
+                s = (np.arange(c, c - 4, -1), np.arange(r, r + 4))
+                if (self.board[s] == player).all():
+                    self.winning_move = s
+                    return True
+
+        self.winning_move = (slice(0, 0), slice(0, 0))  # empty slice, no moves
+        return False
 
     def __repr__(self):
         """Represents the board visually, for debug purposes."""
@@ -21,18 +75,118 @@ class Board:
 class Connect4:
     """Class that contains the Connect-4 game."""
 
-    def __init__(self, ctx, bot):
+    def __init__(self, ctx, bot, other_player):
         self.ctx = ctx
         self.bot = bot
+        self.players = [ctx.author, other_player]
+
+        size_x, size_y = 7, 6
+        self.board = Board(size_x, size_y)
+        self.max_turns = size_x * size_y
+        self.emoji_numbers = [emoji.Numbers[f'_{i}'].value
+            for i in range(1, size_x + 1)]
+        self.winner = 0
+        self.turn = 0
+
+        self.embed = discord.Embed(
+            title=None,
+            type='rich',
+            color=np.random.randint(0xFFFFFF),  # Random color
+            # ).set_author(
+            # name=self.ctx.author.display_name,
+            # icon_url=self.ctx.author.avatar_url_as(static_format='png'),
+            ).add_field(
+            name='Connect 4',
+            value=None,  # will be filled later
+            )
 
     async def play(self):
-        pass
+        player = 0
+        hint_message = 'Please wait, setting things up...'
+        self.update_embed(hint_message, player)
+        self.message_game = await self.ctx.send(embed=self.embed)
+        for number in self.emoji_numbers:
+            await self.message_game.add_reaction(number)
 
-    def update_embed(self):
-        pass
+        while self.winner == 0 and self.turn < self.max_turns:
+            hint_message = f'It is {self.players[player].display_name}\'s turn!'
+            self.update_embed(hint_message, player)
+            await self.message_game.edit(embed=self.embed)
+
+            def check(reaction, user):
+                valid = (user == self.players[player] and \
+                    reaction.message.channel == self.ctx.channel and \
+                    reaction.emoji in self.emoji_numbers)
+                return valid
+
+            try:
+                reaction, user = await self.bot.wait_for(
+                    'reaction_add',
+                    # timeout=5 * 60,  # 5 minutes
+                    timeout=10,  # 10 seconds
+                    check=check,
+                    )
+            except asyncio.TimeoutError as e:
+                print('Game timed out')
+                break
+
+            column = self.emoji_numbers.index(reaction.emoji)
+            await reaction.remove(user)
+
+            self.board.player_play(player + 1, column)
+            if self.board.check_winner(player + 1):
+                print(f'Player {player + 1} ({self.players[player]}) won!')
+                self.winner = player + 1
+
+            else:
+                player = (player + 1) % 2
+                self.turn += 1
+
+        if self.winner != 0:
+            hint_message = f'{self.players[player].display_name} won!'
+        else:
+            hint_message = f'It is a tie!'
+        self.update_embed(hint_message, player)
+        await self.message_game.edit(embed=self.embed)
+        await self.message_game.clear_reactions()
+
+    def update_embed(self, hint_message, player):
+        self.embed.set_author(
+            name=self.players[player].display_name,
+            icon_url=self.players[player].avatar_url_as(static_format='png'),
+            ).set_field_at(
+            index=0,  # graphics
+            name=self.embed.fields[0].name,
+            value=self.make_graphics(),
+            ).set_footer(
+            text=hint_message,
+            )
 
     def make_graphics(self):
-        pass
+        tokens = [
+            emoji.Connect4.BLACK.value,
+            emoji.Connect4.RED.value,
+            emoji.Connect4.BLUE.value,
+            ]
+        tokens_win = [
+            None,
+            emoji.Connect4.RED_WIN.value,
+            emoji.Connect4.BLUE_WIN.value,
+            ]
+
+        int_to_emoji = np.vectorize(lambda i: tokens[i])
+
+        # graphics = np.full(self.board.board.shape, tokens[0])
+        graphics = int_to_emoji(self.board.board)
+
+        if self.winner != 0:
+            graphics[self.board.winning_move] = tokens_win[self.winner]
+
+        graphics_str = '\n'.join(''.join(i for i in col)
+            for col in graphics.T)
+        graphics_str += '\n' + ''.join(self.emoji_numbers)
+
+        return graphics_str
 
 
 if __name__ == '__main__':
