@@ -109,7 +109,8 @@ class Connect4:
             await self.message_game.add_reaction(number)
 
         while self.winner == 0 and self.turn < self.max_turns:
-            hint_message = f'It is {self.players[player].display_name}\'s turn!'
+            hint_message = \
+                f'It is {self.players[player].display_name}\'s turn!'
             self.update_embed(hint_message, player)
             await self.message_game.edit(embed=self.embed)
 
