@@ -123,12 +123,10 @@ class Connect4:
             try:
                 reaction, user = await self.bot.wait_for(
                     'reaction_add',
-                    # timeout=5 * 60,  # 5 minutes
-                    timeout=10,  # 10 seconds
+                    timeout=5 * 60,  # 5 minutes
                     check=check,
                     )
             except asyncio.TimeoutError as e:
-                print('Game timed out')
                 break
 
             column = self.emoji_numbers.index(reaction.emoji)
@@ -136,7 +134,6 @@ class Connect4:
 
             self.board.player_play(player + 1, column)
             if self.board.check_winner(player + 1):
-                print(f'Player {player + 1} ({self.players[player]}) won!')
                 self.winner = player + 1
 
             else:
@@ -176,8 +173,6 @@ class Connect4:
             ]
 
         int_to_emoji = np.vectorize(lambda i: tokens[i])
-
-        # graphics = np.full(self.board.board.shape, tokens[0])
         graphics = int_to_emoji(self.board.board)
 
         if self.winner != 0:
