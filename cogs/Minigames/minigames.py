@@ -17,7 +17,7 @@ class Minigames(FunCog):
 
     def cog_check(self, ctx):
         """Checks if a game is currently running in the channel."""
-        
+
         return super().cog_check(ctx) and ctx.channel.id not in self._sessions
 
     async def cog_before_invoke(self, ctx):
@@ -50,7 +50,7 @@ class Minigames(FunCog):
         # Proposed by Kootiepatra
         pass
 
-    @commands.command(hidden=True)
+    @commands.command()
     async def connect4(self, ctx, other_player: discord.Member):
         """A game of Connect-4 with another member.
         Each player takes turn in placing a token on the board,
