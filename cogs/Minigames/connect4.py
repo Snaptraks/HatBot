@@ -102,6 +102,7 @@ class Connect4:
 
     async def play(self):
         player = 0
+        tokens = [emoji.Connect4.RED.value, emoji.Connect4.BLUE.value]
         hint_message = 'Please wait, setting things up...'
         self.update_embed(hint_message, player)
         self.message_game = await self.ctx.send(embed=self.embed)
@@ -109,8 +110,10 @@ class Connect4:
             await self.message_game.add_reaction(number)
 
         while self.winner == 0 and self.turn < self.max_turns:
-            hint_message = \
-                f'It is {self.players[player].display_name}\'s turn!'
+            hint_message = (
+                f'It is {self.players[player].display_name}\'s turn! '
+                f'{tokens[player]}'
+                )
             self.update_embed(hint_message, player)
             await self.message_game.edit(embed=self.embed)
 
@@ -149,7 +152,10 @@ class Connect4:
                 self.turn += 1
 
         if self.winner != 0:
-            hint_message = f'{self.players[player].display_name} won!'
+            hint_message = (
+                f'{self.players[player].display_name} won! '
+                f'{tokens[player]}'
+                )
         else:
             hint_message = f'It is a tie!'
         self.update_embed(hint_message, player)
