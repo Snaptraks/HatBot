@@ -11,6 +11,8 @@ from .userprofile import UserProfile
 
 
 class Levels(BasicCog):
+    """Cog to quantify member activity in a guild."""
+
     def __init__(self, bot):
         # init self.bot and cooldowns
         super().__init__(bot)

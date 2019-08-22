@@ -9,6 +9,8 @@ from ..utils.cog import BasicCog
 
 
 class Poll(BasicCog):
+    """Collection of commands to pass polls."""
+
     def __init__(self, bot):
         super().__init__(bot)
 

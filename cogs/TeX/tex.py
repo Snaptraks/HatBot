@@ -41,6 +41,11 @@ def get_latex_cmds(tempfile):
 
 
 class TeX(BasicCog):
+    """Cog to display valid TeX equations.
+    Parses messages looking for equation blocks, compiles them and sends
+    the resulting equation back.
+    """    
+
     def __init__(self, bot):
         self.bot = bot
         self.clean_temp_folder.start(expiration=24 * 3600)

@@ -63,7 +63,7 @@ class Admin(BasicCog):
 
     @commands.command()
     async def unload(self, ctx, module):
-        """Loads a module."""
+        """Unloads a module."""
         try:
             self.bot.unload_extension(module)
         except Exception as e:
@@ -76,7 +76,7 @@ class Admin(BasicCog):
 
     @commands.command()
     async def reload(self, ctx, module):
-        """Loads a module."""
+        """Reloads a module."""
         try:
             self.bot.unload_extension(module)
             self.bot.load_extension(module)
