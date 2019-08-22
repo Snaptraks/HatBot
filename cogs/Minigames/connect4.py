@@ -101,6 +101,8 @@ class Connect4:
             )
 
     async def play(self):
+        """Plays a game of Connect 4!"""
+
         player = 0
         tokens = [emoji.Connect4.RED.value, emoji.Connect4.BLUE.value]
         hint_message = 'Please wait, setting things up...'
@@ -163,6 +165,10 @@ class Connect4:
         await self.message_game.clear_reactions()
 
     def update_embed(self, hint_message, player):
+        """Edits the Embed with the current board state, and who's
+        next to play.
+        """
+
         self.embed.set_author(
             name=self.players[player].display_name,
             icon_url=self.players[player].avatar_url_as(static_format='png'),
@@ -175,6 +181,8 @@ class Connect4:
             )
 
     def make_graphics(self):
+        """Returns a string that represents the board state."""
+
         tokens = [
             emoji.Connect4.BLACK.value,
             emoji.Connect4.RED.value,
