@@ -29,6 +29,10 @@ class Minigames(FunCog):
         if isinstance(error, commands.CheckFailure):
             # silence `CheckFailure`s because they spam the console
             pass
+        if isinstance(error, commands.MissingRequiredArgument):
+            await ctx.send('You need another player to play that game.')
+        elif isinstance(error, commands.CommandInvokeError):
+            await ctx.send('Cannot play a game against that member.')
         else:
             raise error
 
@@ -48,16 +52,11 @@ class Minigames(FunCog):
         Each player takes turn in placing a token on the board,
         the winner is the first to put four tokens in a row.
         """
+        if other_player.bot or other_player == ctx.author:
+            raise ValueError('Cannot play a game against that member.')
+            
         game = Connect4(ctx, self.bot, other_player)
         await game.play()
-
-    @connect4.error
-    async def connect4_error(self, ctx, error):
-        """Error handling for connect4 command."""
-        if isinstance(error, commands.MissingRequiredArgument):
-            await ctx.send('You need another player to play that game.')
-        else:
-            raise error
 
     @commands.command()
     async def hangman(self, ctx):
