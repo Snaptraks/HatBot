@@ -205,8 +205,3 @@ class Connect4:
         graphics_str += '\n' + ''.join(self.emoji_numbers)
 
         return graphics_str
-
-
-if __name__ == '__main__':
-    board = Board(7, 6)
-    print(board)
