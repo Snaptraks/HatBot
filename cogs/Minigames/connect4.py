@@ -14,7 +14,7 @@ class Board:
         self.size_x = size_x
         self.size_y = size_y
         self.board = np.zeros((size_x, size_y), dtype=int)
-        self.winning_move = None
+        self.winning_move = (slice(0, 0), slice(0, 0))
 
     def player_play(self, player, column):
         """Adds a player token (1 or 2) to the requested column."""
@@ -63,7 +63,6 @@ class Board:
                     self.winning_move = s
                     return True
 
-        self.winning_move = (slice(0, 0), slice(0, 0))  # empty slice, no moves
         return False
 
     def __repr__(self):
@@ -132,6 +131,14 @@ class Connect4:
                     check=check,
                     )
             except asyncio.TimeoutError as e:
+                # makes the other player (not in turn) the winner if
+                # the current player times out
+                if player == 0:
+                    self.winner = 2
+                else:  # player == 1
+                    self.winner = 1
+                player = (player + 1) % 2
+
                 break
 
             column = self.emoji_numbers.index(reaction.emoji)
