@@ -44,3 +44,10 @@ class Connect4(Enum):
     BLUE = '\U0001F535'  # :large_blue_circle:
     RED_WIN = '\U00002B55'  # :o:
     BLUE_WIN = '\U0001F518'  # :radio_button:
+
+
+class Suits(Enum):
+    SPADES = '\U00002660'  # :spades:
+    CLUBS = '\U00002663'  # :clubs:
+    HEARTS = '\U00002665'  # :hearts:
+    DIAMONDS = '\U00002666'  # :diamonds:
