@@ -21,6 +21,9 @@ class Card:
     def __str__(self):
         return f'{self.rank_names[self.rank]} of {self.suit_names[self.suit]}'
 
+    def __repr__(self):
+        return f'{self.__class__.__name__}({self.suit}, {self.rank})'
+
     def __eq__(self, other):
         """Use the type tuple to make equality check."""
         return self._card == other._card
@@ -42,6 +45,9 @@ class Deck:
                       for suit in range(4)
                       for rank in range(1, 14)]
 
+    def __len__(self):
+        return len(self.cards)
+
     def __str__(self):
         return '\n'.join([str(card) for card in self.cards])
 
@@ -61,11 +67,11 @@ class Deck:
         """Removes a given card form the devk."""
         self.cards.remove(card)
 
-    def pop_card(self, i=-1):
+    def pop_card(self, *args):
         """Removes and returns a card from the deck,
         the last one by default.
         """
-        return self.cards.pop(i)
+        return self.cards.pop(*args)
 
     def give_cards(self, hand, amount):
         """Gives the amount of cards from the deck to the player's hand."""
