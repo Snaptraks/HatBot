@@ -123,7 +123,7 @@ class Feesh(FunCog):
 
         await self.bot.wait_until_ready()
 
-        cog_level = self.bot.get_cog('Levels')
+        cog_levels = self.bot.get_cog('Levels')
 
         while not self.bot.is_closed():
 
@@ -169,7 +169,7 @@ class Feesh(FunCog):
                 weights = []
                 for m in members_list:
                     try:
-                        exp = cog_level.data[m.id].exp
+                        exp = cog_levels.data[m.id].exp
                         # 1 if above 0, 0 if equal to 0, never under 0 anyway
                         weights.append(np.sign(exp))
                     except KeyError:
