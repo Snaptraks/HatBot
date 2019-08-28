@@ -64,7 +64,7 @@ class Deck:
         self.cards.append(card)
 
     def remove_card(self, card):
-        """Removes a given card form the devk."""
+        """Removes a given card form the deck."""
         self.cards.remove(card)
 
     def pop_card(self, *args):
@@ -86,4 +86,3 @@ class Hand(Deck):
 
     def __init__(self):
         self.cards = []
-
