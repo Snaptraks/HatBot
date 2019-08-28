@@ -284,6 +284,8 @@ class Feesh(FunCog):
         channel = ctx.channel
         message = ctx.message
 
+        cog_levels = self.bot.get_cog('Levels')
+
         if self.data['members'][author.id]['amount'] == 0:
             out_str = f'You have no {self.feesh_emoji} though.'
             await channel.send(out_str)
@@ -306,7 +308,11 @@ class Feesh(FunCog):
             return
 
         def isvalid(m):
-            return is_not_offline(m) and m != author
+            try:
+                return cog_levels.data[m.id].exp > 0
+            except KeyError:
+                return False
+
         members_list = [m for m in self.guild.members if isvalid(m)]
 
         if reaction.emoji == cancel:
