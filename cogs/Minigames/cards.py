@@ -40,10 +40,21 @@ class Deck:
     Cards objects. Does not contain Jokers.
     """
 
-    def __init__(self):
-        self.cards = [Card(suit, rank)
-                      for suit in range(4)
-                      for rank in range(1, 14)]
+    def __init__(self, cards=None):
+        if cards is None:
+            self.cards = [Card(suit, rank)
+                          for suit in range(4)
+                          for rank in range(1, 14)]
+        else:
+            self.cards = cards
+
+    def __mul__(self, other):
+        if isinstance(other, int):
+            return self.__class__(cards=self.cards * other)
+        else:
+            raise ValueError('Invalid types for multiplication.')
+
+    __rmul__ = __mul__
 
     def __len__(self):
         return len(self.cards)
@@ -58,6 +69,16 @@ class Deck:
     def sort(self):
         """Sorts the cards inplace."""
         self.cards.sort()
+
+    def split(self, parts):
+        """Splits the deck in n parts."""
+        cards_array = np.asarray(self.cards)
+        split = np.array_split(cards_array, parts)
+        decks = []
+        for part in split:
+            decks.append(self.__class__(cards=list(part)))
+
+        return decks
 
     def add_card(self, card):
         """Adds a card to the end of the deck."""
