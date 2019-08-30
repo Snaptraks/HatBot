@@ -72,7 +72,7 @@ class Minigames(FunCog):
         game = Hangman(ctx, self.bot)
         await game.play()
 
-    @commands.command(hidden=True)
+    @commands.command(aliases=['highlow', 'hilo'], hidden=True)
     async def higherlower(self, ctx):
         # Proposed by Outerwebs
         pass
