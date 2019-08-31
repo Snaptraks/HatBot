@@ -1,6 +1,6 @@
 import numpy as np
 
-# from . import emoji
+from . import emoji
 
 # Inspired by https://github.com/AllenDowney/ThinkPython2
 
@@ -33,6 +33,17 @@ class Card:
         Sorts first by suit, then by rank.
         """
         return self._card < other._card
+
+    @property
+    def emoji(self):
+        """Returns a string of the card's rank and suit, in emoji form."""
+        suit = emoji.Suits[self.suit_names[self.suit].upper()].value
+        if self.rank in (1, 11, 12, 13):
+            rank = emoji.Alphabet[self.rank_names[self.rank]].value
+        else:
+            rank = emoji.Numbers[f'_{self.rank}'].value
+
+        return rank + suit
 
 
 class Deck:
