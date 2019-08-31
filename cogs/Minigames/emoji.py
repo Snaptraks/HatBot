@@ -51,3 +51,4 @@ class Suits(Enum):
     CLUBS = '\U00002663'  # :clubs:
     HEARTS = '\U00002665'  # :hearts:
     DIAMONDS = '\U00002666'  # :diamonds:
+    JOKER = '\U0001F0CF'  # :black_joker:
