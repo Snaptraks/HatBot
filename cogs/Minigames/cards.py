@@ -62,6 +62,12 @@ class Deck:
     def __str__(self):
         return '\n'.join([str(card) for card in self.cards])
 
+    def __iter__(self):
+        return iter(self.cards)
+
+    def __next__(self):
+        return next(self.cards)
+
     def shuffle(self):
         """Shuffles the cards inplace."""
         np.random.shuffle(self.cards)
