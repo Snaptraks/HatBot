@@ -4,8 +4,9 @@ import discord
 from discord.ext import commands
 
 from ..utils.cog import FunCog
-from .hangman import Hangman
+from .blackjack import Blackjack
 from .connect4 import Connect4
+from .hangman import Hangman
 
 
 class Minigames(FunCog):
@@ -40,10 +41,15 @@ class Minigames(FunCog):
         else:
             raise error
 
-    @commands.command(hidden=True)
+    @commands.command()
     async def blackjack(self, ctx):
-        # Proposed by Kootiepatra
-        pass
+        """A single hand of Blackjack.
+        The player plays against the dealer (bot) for one hand.
+        Proposed by Kootiepatra.
+        """
+        game = Blackjack(ctx, self.bot)
+        await game.play()
+
 
     @commands.command(hidden=True)
     async def boogle(self, ctx):
