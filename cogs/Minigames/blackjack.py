@@ -66,102 +66,99 @@ class Blackjack:
         while self.playing:
             print('Player:', self.player_hand.cards)
             print('Dealer:', self.dealer_hand.cards[:-1])
-            hint_message = (
-                'Your score is '
-                f'**{self.calculate_score(self.player_hand)}**.'
-                )
-            self.update_embed(hint_message)
-            await self.message_game.edit(embed=self.embed)
             # check for blackjacks
             if self.calculate_score(self.player_hand) == 21:
                 print('Player got a Blackjack!')
                 self.playing = False
                 hint_message = 'Congratulations! You got a Blackjack!'
-                continue
+
             elif self.calculate_score(self.dealer_hand) == 21:
-                # print('Dealer got a Blackjack!')
+                print('Dealer got a Blackjack!')
                 self.playing = False
                 hint_message = 'Sadly the dealer got a Blackjack...'
-                continue
 
-            # ask player input
-            try:
-                reaction, user = await self.bot.wait_for(
-                    'reaction_add',
-                    timeout=5 * 60,  # 5 minutes
-                    check=check,
+            else:
+                hint_message = (
+                    'Your score is '
+                    f'**{self.calculate_score(self.player_hand)}**.'
                     )
-            except asyncio.TimeoutError as e:
-                # should probably stand if timeout
-                print('Timeout')
-                self.playing = False
-                continue
+                self.update_embed(hint_message)
+                await self.message_game.edit(embed=self.embed)
 
-            move = reaction.emoji
-            await reaction.remove(user)
-            # if hit
-            if move == emoji.Alphabet.H.value:
-                # give card
-                self.deck.give_cards(self.player_hand, 1)
-                print(self.player_hand.cards)
-                if self.calculate_score(self.player_hand) > 21:
-                    print('Player busted.')
-                    self.playing = False
-                    self.player_busted = True
-                    hint_message = (
-                        'You busted with a score of '
-                        f'**{self.calculate_score(self.player_hand)}**.'
+                # ask player input
+                try:
+                    reaction, user = await self.bot.wait_for(
+                        'reaction_add',
+                        timeout=5 * 60,  # 5 minutes
+                        check=check,
                         )
-            # elif stand
-            elif move == emoji.Alphabet.S.value:
-                # give dealer card until total is above 17
-                while self.calculate_score(self.dealer_hand) < 17:
-                    self.deck.give_cards(self.dealer_hand, 1)
-                    print(self.dealer_hand.cards)
-                    if self.calculate_score(self.dealer_hand) > 21:
-                        print('Dealer busted.')
+                except asyncio.TimeoutError as e:
+                    # should probably stand if timeout
+                    print('Timeout')
+                    self.playing = False
+                    break
+
+                move = reaction.emoji
+                await reaction.remove(user)
+                # if hit
+                if move == emoji.Alphabet.H.value:
+                    # give card
+                    self.deck.give_cards(self.player_hand, 1)
+                    print(self.player_hand.cards)
+                    if self.calculate_score(self.player_hand) > 21:
+                        print('Player busted.')
                         self.playing = False
-                        self.dealer_busted = True
+                        self.player_busted = True
                         hint_message = (
-                            'The dealer busted with a score of '
+                            'You busted with a score of '
+                            f'**{self.calculate_score(self.player_hand)}**.'
+                            )
+
+                # elif stand
+                elif move == emoji.Alphabet.S.value:
+                    # give dealer card until total is above 17
+                    while self.calculate_score(self.dealer_hand) < 17:
+                        self.deck.give_cards(self.dealer_hand, 1)
+                        print(self.dealer_hand.cards)
+                        if self.calculate_score(self.dealer_hand) > 21:
+                            print('Dealer busted.')
+                            self.dealer_busted = True
+                            hint_message = (
+                                'The dealer busted with a score of '
+                                f'**{self.calculate_score(self.dealer_hand)}**.'
+                                )
+
+                    if self.calculate_score(self.dealer_hand) > \
+                            self.calculate_score(self.player_hand) and \
+                            not self.dealer_busted:
+                        print('Dealer won.')
+                        hint_message = (
+                            'The dealer won! You got '
+                            f'**{self.calculate_score(self.player_hand)}** '
+                            'while the dealer got '
                             f'**{self.calculate_score(self.dealer_hand)}**.'
                             )
-                        continue
 
-                if self.calculate_score(self.dealer_hand) > \
-                        self.calculate_score(self.player_hand) and \
-                        not self.dealer_busted:
-                    print('Dealer won.')
-                    hint_message = (
-                        'The dealer won! You got '
-                        f'**{self.calculate_score(self.player_hand)}** '
-                        'while the dealer got '
-                        f'**{self.calculate_score(self.dealer_hand)}**.'
-                        )
+                    elif self.calculate_score(self.dealer_hand) < \
+                            self.calculate_score(self.player_hand) and \
+                            not self.player_busted:
+                        print('Player won.')
+                        hint_message = (
+                            'You won! You got '
+                            f'**{self.calculate_score(self.player_hand)}** '
+                            'while the dealer got '
+                            f'**{self.calculate_score(self.dealer_hand)}**.'
+                            )
 
-                elif self.calculate_score(self.dealer_hand) < \
-                        self.calculate_score(self.player_hand) and \
-                        not self.player_busted:
-                    print('Player won.')
-                    hint_message = (
-                        'You won! You got '
-                        f'**{self.calculate_score(self.player_hand)}** '
-                        'while the dealer got '
-                        f'**{self.calculate_score(self.dealer_hand)}**.'
-                        )
+                    elif self.calculate_score(self.dealer_hand) == \
+                            self.calculate_score(self.player_hand):
+                        print('Tie')
+                        hint_message = (
+                            'It is a tie! You both got '
+                            f'**{self.calculate_score(self.player_hand)}**.'
+                            )
 
-                elif self.calculate_score(self.dealer_hand) == \
-                        self.calculate_score(self.player_hand):
-                    print('Tie')
-                    hint_message = (
-                        'It is a tie! You both got '
-                        f'**{self.calculate_score(self.player_hand)}**.'
-                        )
-
-                self.playing = False
-
-            self.update_embed(hint_message)
-            await self.message_game.edit(embed=self.embed)
+                    self.playing = False
 
         self.update_embed(hint_message)
         await self.message_game.edit(embed=self.embed)
@@ -174,7 +171,7 @@ class Blackjack:
         hand = sorted(hand, key=lambda x: x.rank, reverse=True)
         score = 0
         for card in hand:
-            if card.rank > 10:
+            if card.rank > 10:  # a face
                 score += 10
             elif card.rank == 1:  # an ace
                 if score < 11:
@@ -189,7 +186,7 @@ class Blackjack:
         player_cards = '\n'.join(card.emoji
             for card in self.player_hand)
 
-        if self.playing:
+        if self.playing:  # hide last card
             dealer_cards = \
                 [card.emoji for card in self.dealer_hand.cards[:-1]] + \
                 [emoji.Suits.JOKER.value]
