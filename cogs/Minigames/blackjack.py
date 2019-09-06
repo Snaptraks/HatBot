@@ -64,16 +64,12 @@ class Blackjack:
 
         # display cards?
         while self.playing:
-            print('Player:', self.player_hand.cards)
-            print('Dealer:', self.dealer_hand.cards[:-1])
             # check for blackjacks
             if self.calculate_score(self.player_hand) == 21:
-                print('Player got a Blackjack!')
                 self.playing = False
                 hint_message = 'Congratulations! You got a Blackjack!'
 
             elif self.calculate_score(self.dealer_hand) == 21:
-                print('Dealer got a Blackjack!')
                 self.playing = False
                 hint_message = 'Sadly the dealer got a Blackjack...'
 
@@ -94,7 +90,6 @@ class Blackjack:
                         )
                 except asyncio.TimeoutError as e:
                     # should probably stand if timeout
-                    print('Timeout')
                     self.playing = False
                     break
 
@@ -106,7 +101,6 @@ class Blackjack:
                     self.deck.give_cards(self.player_hand, 1)
                     print(self.player_hand.cards)
                     if self.calculate_score(self.player_hand) > 21:
-                        print('Player busted.')
                         self.playing = False
                         self.player_busted = True
                         hint_message = (
@@ -121,7 +115,6 @@ class Blackjack:
                         self.deck.give_cards(self.dealer_hand, 1)
                         print(self.dealer_hand.cards)
                         if self.calculate_score(self.dealer_hand) > 21:
-                            print('Dealer busted.')
                             self.dealer_busted = True
                             hint_message = (
                                 'The dealer busted with a score of '
@@ -131,7 +124,6 @@ class Blackjack:
                     if self.calculate_score(self.dealer_hand) > \
                             self.calculate_score(self.player_hand) and \
                             not self.dealer_busted:
-                        print('Dealer won.')
                         hint_message = (
                             'The dealer won! You got '
                             f'**{self.calculate_score(self.player_hand)}** '
@@ -142,7 +134,6 @@ class Blackjack:
                     elif self.calculate_score(self.dealer_hand) < \
                             self.calculate_score(self.player_hand) and \
                             not self.player_busted:
-                        print('Player won.')
                         hint_message = (
                             'You won! You got '
                             f'**{self.calculate_score(self.player_hand)}** '
@@ -152,7 +143,6 @@ class Blackjack:
 
                     elif self.calculate_score(self.dealer_hand) == \
                             self.calculate_score(self.player_hand):
-                        print('Tie')
                         hint_message = (
                             'It is a tie! You both got '
                             f'**{self.calculate_score(self.player_hand)}**.'
