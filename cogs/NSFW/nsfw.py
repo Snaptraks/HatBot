@@ -53,6 +53,7 @@ class NSFW(BasicCog):
             ('If you want me to post NSFW images, just type `!nsfw`, '
              'and you will get a selected gif or picture! Just for you!'
             )
+            )
 
     async def disable_channel(self):
         await self.bot.wait_until_ready()
