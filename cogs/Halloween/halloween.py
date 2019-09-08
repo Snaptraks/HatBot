@@ -82,10 +82,50 @@ class Halloween(FunCog):
         except FileNotFoundError:
             self.data = {}
 
+        self.bot.loop.create_task(self.load_data())
+        self.bot.loop.create_task(self.start_halloween_event())
+
     def cog_check(self, ctx):
         valid = super().cog_check(ctx) \
             # and (datetime.utcnow().date() == self.halloween_day.date())
         return valid
+
+    async def load_data(self):
+        await self.bot.wait_until_ready()
+        guild = discord.utils.get(
+            self.bot.guilds,
+            # name='Hatventures Community',
+            name='Bot Testing Server',
+            )
+        channel = discord.utils.get(
+            guild.channels,
+            # name='hatbot-land',
+            name='bot-0',
+            )
+
+        self.guild = guild
+        self.channel = channel
+
+    async def start_halloween_event(self):
+        """Announce the beginning of the Halloween event, with some help
+        about the new commands.
+        """
+        await self.bot.wait_until_ready()
+        delay = self.halloween_day - datetime.utcnow()
+        out_str = (
+            'Happy Halloween @everyone! Today we have a special event where '
+            'you can collect candy from `!trickortreat`ing or simply '
+            'having discussions here on the Discord server. '
+            'So if you see a candy popping up after one of your messages, '
+            'be sure to pick it up!\n\n'
+            'Be warned! I am a playful being and might trick you! '
+            'If you are the adventurous type, you can ask for a `!trick` '
+            'directly and I will cast my magic upon you!\n\n'
+            'Once you have collected many candies, you can check your `!bag` '
+            'to see now many you collected! Happy trick-or-treating!'
+            )
+        await asyncio.sleep(delay.total_seconds())
+        self.announcement_message = await self.channel.send(out_str)
 
     @commands.Cog.listener()
     async def on_message(self, message):
