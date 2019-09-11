@@ -195,9 +195,11 @@ class Halloween(FunCog):
         # print(bag)
         await ctx.send(embed=embed)
 
-    # @commands.cooldown(1, 15 * 60, commands.BucketType.member)
+    @commands.cooldown(1, 15 * 60, commands.BucketType.member)
     @commands.command(name='trickortreat', aliases=['tot'])
     async def trick_or_treat(self, ctx):
+        """Get a candy, or a trick!"""
+
         await ctx.trigger_typing()
         await asyncio.sleep(2)
 
@@ -228,14 +230,18 @@ class Halloween(FunCog):
             await ctx.send(out_str)
             self.add_to_bag(ctx.author, candy)
 
+    @commands.cooldown(1, 15 * 60, commands.BucketType.member)
     @commands.command()
     async def trick(self, ctx):
         """Change the author's nickname to a random one."""
+        await ctx.trigger_typing()
+        await asyncio.sleep(2)
+
         old_nickname = ctx.author.display_name
         new_nickname = await self.change_nickname(ctx.author)
         out_str = (
             'Oh, you want a trick? Well here you go!\n'
-            f'Your name is now {new_nickname}! Happy Halloween! '
+            f'Your name is now **{new_nickname}**! Happy Halloween! '
             ':jack_o_lantern:'
             )
 
