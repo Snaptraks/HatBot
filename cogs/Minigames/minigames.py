@@ -7,6 +7,7 @@ from ..utils.cog import FunCog
 from .blackjack import Blackjack
 from .connect4 import Connect4
 from .hangman import Hangman
+from .highlow import HighLow
 
 
 class Minigames(FunCog):
@@ -78,10 +79,11 @@ class Minigames(FunCog):
         game = Hangman(ctx, self.bot)
         await game.play()
 
-    @commands.command(aliases=['highlow', 'hilo'], hidden=True)
-    async def higherlower(self, ctx):
+    @commands.command(name='higherlower', aliases=['highlow', 'hilo'])
+    async def higher_lower(self, ctx):
         # Proposed by Outerwebs
-        pass
+        game = HighLow(ctx, self.bot)
+        await game.play()
 
     @commands.command(hidden=True)
     async def mancala(self, ctx):

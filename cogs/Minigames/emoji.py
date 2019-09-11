@@ -52,3 +52,8 @@ class Suits(Enum):
     HEARTS = '\U00002665'  # :hearts:
     DIAMONDS = '\U00002666'  # :diamonds:
     JOKER = '\U0001F0CF'  # :black_joker:
+
+
+class HighLow(Enum):
+    HIGH = '\U000023EB'  # :arrow_double_up:
+    LOW = '\U000023EC'  # :arrow_double_down:
