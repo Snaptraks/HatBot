@@ -81,7 +81,10 @@ class Minigames(FunCog):
 
     @commands.command(name='higherlower', aliases=['highlow', 'hilo'])
     async def higher_lower(self, ctx):
-        # Proposed by Outerwebs
+        """A game of Higher-or-Lower.
+        The player plays against the dealer (bot) for half a deck of cards.
+        Proposed by Outerwebs.
+        """
         game = HighLow(ctx, self.bot)
         await game.play()
 
