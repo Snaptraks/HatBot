@@ -16,7 +16,7 @@ class HighLow:
         self.deck = Deck()
         self.deck.shuffle()
         # use half a deck since it can be a long game otherwise
-        self.deck = self.deck.split(10)[0]
+        self.deck = self.deck.split(2)[0]
         self.dealer_score = 0
         self.player_score = 0
 
