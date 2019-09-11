@@ -60,7 +60,7 @@ class Halloween(FunCog):
     """
 
     def __init__(self, bot):
-        self.bot = bot
+        super().__init__(bot)
         self.halloween_day = get_next_halloween()
 
         self.candies = [
@@ -130,7 +130,8 @@ class Halloween(FunCog):
             'having discussions here on the Discord server. '
             'So if you see a candy popping up after one of your messages, '
             'be sure to pick it up!\n\n'
-            'Be warned! I am a playful being and might trick you! '
+            'Be warned though, I am a playful being and might trick you '
+            'while you are trick-or-treating! '
             'If you are the adventurous type, you can ask for a `!trick` '
             'directly and I will cast my magic upon you!\n\n'
             'Once you have collected many candies, you can check your `!bag` '
@@ -172,6 +173,8 @@ class Halloween(FunCog):
 
     @commands.command()
     async def bag(self, ctx):
+        """Show the content of your Halloween bag."""
+
         try:
             bag = self.data[ctx.author.id]
 
@@ -183,13 +186,13 @@ class Halloween(FunCog):
             type='rich',
             color=0xEB6123,
             ).set_author(
-                name=ctx.author.display_name,
-                icon_url=ctx.author.avatar_url_as(static_format='png'),
+            name=ctx.author.display_name,
+            icon_url=ctx.author.avatar_url_as(static_format='png'),
             ).add_field(
-                name='Content of your Halloween bag',
-                value=bag,
+            name='Content of your Halloween bag',
+            value=bag,
             ).set_footer(
-                text='Happy Halloween!'
+            text='Happy Halloween!'
             )
 
         # print(bag)
