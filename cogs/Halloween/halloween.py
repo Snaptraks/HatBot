@@ -83,12 +83,24 @@ class Halloween(FunCog):
             self.data = {}
 
         self.bot.loop.create_task(self.load_data())
-        self.bot.loop.create_task(self.start_halloween_event())
+        self.event_task = \
+            self.bot.loop.create_task(self.start_halloween_event())
 
     def cog_check(self, ctx):
         valid = super().cog_check(ctx) \
             # and (datetime.utcnow().date() == self.halloween_day.date())
         return valid
+
+    def cog_unload(self):
+        super().cog_unload()
+        self.event_task.cancel()
+
+    async def cog_command_error(self, ctx, error):
+        if isinstance(error, commands.CommandOnCooldown):
+            await ctx.message.add_reaction('\U0000231B')  # :hourglass:
+
+        else:
+            raise
 
     async def load_data(self):
         await self.bot.wait_until_ready()
