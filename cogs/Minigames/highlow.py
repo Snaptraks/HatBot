@@ -12,7 +12,11 @@ class HighLow:
         self.ctx = ctx
         self.bot = bot
         # Higher or Lower
-        self.moves = [emoji.HighLow.HIGH.value, emoji.HighLow.LOW.value]
+        self.moves = [
+            emoji.HighLow.HIGH.value,
+            emoji.HighLow.LOW.value,
+            emoji.Controls.CANCEL.value,
+            ]
         self.deck = Deck()
         self.deck.shuffle()
         # use half a deck since it can be a long game otherwise
@@ -94,6 +98,10 @@ class HighLow:
                     f'than {self.prev_card}.'
                     )
                 self.player_score += 1
+
+            elif move == emoji.Controls.CANCEL.value:
+                # cancel the game
+                break
 
             else:
                 hint_message = 'Nope!'

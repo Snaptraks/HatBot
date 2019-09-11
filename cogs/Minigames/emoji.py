@@ -27,6 +27,10 @@ class Numbers(Enum):
     _10 = '\U0001F51F'  # :keycap_ten:
 
 
+class Controls(Enum):
+    CANCEL = '\U0000274C'  # :x:
+
+
 class Hangman(Enum):
     BLACK = '\U00002B1B'  # :black_large_square:
     DIZZY_FACE = '\U0001F635'  # :dizzy_face:
