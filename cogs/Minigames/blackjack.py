@@ -99,7 +99,6 @@ class Blackjack:
                 if move == emoji.Alphabet.H.value:
                     # give card
                     self.deck.give_cards(self.player_hand, 1)
-                    print(self.player_hand.cards)
                     if self.calculate_score(self.player_hand) > 21:
                         self.playing = False
                         self.player_busted = True
@@ -113,7 +112,6 @@ class Blackjack:
                     # give dealer card until total is above 17
                     while self.calculate_score(self.dealer_hand) < 17:
                         self.deck.give_cards(self.dealer_hand, 1)
-                        print(self.dealer_hand.cards)
                         if self.calculate_score(self.dealer_hand) > 21:
                             self.dealer_busted = True
                             hint_message = (
