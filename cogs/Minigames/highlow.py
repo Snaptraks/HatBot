@@ -123,7 +123,8 @@ class HighLow:
     def update_embed(self, hint_message, hide_next):
         score_str = (
             f'You got **{self.player_score}** guesses right, '
-            f'and {self.dealer_score} wrong.'
+            f'and {self.dealer_score} wrong.\n'
+            f'({len(self.deck)} cards left in the deck)'
             )
 
         self.embed.set_field_at(
