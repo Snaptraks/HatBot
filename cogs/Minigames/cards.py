@@ -16,10 +16,12 @@ class Card:
     def __init__(self, suit, rank):
         self.suit = suit
         self.rank = rank
+        self.suit_name = self.suit_names[suit]
+        self.rank_name = self.rank_names[rank]
         self._card = (suit, rank)
 
     def __str__(self):
-        return f'{self.rank_names[self.rank]} of {self.suit_names[self.suit]}'
+        return f'{self.rank_name} of {self.suit_name}'
 
     def __repr__(self):
         return f'{self.__class__.__name__}({self.suit}, {self.rank})'
@@ -37,9 +39,9 @@ class Card:
     @property
     def emoji(self):
         """Returns a string of the card's rank and suit, in emoji form."""
-        suit = emoji.Suits[self.suit_names[self.suit].upper()].value
+        suit = emoji.Suits[self.suit_name.upper()].value
         if self.rank in (1, 11, 12, 13):
-            rank = emoji.Alphabet[self.rank_names[self.rank]].value
+            rank = emoji.Alphabet[self.rank_name].value
         else:
             rank = emoji.Numbers[f'_{self.rank}'].value
 
