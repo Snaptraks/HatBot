@@ -27,6 +27,10 @@ class Numbers(Enum):
     _10 = '\U0001F51F'  # :keycap_ten:
 
 
+class Controls(Enum):
+    CANCEL = '\U0000274C'  # :x:
+
+
 class Hangman(Enum):
     BLACK = '\U00002B1B'  # :black_large_square:
     DIZZY_FACE = '\U0001F635'  # :dizzy_face:
@@ -44,3 +48,16 @@ class Connect4(Enum):
     BLUE = '\U0001F535'  # :large_blue_circle:
     RED_WIN = '\U00002B55'  # :o:
     BLUE_WIN = '\U0001F518'  # :radio_button:
+
+
+class Suits(Enum):
+    SPADES = '\U00002660'  # :spades:
+    CLUBS = '\U00002663'  # :clubs:
+    HEARTS = '\U00002665'  # :hearts:
+    DIAMONDS = '\U00002666'  # :diamonds:
+    JOKER = '\U0001F0CF'  # :black_joker:
+
+
+class HighLow(Enum):
+    HIGH = '\U000023EB'  # :arrow_double_up:
+    LOW = '\U000023EC'  # :arrow_double_down:

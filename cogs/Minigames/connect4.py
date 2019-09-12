@@ -18,6 +18,7 @@ class Board:
 
     def player_play(self, player, column):
         """Adds a player token (1 or 2) to the requested column."""
+
         if self.board[column, 0] == 0:  # if there is room
             for i, r in enumerate(self.board[column]):
                 if r != 0:
@@ -33,6 +34,7 @@ class Board:
 
     def check_winner(self, player):
         """Checks if the board has a winning configuration for the player."""
+
         # THIS IS A MESS
         # vertical
         for c in range(self.size_x):
@@ -67,6 +69,7 @@ class Board:
 
     def __repr__(self):
         """Represents the board visually, for debug purposes."""
+
         rep = '\n'.join(str(line) for line in self.board.T)
         return rep
 
@@ -119,9 +122,9 @@ class Connect4:
             await self.message_game.edit(embed=self.embed)
 
             def check(reaction, user):
-                valid = (user == self.players[player] and \
-                    reaction.message.channel == self.ctx.channel and \
-                    reaction.emoji in self.emoji_numbers)
+                valid = user == self.players[player] and \
+                    reaction.message.id == self.message_game.id and \
+                    reaction.emoji in self.emoji_numbers
                 return valid
 
             try:

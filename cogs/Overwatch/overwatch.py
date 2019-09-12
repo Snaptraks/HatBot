@@ -59,6 +59,8 @@ class Overwatch(commands.Cog):
 
     def __init__(self, bot):
         self.bot = bot
+        self.playing_overwatch = 0
+        self.is_playing = False
         self.api_url = \
             'https://ow-api.com/v1/stats/pc/us/{battletag}/{type}/{heroes}'
         # self.api_url = 'https://ovrstat.com/stats/pc/us/{battletag}'
@@ -117,8 +119,6 @@ class Overwatch(commands.Cog):
         await self.bot.wait_until_ready()
 
         all_members = set([m for m in self.bot.get_all_members() if not m.bot])
-        self.playing_overwatch = 0
-        self.is_playing = False
 
         def is_game(x):
             return x.name == 'Overwatch'
