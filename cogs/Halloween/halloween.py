@@ -83,8 +83,10 @@ class Halloween(FunCog):
             self.data = {}
 
         self.bot.loop.create_task(self.load_data())
-        self.event_task = \
-            self.bot.loop.create_task(self.start_halloween_event())
+        self.bg_tasks = [
+            self.bot.loop.create_task(self.start_halloween_event()),
+            self.bot.loop.create_task(self.halloweenify()),
+            ]
 
     def cog_check(self, ctx):
         valid = super().cog_check(ctx) \
@@ -93,7 +95,8 @@ class Halloween(FunCog):
 
     def cog_unload(self):
         super().cog_unload()
-        self.event_task.cancel()
+        for task in self.bg_tasks:
+            task.cancel()
 
     async def cog_command_error(self, ctx, error):
         if isinstance(error, commands.CommandOnCooldown):
@@ -117,6 +120,30 @@ class Halloween(FunCog):
 
         self.guild = guild
         self.channel = channel
+
+    async def halloweenify(self):
+        """Change the Bot's profile picture and guild nickname a week before
+        Halloween to something sp00py. Reset everything the day after
+        Halloween.
+        """
+        await self.bot.wait_until_ready()
+        week_before = self.halloween_day - timedelta(weeks=1)
+        day_after = self.halloween_day + timedelta(days=1)
+        bot_member = self.guild.get_member(self.bot.user.id)
+
+        # change pfp and nickname
+        delay = week_before - datetime.utcnow()
+        avatar = discord.File('HVClogoHalloween3.png')
+        await asyncio.sleep(delay.total_seconds())
+        await self.bot.user.edit(avatar=avatar.fp.read())
+        await bot_member.edit(nick='BatBot')
+
+        # reset pfp and nickname to normal
+        delay = day_after - datetime.utcnow()
+        avatar = discord.File('HVClogo.png')
+        await asyncio.sleep(delay.total_seconds())
+        await self.bot.user.edit(avatar=avatar.fp.read())
+        await bot_member.edit(nick=None)
 
     async def start_halloween_event(self):
         """Announce the beginning of the Halloween event, with some help
