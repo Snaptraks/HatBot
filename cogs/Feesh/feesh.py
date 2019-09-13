@@ -309,7 +309,8 @@ class Feesh(FunCog):
 
         def isvalid(m):
             try:
-                return cog_levels.data[m.id].exp > 0
+                return (cog_levels.data[m.id].exp > 0
+                    and m != ctx.author)
             except KeyError:
                 return False
 
