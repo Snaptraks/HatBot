@@ -235,9 +235,10 @@ class Feesh(FunCog):
 
             await channel.send(out_str)
 
-    @feesh.command(name='give')
+    @feesh.command(name='give', aliases=['kobe'])
     async def feesh_give(self, ctx, member: discord.Member, amount=1):
         """Give a feesh from your feesh to a member."""
+
         donor = ctx.author
         guild = ctx.guild
         channel = ctx.channel
