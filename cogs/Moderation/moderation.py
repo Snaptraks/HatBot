@@ -13,18 +13,20 @@ logger = logging.getLogger('discord')
 
 class Moderation(BasicCog):
     """Cog for moderation of a Discord Guild."""
-    
+
     def __init__(self, bot):
         super().__init__(bot)
 
     @commands.command()
     @commands.has_permissions(kick_members=True)
-    async def mute(self, ctx, member: discord.Member, time='15m'):
+    async def mute(self, ctx, member: discord.Member, time='15m',
+            *, reason=None):
         """Prevents the member to send messages and add reactions.
-        Syntax is '!mute <member> [time]', where time is ##A, where
+        Syntax is '!mute <member> [time] [reason]', where time is ##A, where
         ## is a number (any) and A is ONE of (s, m, h, d) for
         seconds, minutes, hours, and days respectively. Defaults to
-        15 minutes ('15m')."""
+        15 minutes ('15m'). The reason is optional and added to the Audit Log.
+        """
         guild_permissions = member.guild_permissions
         wait_time = parse_time(time).total_seconds()
         # Because sometimes members have nicknames with markdown
@@ -52,7 +54,11 @@ class Moderation(BasicCog):
                 permissions = channel.permissions_for(member)
 
                 if permissions.read_messages:
-                    await channel.set_permissions(member, overwrite=overwrite)
+                    await channel.set_permissions(
+                        member,
+                        overwrite=overwrite,
+                        reason=reason
+                        )
 
             await asyncio.sleep(wait_time)
             await ctx.invoke(self.unmute, member)
