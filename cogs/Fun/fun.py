@@ -50,47 +50,46 @@ class Fun(FunCog):
         """Fortune-telling or advice seeking."""
         r = np.random.randint(50)
         # r = 0  # Force the picture answer
-        if r != 0:
-            question = tuple(sorted(question))
-            with open('cogs/Fun/8ball/8ball.json', 'r') as f:
-                answers = json.load(f)['answers']
-            if len(question) > 1:
-                i = hash(question) % len(answers)
-                out_ans = answers[i]
+        async with ctx.typing():
+            if r != 0:
+                question = tuple(sorted(question))
+                with open('cogs/Fun/8ball/8ball.json', 'r') as f:
+                    answers = json.load(f)['answers']
+                if len(question) > 0:
+                    i = hash(question) % len(answers)
+                    out_ans = answers[i]
+                else:
+                    out_ans = 'I\'m sorry, what is the question?'
+
+                await asyncio.sleep(1.5)
+                await ctx.send(':8ball: ' + out_ans)
+
             else:
-                out_ans = 'I\'m sorry, what is the question?'
+                # sends a fun picture!
+                avatar_url = ctx.author.avatar_url_as(format='png')
 
-            await ctx.send(':8ball: ' + out_ans)
+                async with self.bot.http_session.get(str(avatar_url)) as resp:
+                    if resp.status == 200:
+                        with open('cogs/Fun/8ball/avatar.png', 'wb') as f:
+                            f.write(await resp.content.read())
 
-        else:
-            # sends a fun picture!
-            member = ctx.author
-            channel = ctx.channel
+                # needed files
+                avatar = Image.open('cogs/Fun/8ball/avatar.png')
+                template = Image.open('cogs/Fun/8ball/magic_8ball_filter.png')
+                new = Image.new('RGBA', template.size)
 
-            avatar_url = member.avatar_url_as(format='png')
+                # big profile picture
+                big = avatar.resize((375, 375), Image.ANTIALIAS)
+                new.paste(big, (349, 70))
 
-            async with self.bot.http_session.get(str(avatar_url)) as resp:
-                if resp.status == 200:
-                    with open('cogs/Fun/8ball/avatar.png', 'wb') as f:
-                        f.write(await resp.content.read())
+                # small profile picture
+                small = avatar.resize((204, 204), Image.ANTIALIAS)
+                new.paste(small, (105, 301))
 
-            # needed files
-            avatar = Image.open('cogs/Fun/8ball/avatar.png')
-            template = Image.open('cogs/Fun/8ball/magic_8ball_filter.png')
-            new = Image.new('RGBA', template.size)
-
-            # big profile picture
-            big = avatar.resize((375, 375), Image.ANTIALIAS)
-            new.paste(big, (349, 70))
-
-            # small profile picture
-            small = avatar.resize((204, 204), Image.ANTIALIAS)
-            new.paste(small, (105, 301))
-
-            new.paste(template, mask=template)
-            new.save('cogs/Fun/8ball/magic_8ball_avatar.png')
-            img = discord.File('cogs/Fun/8ball/magic_8ball_avatar.png')
-            await ctx.send(file=img)
+                new.paste(template, mask=template)
+                new.save('cogs/Fun/8ball/magic_8ball_avatar.png')
+                img = discord.File('cogs/Fun/8ball/magic_8ball_avatar.png')
+                await ctx.send(file=img)
 
     @commands.command(aliases=['rockpaperscissors'])
     async def rps(self, ctx, player_choice=''):
