@@ -75,12 +75,6 @@ class MyBot(Bot):
         print(inv_link.format(self.user.id))
         print('--------')
 
-    async def on_message(self, message):
-
-        if message.content.startswith(self.command_prefix):
-            # run the command, if it is one
-            await self.process_commands(message)
-
     async def on_reaction_add(self, reaction, user):
         message = reaction.message
         if not user.bot and not message.author.bot:
