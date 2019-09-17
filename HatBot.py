@@ -137,4 +137,4 @@ if __name__ == '__main__':
             exc = '{}: {}'.format(type(e).__name__, e)
             print('Failed to load extension {}\n{}'.format(extension, exc))
 
-    loop.run_until_complete(bot.start(config.hatbot_token))
+    bot.run(config.hatbot_token)
