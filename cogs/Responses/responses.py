@@ -92,10 +92,8 @@ class Responses(BasicCog):
 
         whats = ('what', 'whut', 'whot', 'wat', 'wut', 'wot')
 
-
         if message.content.lower() in whats \
                 and message.channel.name != 'general':
-
 
             author = message.author
             channel = message.channel
