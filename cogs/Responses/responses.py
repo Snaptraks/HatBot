@@ -74,6 +74,7 @@ class Responses(BasicCog):
 
         if 'hello there' in message.content.lower() \
                 and not message.content.startswith(self.bot.command_prefix) \
+                and not self.bot.user.mention in message.content \
                 and message.channel.name != 'general':
 
             dt = datetime.now() - self.hello_there_params['last_time']
