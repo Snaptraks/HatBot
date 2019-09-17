@@ -1,20 +1,16 @@
 import asyncio
 import json
 import logging
-import pickle
 import platform
 import sys
-import time
 
 import aiohttp
+from datetime import datetime, timedelta
 import discord
 from discord.ext.commands import Bot
 from discord.ext import commands
 import numpy as np
 
-# custom datetime with modulo
-from cogs.utils.datetime_modulo import datetime
-from datetime import timedelta
 import config
 
 
