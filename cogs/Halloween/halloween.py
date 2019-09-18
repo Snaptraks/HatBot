@@ -7,7 +7,7 @@ import numpy as np
 import discord
 from discord.ext import commands
 
-from ..utils.cog import FunCog
+from ..utils.cogs import FunCog
 
 
 def get_next_halloween():

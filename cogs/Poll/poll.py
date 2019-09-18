@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import json
 
-from ..utils.cog import BasicCog
+from ..utils.cogs import BasicCog
 
 
 class Poll(BasicCog):

@@ -8,7 +8,7 @@ import discord
 from discord.ext import commands
 from discord.ext import tasks
 
-from ..utils.cog import BasicCog
+from ..utils.cogs import BasicCog
 
 
 with open('cogs/TeX/struct.tex', 'r') as f:

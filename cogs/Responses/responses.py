@@ -9,7 +9,7 @@ import numpy as np
 
 from ..utils.datetime_modulo import datetime
 from datetime import timedelta
-from ..utils.cog import BasicCog
+from ..utils.cogs import BasicCog
 
 
 class Responses(BasicCog):

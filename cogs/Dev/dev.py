@@ -8,7 +8,7 @@ from contextlib import redirect_stdout
 import discord
 from discord.ext import commands
 
-from ..utils.cog import BasicCog
+from ..utils.cogs import BasicCog
 
 # Some commands taken from
 # https://github.com/Rapptz/RoboDanny/blob/rewrite/cogs/admin.py

@@ -6,7 +6,7 @@ import discord
 from discord.ext import commands
 import numpy as np
 
-from ..utils.cog import BasicCog
+from ..utils.cogs import BasicCog
 from .userprofile import UserProfile
 
 

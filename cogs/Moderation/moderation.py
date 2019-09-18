@@ -5,7 +5,7 @@ from discord.ext import commands
 from discord.utils import escape_markdown
 import logging
 
-from ..utils.cog import BasicCog
+from ..utils.cogs import BasicCog
 
 
 logger = logging.getLogger('discord')

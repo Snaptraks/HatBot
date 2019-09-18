@@ -2,7 +2,7 @@ import asyncio
 import discord
 from discord.ext import commands
 
-from ..utils.cog import BasicCog
+from ..utils.cogs import BasicCog
 
 
 class Git(BasicCog):

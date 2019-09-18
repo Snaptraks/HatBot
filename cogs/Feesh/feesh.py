@@ -12,7 +12,7 @@ from matplotlib.ticker import MaxNLocator
 
 from ..utils.datetime_modulo import datetime
 from datetime import timedelta
-from ..utils.cog import FunCog
+from ..utils.cogs import FunCog
 
 
 FEESH_DATA_FILE = 'cogs/Feesh/feesh_data.pkl'

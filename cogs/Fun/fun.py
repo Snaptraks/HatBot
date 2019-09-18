@@ -6,7 +6,7 @@ import json
 
 from PIL import Image
 
-from ..utils.cog import FunCog
+from ..utils.cogs import FunCog
 
 
 class Fun(FunCog):

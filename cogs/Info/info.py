@@ -5,7 +5,7 @@ import discord
 from discord.ext import commands
 from mcstatus import MinecraftServer
 
-from ..utils.cog import BasicCog
+from ..utils.cogs import BasicCog
 from ..utils.datetime_modulo import datetime
 from datetime import timedelta
 import config

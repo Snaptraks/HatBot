@@ -4,7 +4,7 @@ from discord.ext import commands
 import numpy as np
 from datetime import datetime, timedelta
 
-from ..utils.cog import BasicCog
+from ..utils.cogs import BasicCog
 
 today = datetime.today()
 April_Fools = datetime(year=today.year, month=4, day=1)

@@ -3,7 +3,7 @@ import asyncio
 import discord
 from discord.ext import commands
 
-from ..utils.cog import FunCog
+from ..utils.cogs import FunCog
 from .blackjack import Blackjack
 from .connect4 import Connect4
 from .hangman import Hangman
