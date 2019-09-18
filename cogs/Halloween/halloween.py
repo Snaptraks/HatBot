@@ -19,12 +19,8 @@ def get_next_halloween():
     halloween = datetime(year=now.year, month=10, day=31)
 
     if (halloween - now).total_seconds() < 0:
-        halloween = datetime(
-            year=halloween.year + 1,
-            month=halloween.month,
-            day=halloween.day,
-            )
-
+        halloween = halloween.replace(year=halloween.year + 1)
+        
     return halloween
 
 
