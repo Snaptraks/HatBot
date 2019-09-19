@@ -38,8 +38,11 @@ class Announcements(BasicCog):
         except FileNotFoundError:
             self.birthday_dates = {}
 
+        self.birthday_announcement.start()
+
     def cog_unload(self):
         super().cog_unload()
+        self.birthday_announcement.cancel()
 
     @commands.Cog.listener(name='on_member_join')
     async def nth_member(self, member):
@@ -64,6 +67,58 @@ class Announcements(BasicCog):
         """
         pass
 
+    # DISCORD.PY > 1.3.0 ONLY
+    # @tasks.loop(time=datetime.time(hour=0))
+    @tasks.loop(hours=1)
+    async def birthday_announcement(self):
+        """Accounce the birthday of a member.
+        Birthdays need to be registered by the member beforehand
+        with the command `!birthday register <DD/MM/YYYY>`.
+        """
+        birthdays = []
+        today = datetime.date.today()
+        # build birthday list
+        for k, v in self.birthday_dates.items():
+            if (v.day, v.month) == (today.day, today.month):
+                member = self.guild.get_member(k)
+                if member is not None:
+                    birthdays.append(member)
+
+        await asyncio.gather(
+            *[self.birthday_task(member) for member in birthdays]
+            )
+
+    async def birthday_task(self, member):
+        print('Birthday of', member)
+        # msg = await self.guild.system_channel.send(
+        msg = await self.syschannel.send(
+            f':birthday: It is the birthday of {member.mention} today! '
+            "Let's all wish them a nice day!"
+            )
+        await msg.add_reaction('\U0001F389')
+        await member.add_roles(self.birthday_role, reason='Birthday!')
+        await asyncio.sleep(60)
+        await member.remove_roles(self.birthday_role)
+
+    @birthday_announcement.before_loop
+    async def birthday_announcement_before(self):
+        await self.bot.wait_until_ready()
+        await asyncio.sleep(0)  # wait until midnight
+        self.guild = discord.utils.get(
+            self.bot.guilds,
+            # name='Hatventures Community',
+            name='Bot Testing Server',
+            )
+
+        self.birthday_role = discord.utils.get(
+            self.guild.roles,
+            name='Birthday Hat',
+            )
+
+        self.syschannel = discord.utils.get(
+            self.guild.channels,
+            name='bot-0',
+            )
 
     @commands.group(aliases=['bday'])
     async def birthday(self, ctx):
