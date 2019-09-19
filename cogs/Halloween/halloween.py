@@ -20,7 +20,7 @@ def get_next_halloween():
 
     if (halloween - now).total_seconds() < 0:
         halloween = halloween.replace(year=halloween.year + 1)
-        
+
     return halloween
 
 
