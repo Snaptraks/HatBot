@@ -154,8 +154,8 @@ class Announcements(BasicCog):
 
         elif isinstance(error, commands.MissingRequiredArgument) \
                 or isinstance(error.original, ValueError):
-                
-            await ctx.author.send(
+
+            await ctx.send(
                 'Please enter your birthday in a '
                 '`DD/MM/YYYY` format.'
                 )
