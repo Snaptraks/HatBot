@@ -74,16 +74,15 @@ class Announcements(BasicCog):
                 out_str = (
                     f'Your birthday is **{bday.strftime("%d of %B")}**. '
                     'If it is not correct, you can change it with '
-                    '`!birthday register <DD/MM/YYYY>` in a private '
-                    'message with me.'
                     )
 
             else:
-                out_str = (
-                    'You can register your birthday with '
-                    '`!birthday register <DD/MM/YYYY>` in a private '
-                    'message with me.'
-                    )
+                out_str = 'You can register your birthday with '
+
+            out_str += (
+                '`!birthday register <DD/MM/YYYY>` in a private '
+                'message with me.'
+                )
 
             await ctx.send(out_str)
 
