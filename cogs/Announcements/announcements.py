@@ -175,5 +175,13 @@ class Announcements(BasicCog):
                 '`DD/MM/YYYY` format.'
                 )
 
+        elif isinstance(error.original, AlreadyRegistered):
+            app_info = await self.bot.application_info()
+            await ctx.send(
+                'You already have a birthday registered '
+                f'(**{error.original.date.strftime("%d of %B")}**)! '
+                f'Contact {app_info.owner.mention} to change it.'
+                )
+
         else:
             raise
