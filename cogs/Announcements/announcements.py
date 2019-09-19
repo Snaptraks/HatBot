@@ -67,8 +67,8 @@ class Announcements(BasicCog):
 
     @commands.group(aliases=['bday'])
     async def birthday(self, ctx):
-        """Command group to register a birthday, and check the current
-        registered date, if any.
+        """Command group to register a birthday.
+        Check the current registered date, if any.
         """
         if ctx.invoked_subcommand is None:
             try:
