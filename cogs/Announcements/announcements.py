@@ -167,6 +167,10 @@ class Announcements(BasicCog):
         finally:
             await ctx.send(f'Successfully removed birthday for {user}')
 
+        with open('cogs/Announcements/birthday_dates.pkl', 'wb') as f:
+            pickle.dump(self.birthday_dates, f)
+
+
     @birthday_register.error
     async def birthday_register_error(self, ctx, error):
         """In the case of an error, send a helpful message."""
