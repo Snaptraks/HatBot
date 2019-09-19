@@ -20,6 +20,13 @@ def get_next_birthday(birthday_date):
     return bday
 
 
+class AlreadyRegistered(Exception):
+    """Exception raised when a user already has a birthday registered."""
+
+    def __init__(self, date):
+        self.date = date
+
+
 class Announcements(BasicCog):
     def __init__(self, bot):
         super().__init__(bot)
