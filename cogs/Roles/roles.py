@@ -82,4 +82,5 @@ class Roles(BasicCog):
         everyone, *roles = ctx.guild.roles
         available = [r for r in roles if r.permissions == everyone.permissions]
         available = [r for r in available if not r.managed]
+        available = [r for r in available if not r.hoist]
         return available
