@@ -91,15 +91,13 @@ class Announcements(BasicCog):
         """Register your birthday.
         Format DD/MM/YYYY. Only works in Private Message with the bot.
         """
-        yes_no = ('\U0001F44D', '\U0001F44E')  # thumbsup/down
         if ctx.author.id in self.birthday_dates:
             raise AlreadyRegistered(self.birthday_dates[ctx.author.id])
 
-        try:
-            date = [int(x) for x in date.split('/')]
+        yes_no = ('\U0001F44D', '\U0001F44E')  # thumbsup/down
 
-        except ValueError:
-            raise
+        # will raise ValueError if there is a non-int
+        date = [int(x) for x in date.split('/')]
 
         if len(date) != 3:
             raise ValueError
