@@ -8,11 +8,11 @@ from discord.ext import commands, tasks
 from ..utils.cogs import BasicCog
 
 
-def get_next_birthday(birthday_date):
+def get_next_birthday(date):
     """Return a date object for the next birthday."""
 
     now = datetime.date.today()
-    bday = birthday_date.replace(year=now.year)
+    bday = date.replace(year=now.year)
 
     if (bday - now).total_seconds() < 0:
         bday = bday.replace(year=bday.year + 1)
