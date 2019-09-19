@@ -145,6 +145,22 @@ class Announcements(BasicCog):
         """Celebrate a member's birthday!"""
         pass
 
+    @birthday.command(name='delete')
+    @commands.is_owner()
+    async def birthday_delete(self, ctx, user: discord.User):
+        """Delete a registered birthday.
+        Only use it if someone entered the wrong date even after
+        the confirmation message.
+        """
+        try:
+            del self.birthday_dates[user.id]
+
+        except KeyError:
+            await ctx.send(f'User {user} ({user.id}) has not registered.')
+
+        finally:
+            await ctx.send(f'Successfully removed birthday for {user}')
+
     @birthday_register.error
     async def birthday_register_error(self, ctx, error):
         """In the case of an error, send a helpful message."""
