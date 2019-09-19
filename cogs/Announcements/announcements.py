@@ -61,7 +61,7 @@ class Announcements(BasicCog):
     @commands.group(aliases=['bday'])
     async def birthday(self, ctx):
         """Command group to register a birthday, and check the current
-        registered date, if any. Only works in Private Message with the bot.
+        registered date, if any.
         """
         if ctx.invoked_subcommand is None:
             try:
@@ -90,7 +90,7 @@ class Announcements(BasicCog):
     @birthday.command(name='register')
     async def birthday_register(self, ctx, date):
         """Register your birthday.
-        Format DD/MM/YYYY.
+        Format DD/MM/YYYY. Only works in Private Message with the bot.
         """
         yes_no = ('\U0001F44D', '\U0001F44E')  # thumbsup/down
 
