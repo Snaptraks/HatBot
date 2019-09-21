@@ -38,6 +38,7 @@ class Announcements(BasicCog):
         except FileNotFoundError:
             self.birthday_dates = {}
 
+        self.birthday_active = False
         self.birthday_announcement.start()
 
     def cog_unload(self):
@@ -65,7 +66,19 @@ class Announcements(BasicCog):
         """If a birthday is active, add birthday reactions to messages
         containing 'happy birthday'.
         """
-        pass
+        # if message.channel == message.guild.system_channel:
+        if message.channel == self.syschannel:
+            if self.birthday_active:
+                # Add a reaction to people wishing happy birthday
+                trigger_words = [
+                    'bday',
+                    'birthday',
+                    'birfday',  # because people are silly
+                    'happy',
+                    ]
+                if any(word in message.content for word in trigger_words):
+                    await message.add_reaction('\U0001F389')
+
 
     # DISCORD.PY > 1.3.0 ONLY
     # @tasks.loop(time=datetime.time(hour=0))
