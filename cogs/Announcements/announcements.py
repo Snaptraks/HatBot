@@ -97,9 +97,13 @@ class Announcements(BasicCog):
                 if member is not None:
                     birthdays.append(member)
 
-        await asyncio.gather(
-            *[self.birthday_task(member) for member in birthdays]
-            )
+        if len(birthdays) != 0:
+            self.birthday_active = True
+            for member in birthdays:
+                asyncio.create_task(self.birthday_task(member))
+
+        else:
+            self.birthday_active = False
 
     async def birthday_task(self, member):
         print('Birthday of', member)
