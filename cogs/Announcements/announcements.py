@@ -66,7 +66,8 @@ class Announcements(BasicCog):
         """If a birthday is active, add birthday reactions to messages
         containing 'happy birthday'.
         """
-        if message.channel == message.guild.system_channel:
+        if message.guild is not None \
+                and message.channel == message.guild.system_channel:
             if self.birthday_active:
                 # Add a reaction to people wishing happy birthday
                 trigger_words = [
