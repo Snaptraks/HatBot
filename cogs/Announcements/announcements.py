@@ -233,7 +233,7 @@ class Announcements(BasicCog):
         except KeyError:
             await ctx.send(f'User {user} ({user.id}) has not registered.')
 
-        finally:
+        else:
             await ctx.send(f'Successfully removed birthday for {user}')
 
         with open('cogs/Announcements/birthday_dates.pkl', 'wb') as f:
