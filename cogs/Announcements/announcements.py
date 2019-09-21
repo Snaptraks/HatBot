@@ -82,7 +82,7 @@ class Announcements(BasicCog):
 
     # DISCORD.PY > 1.3.0 ONLY
     # @tasks.loop(time=datetime.time(hour=0))
-    @tasks.loop(hours=1)
+    @tasks.loop(hours=24)
     async def birthday_announcement(self):
         """Accounce the birthday of a member.
         Birthdays need to be registered by the member beforehand
@@ -110,13 +110,18 @@ class Announcements(BasicCog):
             )
         await msg.add_reaction('\U0001F389')
         await member.add_roles(self.birthday_role, reason='Birthday!')
-        await asyncio.sleep(60)
+        await asyncio.sleep(24 * 3600)  # 24 hours
         await member.remove_roles(self.birthday_role)
 
     @birthday_announcement.before_loop
     async def birthday_announcement_before(self):
         await self.bot.wait_until_ready()
-        await asyncio.sleep(0)  # wait until midnight
+        # ----temp fix until 1.3.0 comes out----
+        t = datetime.datetime.utcnow().replace(hour=0, minute=0)
+        t += datetime.timedelta(days=1)
+        dt = t - datetime.datetime.now()
+        await asyncio.sleep(dt.total_seconds())  # wait until midnight
+        # --------------------------------------
         self.guild = discord.utils.get(
             self.bot.guilds,
             # name='Hatventures Community',
