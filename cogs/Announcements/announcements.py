@@ -66,8 +66,7 @@ class Announcements(BasicCog):
         """If a birthday is active, add birthday reactions to messages
         containing 'happy birthday'.
         """
-        # if message.channel == message.guild.system_channel:
-        if message.channel == self.syschannel:
+        if message.channel == message.guild.system_channel:
             if self.birthday_active:
                 # Add a reaction to people wishing happy birthday
                 trigger_words = [
@@ -106,9 +105,7 @@ class Announcements(BasicCog):
             self.birthday_active = False
 
     async def birthday_task(self, member):
-        print('Birthday of', member)
-        # msg = await self.guild.system_channel.send(
-        msg = await self.syschannel.send(
+        msg = await self.guild.system_channel.send(
             f':birthday: It is the birthday of {member.mention} today! '
             "Let's all wish them a nice day!"
             )
@@ -128,18 +125,12 @@ class Announcements(BasicCog):
         # --------------------------------------
         self.guild = discord.utils.get(
             self.bot.guilds,
-            # name='Hatventures Community',
-            name='Bot Testing Server',
+            name='Hatventures Community',
             )
 
         self.birthday_role = discord.utils.get(
             self.guild.roles,
             name='Birthday Hat',
-            )
-
-        self.syschannel = discord.utils.get(
-            self.guild.channels,
-            name='bot-0',
             )
 
     @commands.group(aliases=['bday'])
@@ -171,6 +162,7 @@ class Announcements(BasicCog):
             await ctx.send(out_str)
 
     @birthday.command(name='register')
+    @commands.dm_only()
     async def birthday_register(self, ctx, date):
         """Register your birthday.
         Format DD/MM/YYYY. Only works in Private Message with the bot.
