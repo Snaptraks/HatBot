@@ -131,7 +131,6 @@ class Feesh(FunCog):
             wait = period - (t % period)
             await asyncio.sleep(wait.total_seconds())
 
-            # members_list = [m for m in self.guild.members if is_not_offline(m)]
             # no need to be online if we use Levels
             members_list = self.guild.members
 
