@@ -438,7 +438,10 @@ class Feesh(FunCog):
             r = np.random.rand()
             if r < fail:
                 # fail
-                out_str = f'You failed at {_ing} a {self.feesh_emoji}.'
+                out_str = (
+                    f'You failed at {_ing} a {self.feesh_emoji} '
+                    f'from {escape(target.display_name)}.'
+                    )
                 await channel.send(out_str)
             elif r < fail + drop:
                 # drop
