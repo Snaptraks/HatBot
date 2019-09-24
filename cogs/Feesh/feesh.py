@@ -1,4 +1,5 @@
 import asyncio
+import copy
 import json
 import pickle
 import re
@@ -590,6 +591,36 @@ class Feesh(FunCog):
         out_str += '```\n' + '\n'.join(sorted(who)) + '\n```'
         await ctx.send(out_str)
 
+    @feesh.command(name='random')
+    async def feesh_random(self, ctx, subcommand):
+        """Run the subcommand with a random Member as argument.
+        It can call all subcommands, even those that do not take a Member
+        as argument, so it can break. Goes through the cooldown and error
+        handling mechanisms.
+        """
+        root_parent = ctx.command.root_parent
+
+        valid_subcommands = []
+        for cmd in root_parent.commands:
+            valid_subcommands += [cmd.name] + cmd.aliases
+        valid_subcommands.remove(ctx.command.name)  # no aliases to remove
+
+        if subcommand in valid_subcommands:
+            # create the new message
+            member = np.random.choice(ctx.guild.members)
+            msg = copy.copy(ctx.message)
+            arguments = ' '.join([root_parent.name, subcommand, str(member)])
+            msg.content = ctx.prefix + arguments
+            new_ctx = await self.bot.get_context(msg, cls=type(ctx))
+            # treat it like a normal message
+            print(new_ctx.message.content)
+            await self.bot.invoke(new_ctx)
+
+        else:
+            raise commands.BadArgument(
+                f'Unknown subcommand of {root_parent.name}')
+
+
     @feesh_give.error
     @feesh_stats.error
     async def feesh_error(self, ctx, error):
@@ -651,6 +682,14 @@ class Feesh(FunCog):
             # USE THIS for more flexability
             bucket = ctx.command._buckets.get_bucket(ctx)
             bucket._tokens += 1
+
+    @feesh_random.error
+    async def feesh_random_error(self, ctx, error):
+        if isinstance(error, commands.BadArgument):
+            await ctx.send(f'Unknown subcommand.')
+
+        else:
+            raise
 
     def transfer_feesh(self, member, donor=None, amount=1):
         """Transfers feesh from donor to member, or gives a new one
