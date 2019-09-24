@@ -613,7 +613,6 @@ class Feesh(FunCog):
             msg.content = ctx.prefix + arguments
             new_ctx = await self.bot.get_context(msg, cls=type(ctx))
             # treat it like a normal message
-            print(new_ctx.message.content)
             await self.bot.invoke(new_ctx)
 
         else:
