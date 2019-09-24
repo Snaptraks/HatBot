@@ -412,7 +412,7 @@ class Feesh(FunCog):
 
             if feesh_target == 0:
                 out_str = (
-                    f'That person has no {self.feesh_emoji}, '
+                    f'{escape(target.display_name)} has no {self.feesh_emoji}, '
                     f'you can\'t {ctx.invoked_with} from them.'
                     )
                 await channel.send(out_str)
