@@ -46,7 +46,8 @@ class Responses(BasicCog):
             task.cancel()  # Cancel background tasks
 
     async def load_data(self):
-        """Loads data from the server, such as channel and emoji"""
+        """Load data from the server, such as channel and emoji"""
+
         await self.bot.wait_until_ready()
         guild = discord.utils.get(
             self.bot.guilds,
@@ -57,7 +58,7 @@ class Responses(BasicCog):
 
     @commands.Cog.listener(name='on_message')
     async def on_mention(self, message):
-        """Sends a funny reply when the bot is mentionned."""
+        """Send a funny reply when the bot is mentionned."""
 
         if self.bot.user.mention in message.content \
                 and not message.content.startswith(self.bot.command_prefix):
@@ -70,7 +71,7 @@ class Responses(BasicCog):
 
     @commands.Cog.listener(name='on_message')
     async def hello_there(self, message):
-        """Sends a picture if 'hello there' is in a message."""
+        """Send a picture if 'hello there' is in a message."""
 
         if 'hello there' in message.content.lower() \
                 and not message.content.startswith(self.bot.command_prefix) \
@@ -89,7 +90,7 @@ class Responses(BasicCog):
 
     @commands.Cog.listener(name='on_message')
     async def they_said(self, message):
-        """Fun feature that replies the last message IN CAPS."""
+        """Reply with the last message IN CAPS."""
 
         whats = ('what', 'whut', 'whot', 'wat', 'wut', 'wot')
 

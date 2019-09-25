@@ -18,7 +18,7 @@ class Minigames(FunCog):
         self._sessions = set()
 
     def cog_check(self, ctx):
-        """Checks if a game is currently running in the channel."""
+        """Check if a game is currently running in the channel."""
 
         return super().cog_check(ctx) and ctx.channel.id not in self._sessions
 

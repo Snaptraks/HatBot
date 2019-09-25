@@ -42,10 +42,9 @@ def get_latex_cmds(tempfile):
 
 class TeX(BasicCog):
     """Cog to display valid TeX equations.
-    Parses messages looking for equation blocks, compiles them and sends
+    Parse messages looking for equation blocks, compile them and send
     the resulting equation back.
-    """    
-
+    """
     def __init__(self, bot):
         self.bot = bot
         self.clean_temp_folder.start(expiration=24 * 3600)
@@ -55,7 +54,8 @@ class TeX(BasicCog):
 
     @commands.Cog.listener()
     async def on_message(self, message):
-        """Parses if there is a valid LaTeX equation in the message."""
+        """Parse the message to check if there is a valid LaTeX equation."""
+
         matches = re.findall(r'\$.*?(?<!\\\\)\$', message.content)
 
         for i, match in enumerate(matches):
@@ -76,9 +76,9 @@ class TeX(BasicCog):
 
     @tasks.loop(hours=1)
     async def clean_temp_folder(self, expiration):
-        """Cleans temporary files if they are older than 'expiration'
-        seconds."""
-
+        """Clean temporary files if they are older than 'expiration'
+        seconds.
+        """
         for file in os.listdir(LATEX_TEMP_PATH):
             file_path = os.path.join(LATEX_TEMP_PATH, file)
             if (time.time() - os.path.getmtime(file_path)) > expiration:

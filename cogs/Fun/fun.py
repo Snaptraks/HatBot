@@ -17,12 +17,14 @@ class Fun(FunCog):
 
     @commands.command()
     async def ping(self, ctx):
-        """Replies with Pong!"""
+        """Reply with Pong!"""
+
         await ctx.send(':ping_pong: Pong!')
 
     @commands.command()
     async def marco(self, ctx):
-        """Plays Marco Polo with you."""
+        """Play Marco Polo."""
+
         r = np.random.randint(100)
         if r == 0:  # tags xplio/polo
             await ctx.send(':water_polo: <@239215575576870914>!')
@@ -31,7 +33,8 @@ class Fun(FunCog):
 
     @commands.command()
     async def roll(self, ctx, dice='1d6'):
-        """Rolls a dice in NdN format."""
+        """Roll a dice in NdN format."""
+
         try:
             rolls, limit = map(int, dice.lower().split('d'))
         except Exception:
@@ -48,6 +51,7 @@ class Fun(FunCog):
     @commands.command(name='8ball')
     async def _8ball(self, ctx, *question):
         """Fortune-telling or advice seeking."""
+
         r = np.random.randint(50)
         # r = 0  # Force the picture answer
         async with ctx.typing():
@@ -93,8 +97,9 @@ class Fun(FunCog):
 
     @commands.command(aliases=['rockpaperscissors'])
     async def rps(self, ctx, player_choice=''):
-        """Plays Rock Paper Scissors with you.
-        Contributed by danjono#8310!"""
+        """Play a game of Rock Paper Scissors.
+        Contributed by danjono#8310!
+        """
         options_text: List[str] = ['rock', 'paper', 'scissors']
         options_emoji: List[str] = [':full_moon:', ':newspaper:', ':scissors:']
 

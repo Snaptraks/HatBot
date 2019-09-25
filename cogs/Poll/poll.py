@@ -19,7 +19,7 @@ class Poll(BasicCog):
 
     @commands.command()
     async def poll(self, ctx):
-        """Creates a poll where users can react to vote.
+        """Create a poll where users can react to vote.
         Syntax is `!poll {question} [choice 1] [choice 2] +duration hh:mm +keep`
         """
         messageContent = ctx.message.content
@@ -127,7 +127,7 @@ class Poll(BasicCog):
 
     @commands.command()
     async def strawpoll(self, ctx):
-        """Creates a strawpoll poll, and shares the link.
+        """Create a strawpoll poll, and share the link.
         Syntax is `!strawpoll {question} [choice 1] [choice 2]`
         """
         message = ctx.message.content

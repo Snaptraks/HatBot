@@ -21,7 +21,7 @@ class Moderation(BasicCog):
     @commands.has_permissions(kick_members=True)
     async def mute(self, ctx, member: discord.Member, time='15m',
             *, reason=None):
-        """Prevents the member to send messages and add reactions.
+        """Prevent the member to send messages and add reactions.
         Syntax is '!mute <member> [time] [reason]', where time is ##A, where
         ## is a number (any) and A is ONE of (s, m, h, d) for
         seconds, minutes, hours, and days respectively. Defaults to
@@ -66,7 +66,8 @@ class Moderation(BasicCog):
     @commands.command()
     @commands.has_permissions(kick_members=True)
     async def unmute(self, ctx, member: discord.Member):
-        """Removes the mute on member."""
+        """Remove the mute on member."""
+
         for channel in ctx.guild.text_channels:
             permissions = channel.permissions_for(member)
 
@@ -77,7 +78,8 @@ class Moderation(BasicCog):
 
     @mute.error
     async def mute_error(self, ctx, error):
-        """Handles errors."""
+        """Handle errors."""
+        
         if isinstance(error, commands.MissingRequiredArgument):
             await ctx.send('You need to provide someone to mute.')
 

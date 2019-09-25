@@ -27,8 +27,9 @@ logger.addHandler(handler)
 
 
 async def create_http_session(loop):
-    """Creates an async HTTP session. Required to be from an async function
-    by aiohttp 3.5.4"""
+    """Create an async HTTP session. Required to be from an async function
+    by aiohttp 3.5.4
+    """
     return aiohttp.ClientSession(loop=loop)
 
 
@@ -45,7 +46,8 @@ class MyBot(Bot):
             create_http_session(self.loop))
 
     async def close(self):
-        """Subclasses the close() method to close the HTTP Session."""
+        """Subclass the close() method to close the HTTP Session."""
+
         await self.http_session.close()
         await super().close()
 

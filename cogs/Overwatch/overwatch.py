@@ -84,7 +84,7 @@ class Overwatch(commands.Cog):
 
     @commands.Cog.listener()
     async def on_member_update(self, before, after):
-        """Modifies how many members are playing Overwatch, if it applies."""
+        """Modify how many members are playing Overwatch, if it applies."""
 
         def is_game(x):
             return x.name == 'Overwatch'
@@ -113,7 +113,7 @@ class Overwatch(commands.Cog):
                 await self.stop_overwatch()
 
     async def load_data(self):
-        """Initializes some parameters, such as the number or members
+        """Initialize some parameters, such as the number or members
         currently in Overwatch.
         """
         await self.bot.wait_until_ready()
@@ -135,7 +135,8 @@ class Overwatch(commands.Cog):
 
     @commands.command(aliases=['decalre'])
     async def declare(self, ctx):
-        """Sends a gif to declare a game of Overwatch!"""
+        """Send a gif to declare a game of Overwatch!"""
+
         member = ctx.author
         channel = ctx.channel
         # because xplio keeps making typos
@@ -164,9 +165,9 @@ class Overwatch(commands.Cog):
 
     @commands.group(aliases=['ow'])
     async def overwatch(self, ctx):
-        """Montre les statistiques pour le joueur."""
         """Shows stats for the player.
-        The author must have registered their BattleTag beforehand."""
+        The author must have registered their BattleTag beforehand.
+        """
         await ctx.channel.trigger_typing()
         if ctx.invoked_subcommand is None:
             await ctx.send('Unknown subcommand.')
@@ -174,6 +175,7 @@ class Overwatch(commands.Cog):
     @overwatch.command(name='register')
     async def overwatch_register(self, ctx, battletag):
         """Links the Discord User to their BattleTag."""
+
         # check if the provided BattleTag is in the right format
         valid = re.match(r'.*?#\d{4,5}', battletag)
         if not valid:
@@ -217,6 +219,7 @@ class Overwatch(commands.Cog):
     @overwatch_register.error
     async def overwatch_register_error(self, ctx, error):
         """Error handling for the overwatch register subcommand."""
+
         if isinstance(error, commands.MissingRequiredArgument):
             try:
                 battletag = self.battletags[ctx.author.id]
@@ -238,6 +241,7 @@ class Overwatch(commands.Cog):
 
     async def overwatch_base(self, ctx, member, hero=''):
         """Get data and create the base Embed."""
+
         type_dict = {
             'profile': 'profile',
             'quickplay': 'complete',
@@ -523,7 +527,8 @@ class Overwatch(commands.Cog):
         await ctx.send(embed=e, file=discord.File('cogs/Overwatch/full.png'))
 
     async def on_mention(self):
-        """Sends a Zenyatta voice line."""
+        """Send a Zenyatta voice line."""
+
         await self.bot.wait_until_ready()
 
         mentions = self.voice_lines['Ability'] + \
@@ -551,6 +556,7 @@ class Overwatch(commands.Cog):
 
     async def random_gif(self, query):
         """Random gifs from Tenor"""
+        
         query = query.split()
         if len(query) >= 1:
             search_random = (

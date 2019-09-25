@@ -23,7 +23,7 @@ class Dev(BasicCog):
         self.sessions = set()
 
     def cleanup_code(self, content):
-        """Automatically removes code blocks from the code."""
+        """Automatically remove code blocks from the code."""
         # remove ```py\n```
         if content.startswith('```') and content.endswith('```'):
             return '\n'.join(content.split('\n')[1:-1])
@@ -41,7 +41,7 @@ class Dev(BasicCog):
 
     @commands.command(name='eval')
     async def _eval(self, ctx, *, body: str):
-        """Evaluates a code"""
+        """Evaluate a code"""
 
         env = {
             'bot': self.bot,
@@ -88,7 +88,8 @@ class Dev(BasicCog):
 
     @commands.command()
     async def repl(self, ctx):
-        """Launches an interactive REPL session."""
+        """Launch an interactive REPL session."""
+        
         variables = {
             'ctx': ctx,
             'bot': self.bot,
