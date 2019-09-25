@@ -29,16 +29,6 @@ class Admin(BasicCog):
     @commands.command(aliases=['stop', 'quit', 'exit'])
     async def kill(self, ctx):
         """Stops the bot. Does not restart it."""
-        print('KILLING THE BOT')
-
-        await self.bot.logout()
-
-        raise KeyboardInterrupt
-
-    @commands.command(aliases=['restart'])
-    async def reboot(self, ctx):
-        """Stops the bot. If all goes right it restarts."""
-        print('REBOOTING THE BOT')
 
         await self.bot.logout()
 
