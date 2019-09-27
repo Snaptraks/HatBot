@@ -118,12 +118,6 @@ class Announcements(BasicCog):
     @birthday_announcement.before_loop
     async def birthday_announcement_before(self):
         await self.bot.wait_until_ready()
-        # ----temp fix until 1.3.0 comes out----
-        t = datetime.datetime.utcnow().replace(hour=0, minute=0)
-        t += datetime.timedelta(days=1)
-        dt = t - datetime.datetime.now()
-        await asyncio.sleep(dt.total_seconds())  # wait until midnight
-        # --------------------------------------
         self.guild = discord.utils.get(
             self.bot.guilds,
             name='Hatventures Community',
@@ -133,6 +127,12 @@ class Announcements(BasicCog):
             self.guild.roles,
             name='Birthday Hat',
             )
+        # ----temp fix until 1.3.0 comes out----
+        t = datetime.datetime.utcnow().replace(hour=0, minute=0)
+        t += datetime.timedelta(days=1)
+        dt = t - datetime.datetime.now()
+        await asyncio.sleep(dt.total_seconds())  # wait until midnight
+        # --------------------------------------
 
     @commands.group(aliases=['bday'])
     async def birthday(self, ctx):
