@@ -219,7 +219,20 @@ class Announcements(BasicCog):
     @commands.has_permissions(mention_everyone=True)
     async def birthday_celebrate(self, ctx, member: discord.Member):
         """Celebrate a member's birthday!"""
-        pass
+
+        self.birthday_active = True
+        asyncio.create_task(self.birthday_task(member))
+
+        if member.id not in self.birthday_dates:
+            # send a message to member to ask if they would like to register
+            today = datetime.date.today().strftime('%d/%m/%Y')
+            out_str = (
+                'It seems it is your birthday today! Sadly I did not know '
+                'and someone just told me. If you would like me to remember '
+                'for next time please enter the command '
+                f'`!birthday register {today}`! And happy birthday!'
+                )
+            await member.send(out_str)
 
     @birthday.command(name='delete')
     @commands.is_owner()
