@@ -17,7 +17,7 @@ class Board:
         self.winning_move = (slice(0, 0), slice(0, 0))
 
     def player_play(self, player, column):
-        """Adds a player token (1 or 2) to the requested column."""
+        """Add a player token (1 or 2) to the requested column."""
 
         if self.board[column, 0] == 0:  # if there is room
             for i, r in enumerate(self.board[column]):
@@ -33,7 +33,7 @@ class Board:
             raise ValueError('Column is full.')
 
     def check_winner(self, player):
-        """Checks if the board has a winning configuration for the player."""
+        """Check if the board has a winning configuration for the player."""
 
         # THIS IS A MESS
         # vertical
@@ -103,7 +103,7 @@ class Connect4:
             )
 
     async def play(self):
-        """Plays a game of Connect 4!"""
+        """Play a game of Connect 4!"""
 
         player = 0
         tokens = [emoji.Connect4.RED.value, emoji.Connect4.BLUE.value]
@@ -175,7 +175,7 @@ class Connect4:
         await self.message_game.clear_reactions()
 
     def update_embed(self, hint_message, player):
-        """Edits the Embed with the current board state, and who's
+        """Edit the Embed with the current board state, and who's
         next to play.
         """
 
@@ -191,7 +191,7 @@ class Connect4:
             )
 
     def make_graphics(self):
-        """Returns a string that represents the board state."""
+        """Return a string that represents the board state."""
 
         tokens = [
             emoji.Connect4.BLACK.value,

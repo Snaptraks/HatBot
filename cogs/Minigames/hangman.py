@@ -60,7 +60,7 @@ class Hangman:
             )
 
     async def play(self):
-        """Plays a game of Hangman!"""
+        """Play a game of Hangman!"""
 
         def check(message):
             valid = (message.author == self.ctx.author and \
@@ -123,9 +123,9 @@ class Hangman:
         await self.message_game.edit(embed=self.embed)
 
     def update_embed(self, hint_message):
-        """Edits the Embed, the progress on the word to guess, chances,
-        and the graphics of the hangman."""
-
+        """Edit the Embed, the progress on the word to guess, chances,
+        and the graphics of the hangman.
+        """
         current_progress = ' '.join(
             emoji.Alphabet[x.upper()].value if x in self.good_guesses
             else emoji.Hangman.BLANK.value for x in self.word_to_guess
@@ -159,9 +159,9 @@ class Hangman:
             )
 
     def make_graphics(self, number_bad_guesses):
-        """Returns an array for the hangman picture with the correct limbs
-        displayed according to the number bad guesses made."""
-
+        """Return an array for the hangman picture with the correct limbs
+        displayed according to the number bad guesses made.
+        """
         if number_bad_guesses == 0:
             return np.full((3, 4), emoji.Hangman.BLACK.value)
         else:

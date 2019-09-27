@@ -1,4 +1,5 @@
 import asyncio
+import copy
 import json
 import pickle
 import re
@@ -12,7 +13,7 @@ from matplotlib.ticker import MaxNLocator
 
 from ..utils.datetime_modulo import datetime
 from datetime import timedelta
-from ..utils.cog import FunCog
+from ..utils.cogs import FunCog
 
 
 FEESH_DATA_FILE = 'cogs/Feesh/feesh_data.pkl'
@@ -46,6 +47,7 @@ class Feesh(FunCog):
 
     async def load_data(self):
         """Loads data from the guild, such as channel and emoji"""
+
         await self.bot.wait_until_ready()
         guild = discord.utils.get(
             self.bot.guilds, name='Hatventures Community'
@@ -63,6 +65,7 @@ class Feesh(FunCog):
     @commands.Cog.listener()
     async def on_member_join(self, member):
         """Updates feesh stats when a new member joins."""
+
         try:
             # Cancel the removal of feesh task
             # This has no effect if the member rejoins after more than 24 hours
@@ -89,13 +92,15 @@ class Feesh(FunCog):
     @commands.Cog.listener()
     async def on_member_remove(self, member):
         """Clears the feesh of a member.
-        Allows other people to collect it."""
+        Allows other people to collect it.
+        """
         # py 3.7
         task = asyncio.create_task(self.wait_and_remove_feesh(member))
         self.remove_tasks[member.id] = task
 
     async def wait_and_remove_feesh(self, member):
         """Waits for 24 hours, then transfers the feesh to the bot."""
+
         try:
             print(f'{member} left. Waiting 24 hours.')
             await asyncio.sleep(24 * 3600)  # sleep for 24 hours
@@ -131,7 +136,6 @@ class Feesh(FunCog):
             wait = period - (t % period)
             await asyncio.sleep(wait.total_seconds())
 
-            # members_list = [m for m in self.guild.members if is_not_offline(m)]
             # no need to be online if we use Levels
             members_list = self.guild.members
 
@@ -216,6 +220,7 @@ class Feesh(FunCog):
     @commands.group()
     async def feesh(self, ctx):
         """Gives statistics on the amount of feesh given."""
+
         if ctx.invoked_subcommand is None:
 
             member = ctx.author
@@ -235,9 +240,10 @@ class Feesh(FunCog):
 
             await channel.send(out_str)
 
-    @feesh.command(name='give')
+    @feesh.command(name='give', aliases=['kobe'])
     async def feesh_give(self, ctx, member: discord.Member, amount=1):
         """Give a feesh from your feesh to a member."""
+
         donor = ctx.author
         guild = ctx.guild
         channel = ctx.channel
@@ -309,7 +315,8 @@ class Feesh(FunCog):
 
         def isvalid(m):
             try:
-                return cog_levels.data[m.id].exp > 0
+                return (cog_levels.data[m.id].exp > 0
+                    and m != ctx.author)
             except KeyError:
                 return False
 
@@ -375,8 +382,8 @@ class Feesh(FunCog):
     @feesh.command(name='steal', hidden=True, aliases=['yoink'])
     async def feesh_steal(self, ctx, target: discord.Member):
         """Attempts to steal a feesh from a given member.
-        This is a secret command! Shhhhhhhhh..."""
-
+        This is a secret command! Shhhhhhhhh...
+        """
         if ctx.invoked_with == 'yoink':
             _ing = 'yoinking'
             _ed = 'yoinked'
@@ -410,7 +417,7 @@ class Feesh(FunCog):
 
             if feesh_target == 0:
                 out_str = (
-                    f'That person has no {self.feesh_emoji}, '
+                    f'{escape(target.display_name)} has no {self.feesh_emoji}, '
                     f'you can\'t {ctx.invoked_with} from them.'
                     )
                 await channel.send(out_str)
@@ -436,7 +443,10 @@ class Feesh(FunCog):
             r = np.random.rand()
             if r < fail:
                 # fail
-                out_str = f'You failed at {_ing} a {self.feesh_emoji}.'
+                out_str = (
+                    f'You failed at {_ing} a {self.feesh_emoji} '
+                    f'from {escape(target.display_name)}.'
+                    )
                 await channel.send(out_str)
             elif r < fail + drop:
                 # drop
@@ -505,6 +515,7 @@ class Feesh(FunCog):
     @feesh.command(name='stats')
     async def feesh_stats(self, ctx, member: discord.Member = None):
         """Generates a plot of the feesh distribution."""
+
         await ctx.trigger_typing()
 
         if member is None:
@@ -586,10 +597,40 @@ class Feesh(FunCog):
         out_str += '```\n' + '\n'.join(sorted(who)) + '\n```'
         await ctx.send(out_str)
 
+    @feesh.command(name='random')
+    async def feesh_random(self, ctx, subcommand):
+        """Run the subcommand with a random Member as argument.
+        It can call all subcommands, even those that do not take a Member
+        as argument, so it can break. Goes through the cooldown and error
+        handling mechanisms.
+        """
+        root_parent = ctx.command.root_parent
+
+        valid_subcommands = []
+        for cmd in root_parent.commands:
+            valid_subcommands += [cmd.name] + cmd.aliases
+        valid_subcommands.remove(ctx.command.name)  # no aliases to remove
+
+        if subcommand in valid_subcommands:
+            # create the new message
+            member = np.random.choice(ctx.guild.members)
+            msg = copy.copy(ctx.message)
+            arguments = ' '.join([root_parent.name, subcommand, str(member)])
+            msg.content = ctx.prefix + arguments
+            new_ctx = await self.bot.get_context(msg, cls=type(ctx))
+            # treat it like a normal message
+            await self.bot.invoke(new_ctx)
+
+        else:
+            raise commands.BadArgument(
+                f'Unknown subcommand of {root_parent.name}')
+
+
     @feesh_give.error
     @feesh_stats.error
     async def feesh_error(self, ctx, error):
         """Error handling for feesh give and stats subcommands."""
+
         if isinstance(error, commands.BadArgument):
             await ctx.send('Unknown member! :dizzy_face:')
         elif isinstance(error, commands.MissingRequiredArgument):
@@ -600,6 +641,7 @@ class Feesh(FunCog):
     @feesh_whohas.error
     async def feesh_whohas_error(self, ctx, error):
         """Error handling for the feesh whohas subcommand."""
+
         if isinstance(error, commands.BadArgument):
             await ctx.send('The amount needs to be a positive whole number.')
         else:
@@ -609,7 +651,8 @@ class Feesh(FunCog):
     async def feesh_steal_error(self, ctx, error):
         """Error handling for the feesh steal subcommand.
         In case of an error in the command's invocation, do not
-        count it towards the cooldown."""
+        count it towards the cooldown.
+        """
         if isinstance(error, commands.CommandOnCooldown):
             await ctx.message.add_reaction('\U0000231B')  # :hourglass:
 
@@ -648,9 +691,18 @@ class Feesh(FunCog):
             bucket = ctx.command._buckets.get_bucket(ctx)
             bucket._tokens += 1
 
+    @feesh_random.error
+    async def feesh_random_error(self, ctx, error):
+        if isinstance(error, commands.BadArgument):
+            await ctx.send(f'Unknown subcommand.')
+
+        else:
+            raise
+
     def transfer_feesh(self, member, donor=None, amount=1):
         """Transfers feesh from donor to member, or gives a new one
-        if donor is None."""
+        if donor is None.
+        """
         mid = member.id
         try:
             self.data['members'][mid]['amount'] += amount
@@ -679,6 +731,7 @@ class Feesh(FunCog):
     @commands.has_permissions(administrator=True)
     async def collect_feesh(self, ctx):
         """Give the feesh from members that left to the bot."""
+        
         n = 0
         for id in self.data['members'].keys():
             if self.data['members'][id]['is_member']:

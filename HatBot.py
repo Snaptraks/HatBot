@@ -1,20 +1,16 @@
 import asyncio
 import json
 import logging
-import pickle
 import platform
 import sys
-import time
 
 import aiohttp
+from datetime import datetime, timedelta
 import discord
 from discord.ext.commands import Bot
 from discord.ext import commands
 import numpy as np
 
-# custom datetime with modulo
-from cogs.utils.datetime_modulo import datetime
-from datetime import timedelta
 import config
 
 
@@ -31,8 +27,9 @@ logger.addHandler(handler)
 
 
 async def create_http_session(loop):
-    """Creates an async HTTP session. Required to be from an async function
-    by aiohttp 3.5.4"""
+    """Create an async HTTP session. Required to be from an async function
+    by aiohttp 3.5.4
+    """
     return aiohttp.ClientSession(loop=loop)
 
 
@@ -49,7 +46,8 @@ class MyBot(Bot):
             create_http_session(self.loop))
 
     async def close(self):
-        """Subclasses the close() method to close the HTTP Session."""
+        """Subclass the close() method to close the HTTP Session."""
+
         await self.http_session.close()
         await super().close()
 
@@ -74,12 +72,6 @@ class MyBot(Bot):
         inv_link = discord.utils.oauth_url(self.user.id)
         print(inv_link.format(self.user.id))
         print('--------')
-
-    async def on_message(self, message):
-
-        if message.content.startswith(self.command_prefix):
-            # run the command, if it is one
-            await self.process_commands(message)
 
     async def on_reaction_add(self, reaction, user):
         message = reaction.message
@@ -127,6 +119,7 @@ if __name__ == '__main__':
     # This specifies what extensions to load when the bot starts up
     startup_extensions = [
         'cogs.Admin',
+        'cogs.Announcements',
         'cogs.Dev',
         'cogs.Feesh',
         'cogs.Fun',
@@ -147,4 +140,4 @@ if __name__ == '__main__':
             exc = '{}: {}'.format(type(e).__name__, e)
             print('Failed to load extension {}\n{}'.format(extension, exc))
 
-    loop.run_until_complete(bot.start(config.hatbot_token))
+    bot.run(config.hatbot_token)

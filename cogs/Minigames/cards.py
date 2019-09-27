@@ -28,6 +28,7 @@ class Card:
 
     def __eq__(self, other):
         """Use the type tuple to make equality check."""
+
         return self._card == other._card
 
     def __lt__(self, other):
@@ -38,7 +39,8 @@ class Card:
 
     @property
     def emoji(self):
-        """Returns a string of the card's rank and suit, in emoji form."""
+        """Return a string of the card's rank and suit, in emoji form."""
+
         suit = emoji.Suits[self.suit_name.upper()].value
         if self.rank in (1, 11, 12, 13):
             rank = emoji.Alphabet[self.rank_name].value
@@ -82,15 +84,18 @@ class Deck:
         return next(self.cards)
 
     def shuffle(self):
-        """Shuffles the cards inplace."""
+        """Shuffle the cards inplace."""
+
         np.random.shuffle(self.cards)
 
     def sort(self):
-        """Sorts the cards inplace."""
+        """Sort the cards inplace."""
+
         self.cards.sort()
 
     def split(self, parts):
-        """Splits the deck in n parts."""
+        """Split the deck in n parts."""
+
         cards_array = np.asarray(self.cards)
         split = np.array_split(cards_array, parts)
         decks = []
@@ -100,21 +105,24 @@ class Deck:
         return decks
 
     def add_card(self, card):
-        """Adds a card to the end of the deck."""
+        """Add a card to the end of the deck."""
+
         self.cards.append(card)
 
     def remove_card(self, card):
-        """Removes a given card form the deck."""
+        """Remove a given card form the deck."""
+
         self.cards.remove(card)
 
     def pop_card(self, *args):
-        """Removes and returns a card from the deck,
+        """Remove and return a card from the deck,
         the last one by default.
         """
         return self.cards.pop(*args)
 
     def give_cards(self, hand, amount):
-        """Gives the amount of cards from the deck to the player's hand."""
+        """Give the amount of cards from the deck to the player's hand."""
+        
         for i in range(amount):
             hand.add_card(self.pop_card())
 

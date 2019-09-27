@@ -4,7 +4,7 @@ from discord.ext import commands
 import numpy as np
 from datetime import datetime, timedelta
 
-from ..utils.cog import BasicCog
+from ..utils.cogs import BasicCog
 
 today = datetime.today()
 April_Fools = datetime(year=today.year, month=4, day=1)
@@ -72,7 +72,8 @@ class NSFW(BasicCog):
     @commands.command(name='nsfw', hidden=True)
     @commands.is_nsfw()
     async def _nsfw(self, ctx):
-        """Sends a NSFW picture or gif to the NSFW channel."""
+        """Send a NSFW picture or gif to the NSFW channel."""
+        
         channel = ctx.message.channel
         links = load_links('cogs/NSFW/links.txt')
         await channel.send(np.random.choice(links))

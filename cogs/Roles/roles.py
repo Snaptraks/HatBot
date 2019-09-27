@@ -4,7 +4,7 @@ from discord.ext import commands
 
 import numpy as np
 
-from ..utils.cog import BasicCog
+from ..utils.cogs import BasicCog
 
 
 class Roles(BasicCog):
@@ -16,7 +16,7 @@ class Roles(BasicCog):
 
     @commands.command()
     async def roles(self, ctx):
-        """Lists available roles."""
+        """List of available roles."""
 
         available = self.get_available_roles(ctx)
         blue_dia = ':small_blue_diamond:'
@@ -29,10 +29,10 @@ class Roles(BasicCog):
     # TODO: merge the join/leave commands to avoid duplicate code
     @commands.command()
     async def join(self, ctx, *, role: discord.Role = None):
-        """Allows you to add a role.
+        """Add yourself to a role.
         To select a role to add, enter the command and the role's name
-        as the argument (case sentitive, please do not @mention the role)."""
-
+        as the argument (case sentitive, please do not @mention the role).
+        """
         if role is None:
             out_str = 'Please enter a role from `!roles`.'
 
@@ -49,10 +49,10 @@ class Roles(BasicCog):
 
     @commands.command()
     async def leave(self, ctx, *, role: discord.Role = None):
-        """Allows you to remove a role.
+        """Remove yourself from a role.
         To select a role to remove, enter the command and the role's name
-        as the argument (case sentitive, please do not @mention the role)."""
-
+        as the argument (case sentitive, please do not @mention the role).
+        """
         if role is None:
             out_str = 'Please enter a role from `!roles`.'
 
@@ -71,6 +71,7 @@ class Roles(BasicCog):
     @leave.error
     async def join_leave_error(self, ctx, error):
         """Error handling for the join and leave commands."""
+        
         if isinstance(error, commands.BadArgument):
             bot_msg = await ctx.send('I did not find that role, I\'m sorry!')
             await asyncio.sleep(30)
@@ -82,4 +83,5 @@ class Roles(BasicCog):
         everyone, *roles = ctx.guild.roles
         available = [r for r in roles if r.permissions == everyone.permissions]
         available = [r for r in available if not r.managed]
+        available = [r for r in available if not r.hoist]
         return available

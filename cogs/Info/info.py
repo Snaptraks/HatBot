@@ -5,7 +5,7 @@ import discord
 from discord.ext import commands
 from mcstatus import MinecraftServer
 
-from ..utils.cog import BasicCog
+from ..utils.cogs import BasicCog
 from ..utils.datetime_modulo import datetime
 from datetime import timedelta
 import config
@@ -21,7 +21,8 @@ class Info(BasicCog):
 
     @commands.command()
     async def ts(self, ctx):
-        """Gives the TeamSpeak server information."""
+        """Get the TeamSpeak server information."""
+
         embed = discord.Embed(
             title='TeamSpeak Server',
             description='Come chat with us!',
@@ -38,7 +39,8 @@ class Info(BasicCog):
 
     @commands.command(aliases=['map', 'ip'])
     async def mc(self, ctx):
-        """Gives the Minecraft server information."""
+        """Get the Minecraft server information."""
+
         server = MinecraftServer.lookup(config.hvc_mc['ip'])
 
         embed = discord.Embed(
@@ -83,7 +85,7 @@ class Info(BasicCog):
 
     @commands.command()
     async def time(self, ctx, tz_abr='UTC'):
-        """Gives the current time in the requested timezone."""
+        """Get the current time in the requested timezone."""
 
         now_utc = ctx.message.created_at
         tz_abr = tz_abr.upper()

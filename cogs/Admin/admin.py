@@ -8,7 +8,7 @@ import re
 import discord
 from discord.ext import commands
 
-from ..utils.cog import BasicCog
+from ..utils.cogs import BasicCog
 
 
 logger = logging.getLogger('discord')
@@ -28,28 +28,21 @@ class Admin(BasicCog):
 
     @commands.command(aliases=['stop', 'quit', 'exit'])
     async def kill(self, ctx):
-        """Stops the bot. Does not restart it."""
-        print('KILLING THE BOT')
-
-        await self.bot.logout()
-
-        raise KeyboardInterrupt
-
-    @commands.command(aliases=['restart'])
-    async def reboot(self, ctx):
-        """Stops the bot. If all goes right it restarts."""
-        print('REBOOTING THE BOT')
+        """Stop the bot. Does not restart it."""
 
         await self.bot.logout()
 
     @commands.command()
     async def cogs(self, ctx):
+        """List current active cogs."""
+
         out_str = f'Active Cogs:\n`{", ".join(self.bot.cogs.keys())}`'
         await ctx.send(out_str)
 
     @commands.command()
     async def load(self, ctx, module):
-        """Loads a module."""
+        """Load a module."""
+
         try:
             self.bot.load_extension(module)
         except Exception as e:
@@ -63,7 +56,8 @@ class Admin(BasicCog):
 
     @commands.command()
     async def unload(self, ctx, module):
-        """Unloads a module."""
+        """Unload a module."""
+
         try:
             self.bot.unload_extension(module)
         except Exception as e:
@@ -76,7 +70,8 @@ class Admin(BasicCog):
 
     @commands.command()
     async def reload(self, ctx, module):
-        """Reloads a module."""
+        """Reload a module."""
+
         try:
             self.bot.unload_extension(module)
             self.bot.load_extension(module)
@@ -91,6 +86,7 @@ class Admin(BasicCog):
     @commands.command()
     async def uptime(self, ctx):
         """Display the uptime in days, and the boot time."""
+
         # message = 'I have been online for {}! (Since {:%Y-%m-%d %H:%M:%S})'
         uptime_ = datetime.now() - self.boottime
         out_str = (f'I have been online for {uptime_.days} days! '
@@ -99,7 +95,8 @@ class Admin(BasicCog):
 
     @commands.command()
     async def susay(self, ctx, channel: discord.TextChannel, *, message: str):
-        """Sends a message in the requested channel as the Bot."""
+        """Send a message in the requested channel as the Bot."""
+
         await channel.send(message)
         await ctx.message.delete()
 
@@ -107,7 +104,8 @@ class Admin(BasicCog):
     async def sudo(self, ctx, who: discord.Member, *, command: str):
         """Run a command as another user.
         There is no need to include the prefix in the sudo'ed command,
-        as it is added automatically."""
+        as it is added automatically.
+        """
         msg = copy.copy(ctx.message)
         msg.author = who
         msg.content = ctx.prefix + command
