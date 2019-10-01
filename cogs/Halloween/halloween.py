@@ -86,7 +86,8 @@ class Halloween(FunCog):
 
     def cog_check(self, ctx):
         valid = super().cog_check(ctx) \
-            # and (datetime.utcnow().date() == self.halloween_day.date())
+            and (datetime.utcnow().date() == self.halloween_day.date())
+
         return valid
 
     def cog_unload(self):
