@@ -614,8 +614,9 @@ class Feesh(FunCog):
         if subcommand in valid_subcommands:
             # create the new message
             member = np.random.choice(ctx.guild.members)
+            member_str = f'{member.id}'  # use ID in case names are weird
             msg = copy.copy(ctx.message)
-            arguments = ' '.join([root_parent.name, subcommand, str(member)])
+            arguments = ' '.join([root_parent.name, subcommand, member_str])
             msg.content = ctx.prefix + arguments
             new_ctx = await self.bot.get_context(msg, cls=type(ctx))
             # treat it like a normal message
