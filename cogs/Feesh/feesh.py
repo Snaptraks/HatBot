@@ -731,7 +731,7 @@ class Feesh(FunCog):
     @commands.has_permissions(administrator=True)
     async def collect_feesh(self, ctx):
         """Give the feesh from members that left to the bot."""
-        
+
         n = 0
         for id in self.data['members'].keys():
             if self.data['members'][id]['is_member']:
