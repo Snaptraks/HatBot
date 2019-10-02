@@ -106,13 +106,11 @@ class Halloween(FunCog):
         await self.bot.wait_until_ready()
         guild = discord.utils.get(
             self.bot.guilds,
-            # name='Hatventures Community',
-            name='Bot Testing Server',
+            name='Hatventures Community',
             )
         channel = discord.utils.get(
             guild.channels,
-            # name='hatbot-land',
-            name='bot-0',
+            name='hatbot-land',
             )
 
         self.guild = guild
