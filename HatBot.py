@@ -19,7 +19,7 @@ logger.setLevel(logging.INFO)
 handler = logging.FileHandler(
     filename='HatBot.log',
     encoding='utf-8',
-    mode='a',
+    mode='w',
     )
 handler.setFormatter(logging.Formatter(
     '%(asctime)s:%(levelname)s:%(name)s: %(message)s'))
