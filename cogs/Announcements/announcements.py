@@ -76,7 +76,8 @@ class Announcements(BasicCog):
                     'birfday',  # because people are silly
                     'happy',
                     ]
-                if any(word in message.content for word in trigger_words):
+                if any(word in message.content.lower() \
+                        for word in trigger_words):
                     await message.add_reaction('\U0001F389')
 
 
