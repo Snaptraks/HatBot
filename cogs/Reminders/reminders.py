@@ -23,6 +23,7 @@ class Reminders(BasicCog):
         """
         delay = future - datetime.utcnow()
         delay_str = str(delay).split('.')[0]
+        to_remind = discord.utils.escape_mentions(to_remind)
 
         task = asyncio.create_task(self.remind_task(ctx, delay, to_remind))
         try:
