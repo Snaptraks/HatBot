@@ -18,7 +18,7 @@ class Reminders(BasicCog):
     @commands.group(aliases=['remindme'], invoke_without_command=True)
     async def remind(self, ctx, future: Duration, *, to_remind: str):
         """Send a reminder in the future about something.
-        Syntax: `!remind 1h30m to take out the trash`. The delay argument
+        Syntax: `!remind 1h30m to take out the trash`. The future argument
         has to either be in one word, or in "quotes".
         """
         delay = future - datetime.utcnow()
