@@ -22,6 +22,7 @@ class Reminders(BasicCog):
         has to either be in one word, or in "quotes".
         """
         delay = future - datetime.utcnow()
+        delay_str = str(delay).split('.')[0]
 
         task = asyncio.create_task(self.remind_task(ctx, delay, to_remind))
         try:
@@ -33,7 +34,7 @@ class Reminders(BasicCog):
                 (future, to_remind, task)
                 ]
 
-        await ctx.send(f'Ok! I will remind you {to_remind} in {delay}.')
+        await ctx.send(f'Ok! I will remind you {to_remind} in {delay_str}.')
 
     @remind.command(name='list')
     async def remind_list(self, ctx):
