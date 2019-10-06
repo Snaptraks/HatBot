@@ -61,6 +61,7 @@ class Responses(BasicCog):
         """Send a funny reply when the bot is mentionned."""
 
         if self.bot.user.mention in message.content \
+                and not message.author.bot \
                 and not message.content.startswith(self.bot.command_prefix):
 
             with open('cogs/Responses/mentions.json', 'r') as f:
@@ -74,6 +75,7 @@ class Responses(BasicCog):
         """Send a picture if 'hello there' is in a message."""
 
         if 'hello there' in message.content.lower() \
+                and not message.author.bot \
                 and not message.content.startswith(self.bot.command_prefix) \
                 and not self.bot.user.mention in message.content \
                 and message.channel.name != 'general':
