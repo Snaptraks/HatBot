@@ -105,6 +105,23 @@ class Reminders(BasicCog):
         """
         await ctx.invoke(self.remind, future=future, to_remind=to_remind)
 
+    @remind.error
+    async def remind_error(self, ctx, error):
+        """Error handling for the remind command.
+        Does not handle for subcommands.
+        """
+        if isinstance(error, commands.BadArgument):
+            await ctx.send(error)
+        elif isinstance(error, commands.MissingRequiredArgument):
+            await ctx.send(f'You are missing argument {error.param.name}')
+        elif isinstance(error, commands.ConversionError):
+            await ctx.send(
+                'I am sorry, there was an error. '
+                'Maybe try a shorter amount of time?'
+                )
+        else:
+            raise error
+
     async def remind_task(self, ctx, delay, to_remind):
         await asyncio.sleep(delay.total_seconds())
         await ctx.send(
