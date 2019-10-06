@@ -41,8 +41,8 @@ class Duration(Converter):
 
     async def convert(self, ctx: Context, duration: str) -> datetime:
         """
-        Converts a `duration` string to a timedelta object that's
-        `duration` long.
+        Converts a `duration` string to a datetime object that's
+        `duration` in the future.
 
         The converter supports the following symbols for each unit of time:
         - years: `Y`, `y`, `year`, `years`
@@ -62,5 +62,6 @@ class Duration(Converter):
         duration_dict = {unit: int(amount) \
             for unit, amount in match.groupdict(default=0).items()}
         delta = build_duration(**duration_dict)
+        now = datetime.utcnow()
 
-        return delta
+        return now + delta
