@@ -112,5 +112,9 @@ class Reminders(BasicCog):
             )
 
     def _clean_tasks(self, id):
-        reminders = self.reminders[id]
+        try:
+            reminders = self.reminders[id]
+        except KeyError:
+            reminders = []
+
         self.reminders[id] = [task for task in reminders if not task[2].done()]
