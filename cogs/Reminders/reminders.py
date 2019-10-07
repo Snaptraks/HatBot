@@ -1,5 +1,5 @@
 import asyncio
-from datetime import datetime
+from datetime import datetime, timedelta
 
 import discord
 from discord.ext import commands
@@ -21,7 +21,7 @@ class Reminders(BasicCog):
         Syntax: `!remind 1h30m to take out the trash`. The future argument
         has to either be in one word, or in "quotes".
         """
-        delay = future - datetime.utcnow()
+        delay = future - datetime.utcnow() + timedelta(milliseconds=400)
         delay_str = str(delay).split('.')[0]
         to_remind = discord.utils.escape_mentions(to_remind)
 
