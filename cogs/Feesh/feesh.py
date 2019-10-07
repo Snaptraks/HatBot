@@ -380,7 +380,7 @@ class Feesh(FunCog):
 
     @commands.cooldown(1, 24 * 3600, commands.BucketType.member)
     @feesh.command(name='steal', hidden=True, aliases=['yoink'])
-    async def feesh_steal(self, ctx, target: discord.Member):
+    async def feesh_steal(self, ctx, *, target: discord.Member):
         """Attempts to steal a feesh from a given member.
         This is a secret command! Shhhhhhhhh...
         """
@@ -513,7 +513,7 @@ class Feesh(FunCog):
                 self.transfer_feesh(thief, donor=target, amount=1)
 
     @feesh.command(name='stats')
-    async def feesh_stats(self, ctx, member: discord.Member = None):
+    async def feesh_stats(self, ctx, *, member: discord.Member = None):
         """Generates a plot of the feesh distribution."""
 
         await ctx.trigger_typing()
