@@ -15,7 +15,8 @@ class Reminders(BasicCog):
         super().__init__(bot)
         self.reminders = {}
 
-    @commands.group(aliases=['remindme'], invoke_without_command=True)
+    @commands.group(aliases=['remindme', 'reminder'],
+        invoke_without_command=True)
     async def remind(self, ctx, future: Duration, *, to_remind: str):
         """Send a reminder in the future about something.
         Syntax: `!remind 1h30m to take out the trash`. The future argument
