@@ -8,6 +8,15 @@ from ..utils.cogs import BasicCog
 from ..utils.converters import Duration
 
 
+class ContextLite:
+    def __init__(self, author, channel):
+        self.author = author
+        self.channel = channel
+
+    async def send(self, message):
+        await self.channel.send(message)
+
+
 class Reminders(BasicCog):
     """Cog to create reminders."""
 
@@ -27,13 +36,14 @@ class Reminders(BasicCog):
         to_remind = discord.utils.escape_mentions(to_remind)
 
         task = asyncio.create_task(self.remind_task(ctx, delay, to_remind))
+        ctx_info = (ctx.author.id, ctx.channel.id)
         try:
             self.reminders[ctx.author.id].append(
-                (future, to_remind, task)
+                (future, to_remind, ctx_info, task)
                 )
         except KeyError:
             self.reminders[ctx.author.id] = [
-                (future, to_remind, task)
+                (future, to_remind, ctx_info, task)
                 ]
 
         await ctx.send(f'Ok! I will remind you {to_remind} in {delay_str}.')
@@ -51,7 +61,7 @@ class Reminders(BasicCog):
 
         out_str = ''
         for i, t in enumerate(reminders):
-            future, to_remind, task = t
+            future, to_remind = t[:2]
             delay = future - datetime.utcnow()
             delay_str = str(delay).split('.')[0]
             out_str += f'[{i + 1}] {to_remind} in {delay_str}.\n'
@@ -78,7 +88,7 @@ class Reminders(BasicCog):
             task = None
 
         if task:
-            task[2].cancel()
+            task[-1].cancel()
             out_str = f'Cancelled the reminder {task[1]}!'
 
         await ctx.send(out_str)
@@ -93,7 +103,7 @@ class Reminders(BasicCog):
             reminders = []
 
         for task in reminders:
-            task[2].cancel()
+            task[-1].cancel()
 
         self._clean_tasks(ctx.author.id)
 
@@ -135,4 +145,6 @@ class Reminders(BasicCog):
         except KeyError:
             reminders = []
 
-        self.reminders[id] = [task for task in reminders if not task[2].done()]
+        self.reminders[id] = [
+            task for task in reminders if not task[-1].done()
+            ]
