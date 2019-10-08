@@ -1,5 +1,6 @@
 import asyncio
 from datetime import datetime, timedelta
+import pickle
 
 import discord
 from discord.ext import commands
@@ -23,6 +24,53 @@ class Reminders(BasicCog):
     def __init__(self, bot):
         super().__init__(bot)
         self.reminders = {}
+
+        # rebuild the reminders dict and create the new reminders tasks
+        self.bot.loop.create_task(self.load_pickle())
+
+    def cog_unload(self):
+        super().cog_unload()
+
+        # cancel all tasks and pickle the reminders
+        to_pickle = {}
+        for id, reminders in self.reminders.items():
+            spam = []
+            for reminder in reminders:
+                if not reminder[-1].done():
+                    spam.append(reminder[:-1])
+                    reminder[-1].cancel()  # cancel the Task
+            to_pickle[id] = spam
+
+        with open('cogs/Reminders/reminders.pkl', 'wb') as f:
+            pickle.dump(to_pickle, f)
+
+    async def load_pickle(self):
+        """Ugly hack to preserve the self.reminders list on reload."""
+
+        try:
+            with open('cogs/Reminders/reminders.pkl', 'rb') as f:
+                from_pickle = pickle.load(f)
+
+        except FileNotFoundError:
+            from_pickle = {}
+
+        for id, reminders in from_pickle.items():
+            spam = []
+            for reminder in reminders:
+                future, to_remind, ctx_info = reminder
+                delay = future - datetime.utcnow()
+
+                author = self.bot.get_user(ctx_info[0])
+                channel = self.bot.get_channel(ctx_info[1])
+                ctx = ContextLite(author, channel)
+
+                task = asyncio.create_task(
+                    self.remind_task(ctx, delay, to_remind)
+                    )
+
+                spam.append((future, to_remind, ctx_info, task))
+
+            self.reminders[id] = spam
 
     @commands.group(aliases=['remindme', 'reminder'],
         invoke_without_command=True)
