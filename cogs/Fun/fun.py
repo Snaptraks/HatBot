@@ -7,6 +7,7 @@ import json
 from PIL import Image
 
 from ..utils.cogs import FunCog
+from ..utils.gifs import random_gif
 
 
 class Fun(FunCog):
@@ -142,3 +143,25 @@ class Fun(FunCog):
             await ctx.send(':lizard:')
         else:
             await ctx.send('Wait, that\'s not a valid move!')
+
+    @commands.command()
+    async def hug(self, ctx, huggie: discord.Member = None):
+        gif_url = await random_gif(self.bot.http_session, 'hug')
+        if huggie is None:
+            description = (
+                f'{self.bot.user.display_name} hugs '
+                f'{ctx.author.display_name}! :heart:'
+                )
+        else:
+            description = (
+                f'{ctx.author.display_name} hugs '
+                f'{huggie.display_name}! :heart:'
+                )
+        embed = discord.Embed(
+            title='Have a hug!',
+            description=description,
+            color=0xFF4CD5,
+            )
+        embed.set_image(url=gif_url)
+
+        await ctx.send(embed=embed)
