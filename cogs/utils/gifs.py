@@ -23,7 +23,6 @@ async def _tenor_endpoint(endpoint, http_session, query):
         async with http_session.get(search_random) as resp:
             if resp.status == 200:
                 try:
-                    # json_random = await resp.json()['results']
                     json_resp = await resp.json()
                     json_resp = json_resp['results']
                     gif = json_resp[0]
