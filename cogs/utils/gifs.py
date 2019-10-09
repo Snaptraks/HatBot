@@ -3,15 +3,15 @@ import config
 
 async def search_gif(http_session, query):
     """Return a gif when searching for a specific query."""
-    return await _giphy_endpoint('search', http_session, query)
+    return await _tenor_endpoint('search', http_session, query)
 
 
 async def random_gif(http_session, query):
     """Return a random gif related to the query."""
-    return await _giphy_endpoint('random', http_session, query)
+    return await _tenor_endpoint('random', http_session, query)
 
 
-async def _giphy_endpoint(endpoint, http_session, query):
+async def _tenor_endpoint(endpoint, http_session, query):
     """Get a gif from Tenor"""
 
     query = query.split()
