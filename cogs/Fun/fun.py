@@ -145,7 +145,7 @@ class Fun(FunCog):
             await ctx.send('Wait, that\'s not a valid move!')
 
     @commands.command()
-    async def hug(self, ctx, huggie: discord.Member = None):
+    async def hug(self, ctx, *, huggie: discord.Member = None):
         gif_url = await random_gif(self.bot.http_session, 'hug')
         if huggie is None:
             description = (
