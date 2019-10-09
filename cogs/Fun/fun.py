@@ -165,3 +165,10 @@ class Fun(FunCog):
         embed.set_image(url=gif_url)
 
         await ctx.send(embed=embed)
+
+    @hug.error
+    async def hug_error(self, ctx, error):
+        if isinstance(error, commands.BadArgument):
+            await ctx.invoke(self.hug, huggie=self.bot.user)
+        else:
+            raise
