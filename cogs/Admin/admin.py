@@ -32,55 +32,53 @@ class Admin(BasicCog):
 
         await self.bot.logout()
 
-    @commands.command()
+    @commands.group(aliases=['cog'], invoke_without_command=True)
     async def cogs(self, ctx):
         """List current active cogs."""
 
         out_str = f'Active Cogs:\n`{", ".join(self.bot.cogs.keys())}`'
         await ctx.send(out_str)
 
-    @commands.command()
-    async def load(self, ctx, module):
-        """Load a module."""
+    @cogs.command(name='load')
+    async def cogs_load(self, ctx, module):
+        """Load an extension."""
+
+        await ctx.message.add_reaction('\U00002934')  # :arrow_heading_up:
+        await self._cogs_manage(ctx, self.bot.load_extension, module)
+
+    @cogs.command(name='unload')
+    async def cogs_unload(self, ctx, module):
+        """Unload an extension."""
+
+        await ctx.message.add_reaction('\U00002935')  # :arrow_heading_down:
+        await self._cogs_manage(ctx, self.bot.unload_extension, module)
+
+    @cogs.command(name='reload')
+    async def cogs_reload(self, ctx, module):
+        """Reload an extension."""
+
+        # :arrows_counterclockwise:
+        await ctx.message.add_reaction('\U0001F504')
+        await self._cogs_manage(ctx, self.bot.reload_extension, module)
+
+    async def _cogs_manage(self, ctx, method, module):
+        """Helper method to load/unload/reload modules.
+        This allows for more uniform handling (especially when exceptions
+        occur) and less code repetition.
+        """
+        # Assume all cogs are in folder cogs/ in the bot's root
+        if not module.startswith('cogs.'):
+            module = f'cogs.{module}'
 
         try:
-            self.bot.load_extension(module)
+            method(module)
         except Exception as e:
             exc = f'{type(e).__name__}: {e}'
-            print(f'Failed to load extension {module}\n{exc}')
+            print(f'Failed to {ctx.invoked_with} extension {module}\n{exc}')
             await ctx.message.add_reaction('\N{CROSS MARK}')
             raise e
         else:
-            print(f'Successfully loaded extension {module}')
-            await ctx.message.add_reaction('\N{WHITE HEAVY CHECK MARK}')
-
-    @commands.command()
-    async def unload(self, ctx, module):
-        """Unload a module."""
-
-        try:
-            self.bot.unload_extension(module)
-        except Exception as e:
-            exc = f'{type(e).__name__}: {e}'
-            print(f'Failed to unload extension {module}\n{exc}')
-            await ctx.message.add_reaction('\N{CROSS MARK}')
-        else:
-            print(f'Successfully unloaded extension {module}')
-            await ctx.message.add_reaction('\N{WHITE HEAVY CHECK MARK}')
-
-    @commands.command()
-    async def reload(self, ctx, module):
-        """Reload a module."""
-
-        try:
-            self.bot.unload_extension(module)
-            self.bot.load_extension(module)
-        except Exception as e:
-            exc = f'{type(e).__name__}: {e}'
-            print(f'Failed to reload extension {module}\n{exc}')
-            await ctx.message.add_reaction('\N{CROSS MARK}')
-        else:
-            print(f'Successfully reloaded extension {module}')
+            print(f'Successfully {ctx.invoked_with}ed extension {module}')
             await ctx.message.add_reaction('\N{WHITE HEAVY CHECK MARK}')
 
     @commands.command()
