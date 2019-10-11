@@ -17,7 +17,7 @@ import discord
 from discord.ext import commands
 
 from ..utils.dicts import AttrDict
-import config
+from ..utils.gifs import random_gif
 
 VALID_HEROES = [
     'all',
@@ -154,8 +154,8 @@ class Overwatch(commands.Cog):
             self.voice_lines['Kills'] + \
             self.voice_lines['Ultimate']
         vl = np.random.choice(vl)
-        # gif_url = await self.random_gif('overwatch zenyatta')
-        gif_url = await self.random_gif('overwatch')
+        # gif_url = await random_gif('overwatch zenyatta')
+        gif_url = await random_gif('overwatch')
         out_str = (
             f'{vl} {member.display_name} is {_ing}, join the fight.\n'
             f'{gif_url}'
@@ -552,29 +552,3 @@ class Overwatch(commands.Cog):
     async def stop_overwatch(self):
         self.is_playing = False
         await self.bot.change_presence(activity=None)
-
-
-    async def random_gif(self, query):
-        """Random gifs from Tenor"""
-        
-        query = query.split()
-        if len(query) >= 1:
-            search_random = (
-                f'https://api.tenor.com/v1/random?key={config.tenor_api_key}'
-                f'&q={query}&limit=1&media_filter=basic'
-                )
-            async with self.bot.http_session.get(search_random) as resp:
-                if resp.status == 200:
-                    try:
-                        # json_random = await resp.json()['results']
-                        json_random = await resp.json()
-                        json_random = json_random['results']
-                        gif = json_random[0]
-                        gif = gif.get('media')
-                        gif = gif[0]
-                        gif = gif.get('gif')
-                        gif = gif.get('url')
-                        return gif
-                    except Exception as e:
-                        pass
-        return ''
