@@ -21,10 +21,6 @@ class Responses(BasicCog):
         # Init messaging channel.
         self.bot.loop.create_task(self.load_data())
 
-        # Background tasks
-        self.bg_tasks = [
-            ]
-
         # hello_there parameters
         self.hello_there_params = {
             'cooldown': timedelta(minutes=1),
@@ -42,8 +38,6 @@ class Responses(BasicCog):
 
     def cog_unload(self):
         super().cog_unload()
-        for task in self.bg_tasks:
-            task.cancel()  # Cancel background tasks
 
     async def load_data(self):
         """Load data from the server, such as channel and emoji"""
