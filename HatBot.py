@@ -13,18 +13,6 @@ import numpy as np
 import config
 
 
-logger = logging.getLogger('discord')
-logger.setLevel(logging.INFO)
-handler = logging.FileHandler(
-    filename='HatBot.log',
-    encoding='utf-8',
-    mode='w',
-    )
-handler.setFormatter(logging.Formatter(
-    '%(asctime)s:%(levelname)s:%(name)s: %(message)s'))
-logger.addHandler(handler)
-
-
 async def create_http_session(loop):
     """Create an async HTTP session. Required to be from an async function
     by aiohttp 3.5.4
@@ -70,6 +58,16 @@ class MyBot(Bot):
 
 
 if __name__ == '__main__':
+    logger = logging.getLogger('discord')
+    logger.setLevel(logging.INFO)
+    handler = logging.FileHandler(
+        filename='HatBot.log',
+        encoding='utf-8',
+        mode='w',
+        )
+    handler.setFormatter(logging.Formatter(
+        '%(asctime)s:%(levelname)s:%(name)s: %(message)s'))
+    logger.addHandler(handler)
 
     if 'win32' in sys.platform:
         asyncio.set_event_loop(asyncio.ProactorEventLoop())
