@@ -1,11 +1,10 @@
 import asyncio
-import json
 import logging
 import platform
 import sys
 
 import aiohttp
-from datetime import datetime, timedelta
+from datetime import datetime
 import discord
 from discord.ext.commands import Bot
 from discord.ext import commands
@@ -36,10 +35,6 @@ async def create_http_session(loop):
 class MyBot(Bot):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-
-        # background tasks
-        game_period = timedelta(hours=1)
-        self.bg_game = self.loop.create_task(self.change_game(game_period))
 
         # Create HTTP session
         self.http_session = self.loop.run_until_complete(
@@ -82,25 +77,6 @@ class MyBot(Bot):
                 await asyncio.sleep(2)
                 await message.add_reaction(emoji)
 
-    async def change_game(self, period):
-        """
-        Input
-        -----
-        period : timedelta
-            Period of the message.
-        """
-        if not isinstance(period, timedelta):
-            raise ValueError('period {:f} is not timedelta'.format(period))
-
-        await self.wait_until_ready()
-
-        while not self.is_closed():
-            with open('games.json', 'r') as f:
-                games = json.load(f)['games']
-            game_name = np.random.choice(games)
-            await self.change_presence(activity=discord.Game(name=game_name))
-            await asyncio.sleep(period.total_seconds())
-
 
 if __name__ == '__main__':
 
@@ -130,6 +106,7 @@ if __name__ == '__main__':
         'cogs.Minigames',
         'cogs.Moderation',
         'cogs.Poll',
+        'cogs.Presence',
         'cogs.Responses',
         'cogs.Roles',
         ]
