@@ -70,7 +70,7 @@ class MyBot(Bot):
         print('--------')
         print('Use this link to invite {}:'.format(self.user.name))
         inv_link = discord.utils.oauth_url(self.user.id)
-        print(inv_link.format(self.user.id))
+        print(inv_link)
         print('--------')
 
     async def on_reaction_add(self, reaction, user):
