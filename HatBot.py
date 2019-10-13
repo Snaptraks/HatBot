@@ -68,15 +68,6 @@ class MyBot(Bot):
         print(inv_link)
         print('--------')
 
-    async def on_reaction_add(self, reaction, user):
-        message = reaction.message
-        if not user.bot and not message.author.bot:
-            emoji = reaction.emoji
-            r = np.random.randint(10)
-            if r == 0:
-                await asyncio.sleep(2)
-                await message.add_reaction(emoji)
-
 
 if __name__ == '__main__':
 

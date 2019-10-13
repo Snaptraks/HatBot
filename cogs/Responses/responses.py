@@ -50,6 +50,18 @@ class Responses(BasicCog):
 
         self.guild = guild
 
+    @commands.Cog.listener(name='on_reaction_add')
+    async def react(self, reaction, user):
+        """Sometimes react to a message after someone adds a reaction."""
+
+        message = reaction.message
+        if not user.bot and not message.author.bot:
+            emoji = reaction.emoji
+            r = np.random.randint(10)
+            if r == 0:
+                await asyncio.sleep(2)
+                await message.add_reaction(emoji)
+
     @commands.Cog.listener(name='on_message')
     async def on_mention(self, message):
         """Send a funny reply when the bot is mentionned."""
