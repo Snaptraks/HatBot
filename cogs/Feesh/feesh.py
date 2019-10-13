@@ -40,6 +40,10 @@ class Feesh(FunCog):
             self.bot.loop.create_task(self.periodic_feesh(timedelta(hours=4))),
             ]
 
+    @property
+    def cog_levels(self):
+        return self.bot.get_cog('Levels')
+
     def cog_unload(self):
         super().cog_unload()
         for task in self.bg_tasks:
@@ -128,8 +132,6 @@ class Feesh(FunCog):
 
         await self.bot.wait_until_ready()
 
-        cog_levels = self.bot.get_cog('Levels')
-
         while not self.bot.is_closed():
 
             t = datetime.now()
@@ -173,7 +175,7 @@ class Feesh(FunCog):
                 weights = []
                 for m in members_list:
                     try:
-                        exp = cog_levels.data[m.id].exp
+                        exp = self.cog_levels.data[m.id].exp
                         # 1 if above 0, 0 if equal to 0, never under 0 anyway
                         weights.append(np.sign(exp))
                     except KeyError:
@@ -290,8 +292,6 @@ class Feesh(FunCog):
         channel = ctx.channel
         message = ctx.message
 
-        cog_levels = self.bot.get_cog('Levels')
-
         if self.data['members'][author.id]['amount'] == 0:
             out_str = f'You have no {self.feesh_emoji} though.'
             await channel.send(out_str)
@@ -315,7 +315,7 @@ class Feesh(FunCog):
 
         def isvalid(m):
             try:
-                return (cog_levels.data[m.id].exp > 0
+                return (self.cog_levels.data[m.id].exp > 0
                     and m != ctx.author)
             except KeyError:
                 return False
