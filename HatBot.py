@@ -8,7 +8,6 @@ from datetime import datetime
 import discord
 from discord.ext.commands import Bot
 from discord.ext import commands
-import numpy as np
 
 import config
 
@@ -35,25 +34,21 @@ class MyBot(Bot):
         await super().close()
 
     async def on_ready(self):
-        print('Logged in as ' +
-              self.user.name +
-              ' (ID:' +
-              str(self.user.id) +
-              ') | Connected to ' +
-              str(len(self.guilds)) +
-              ' guilds | Connected to ' +
-              str(len(set(self.get_all_members()))) +
-              ' users')
+        print(
+            f'Logged in as {self.user.name} (ID:{self.user.id}) '
+            f'| Connected to {len(self.guilds)} guilds '
+            f'| Connected to {len(set(self.get_all_members()))} users'
+            )
         print('--------')
-        print('Startup Time: {}'.format(datetime.now()))
+        print(f'Startup Time: {datetime.now()}')
         print('--------')
-        print(('Current Discord.py Version: {} | ' +
-               'Current Python Version: {}').format(discord.__version__,
-                                                    platform.python_version()))
+        print(
+            f'Current Discord.py Version: {discord.__version__} '
+            f'| Current Python Version: {platform.python_version()}'
+            )
         print('--------')
-        print('Use this link to invite {}:'.format(self.user.name))
-        inv_link = discord.utils.oauth_url(self.user.id)
-        print(inv_link)
+        print(f'Use this link to invite {self.user.name}:')
+        print(discord.utils.oauth_url(self.user.id))
         print('--------')
 
 
