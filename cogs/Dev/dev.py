@@ -1,5 +1,6 @@
 import asyncio
 import io
+import re
 import textwrap
 import traceback
 import inspect
@@ -56,6 +57,12 @@ class Dev(BasicCog):
         env.update(globals())
 
         body = self.cleanup_code(body)
+        if not re.search(  # Check if it's an expression
+                r"^(return|import|for|while|def|class|"
+                r"from|exit|[a-zA-Z0-9]+\s*=)", body, re.M) \
+                and len(body.split("\n")) == 1:
+            body = f'return {body}'
+
         stdout = io.StringIO()
 
         to_compile = f'async def func():\n{textwrap.indent(body, "  ")}'
