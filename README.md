@@ -28,6 +28,7 @@ With all this in mind, to run the bot locally and help with the development, you
 3. [Invite the bot to your server](https://discordpy.readthedocs.io/en/latest/discord.html#inviting-your-bot). I recommend creating a dedicated Discord server for this, so that you are 100% sure to have total control over it.
 4. Start the bot with `python HatBot.py` from a terminal (might work with other methods but it has not been tested).
 5. Once the bot is on the server, you can enter commands and interact with it. If you modify a [Cog](https://discordpy.readthedocs.io/en/latest/ext/commands/cogs.html), you can use:
- * ```!load cogs.Name``` to load a new cog,
- * ```!reload cogs.Name``` to reload an already loaded cog
- * ```!unload cogs.Name``` to remove a cog from the bot
+ * ```!cogs``` to list currently loaded cogs
+ * ```!cogs load cogs.Name``` to load a new cog,
+ * ```!cogs reload cogs.Name``` to reload an already loaded cog
+ * ```!cogs unload cogs.Name``` to remove a cog from the bot
