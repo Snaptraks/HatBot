@@ -1,9 +1,9 @@
-import discord
 import asyncio
-from discord.ext import commands
-import numpy as np
 import json
 
+import discord
+from discord.ext import commands
+import numpy as np
 from PIL import Image
 
 from ..utils.cogs import FunCog
