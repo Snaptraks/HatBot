@@ -1,5 +1,6 @@
 import asyncio
 import json
+from typing import Union
 
 import discord
 from discord.ext import commands
@@ -145,18 +146,24 @@ class Fun(FunCog):
             await ctx.send('Wait, that\'s not a valid move!')
 
     @commands.command()
-    async def hug(self, ctx, *, huggie: discord.Member = None):
+    async def hug(self, ctx, *, huggie: Union[discord.Member, str] = None):
         gif_url = await random_gif(self.bot.http_session, 'hug')
         if huggie is None:
             description = (
                 f'{self.bot.user.display_name} hugs '
                 f'{ctx.author.display_name}! :heart:'
                 )
-        else:
+        elif isinstance(huggie, discord.Member):
             description = (
                 f'{ctx.author.display_name} hugs '
                 f'{huggie.display_name}! :heart:'
                 )
+        else:  # is str
+            description = (
+                f'{ctx.author.display_name} hugs '
+                f'{huggie}! :heart:'
+                )
+
         embed = discord.Embed(
             title='Have a hug!',
             description=description,
