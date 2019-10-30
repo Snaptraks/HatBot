@@ -73,15 +73,6 @@ class Overwatch(commands.Cog):
         # Init guild and channel data, and activity status.
         self.bot.loop.create_task(self.load_data())
 
-        # Background tasks
-        self.bg_tasks = [
-            self.bot.loop.create_task(self.on_mention()),
-            ]
-
-    def cog_unload(self):
-        for task in self.bg_tasks:
-            task.cancel()  # Cancel background tasks
-
     @commands.Cog.listener()
     async def on_member_update(self, before, after):
         """Modify how many members are playing Overwatch, if it applies."""
@@ -526,24 +517,22 @@ class Overwatch(commands.Cog):
 
         await ctx.send(embed=e, file=discord.File('cogs/Overwatch/full.png'))
 
-    async def on_mention(self):
+    @commands.Cog.listener(name='on_message')
+    async def on_mention(self, message):
         """Send a Zenyatta voice line."""
 
-        await self.bot.wait_until_ready()
+        ctx = await self.bot.get_context(message)
 
         mentions = self.voice_lines['Ability'] + \
             self.voice_lines['Communication'] + \
             self.voice_lines['Hello']
 
-        def check(message):
-            content = message.content
-            valid = self.bot.user.mention in content
-            return valid and not content.startswith(self.bot.command_prefix)
+        if ctx.me.mentioned_in(message) \
+                and not message.author.bot \
+                and not message.content.startswith(self.bot.command_prefix):
 
-        while not self.bot.is_closed():
-            message = await self.bot.wait_for('message', check=check)
-            out_str = np.random.choice(mentions)
-            await message.channel.send(out_str)
+            out = np.random.choice(mentions)
+            await message.channel.send(out)
 
     async def play_overwatch(self):
         self.is_playing = True
