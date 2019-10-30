@@ -66,7 +66,9 @@ class Responses(BasicCog):
     async def on_mention(self, message):
         """Send a funny reply when the bot is mentionned."""
 
-        if message.guild.me.mentioned_in(message) \
+        ctx = await self.bot.get_context(message)
+
+        if ctx.me.mentioned_in(message) \
                 and not message.author.bot \
                 and not message.content.startswith(self.bot.command_prefix):
 
