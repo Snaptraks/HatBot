@@ -155,7 +155,7 @@ class Overwatch(commands.Cog):
             self.voice_lines['Ultimate']
         vl = np.random.choice(vl)
         # gif_url = await random_gif('overwatch zenyatta')
-        gif_url = await random_gif('overwatch')
+        gif_url = await random_gif(self.bot.http_session, 'overwatch')
         out_str = (
             f'{vl} {member.display_name} is {_ing}, join the fight.\n'
             f'{gif_url}'
