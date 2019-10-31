@@ -91,6 +91,7 @@ if __name__ == '__main__':
         'cogs.Moderation',
         'cogs.Poll',
         'cogs.Presence',
+        'cogs.Reminders',
         'cogs.Responses',
         'cogs.Roles',
         ]
