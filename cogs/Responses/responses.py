@@ -21,10 +21,6 @@ class Responses(BasicCog):
         # Init messaging channel.
         self.bot.loop.create_task(self.load_data())
 
-        # Background tasks
-        self.bg_tasks = [
-            ]
-
         # hello_there parameters
         self.hello_there_params = {
             'cooldown': timedelta(minutes=1),
@@ -42,8 +38,6 @@ class Responses(BasicCog):
 
     def cog_unload(self):
         super().cog_unload()
-        for task in self.bg_tasks:
-            task.cancel()  # Cancel background tasks
 
     async def load_data(self):
         """Load data from the server, such as channel and emoji"""
@@ -56,11 +50,27 @@ class Responses(BasicCog):
 
         self.guild = guild
 
+    @commands.Cog.listener(name='on_reaction_add')
+    async def react(self, reaction, user):
+        """Sometimes react to a message after someone adds a reaction."""
+
+        message = reaction.message
+        if not user.bot and not message.author.bot:
+            emoji = reaction.emoji
+            r = np.random.randint(10)
+            if r == 0:
+                await asyncio.sleep(2)
+                await message.add_reaction(emoji)
+
     @commands.Cog.listener(name='on_message')
     async def on_mention(self, message):
         """Send a funny reply when the bot is mentionned."""
 
-        if self.bot.user.mention in message.content \
+        ctx = await self.bot.get_context(message)
+
+        if ctx.me.mentioned_in(message) \
+                and not message.author.bot \
+                and not message.mention_everyone \
                 and not message.content.startswith(self.bot.command_prefix):
 
             with open('cogs/Responses/mentions.json', 'r') as f:
@@ -74,6 +84,7 @@ class Responses(BasicCog):
         """Send a picture if 'hello there' is in a message."""
 
         if 'hello there' in message.content.lower() \
+                and not message.author.bot \
                 and not message.content.startswith(self.bot.command_prefix) \
                 and not self.bot.user.mention in message.content \
                 and message.channel.name != 'general':

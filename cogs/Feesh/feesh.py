@@ -40,6 +40,10 @@ class Feesh(FunCog):
             self.bot.loop.create_task(self.periodic_feesh(timedelta(hours=4))),
             ]
 
+    @property
+    def cog_levels(self):
+        return self.bot.get_cog('Levels')
+
     def cog_unload(self):
         super().cog_unload()
         for task in self.bg_tasks:
@@ -128,8 +132,6 @@ class Feesh(FunCog):
 
         await self.bot.wait_until_ready()
 
-        cog_levels = self.bot.get_cog('Levels')
-
         while not self.bot.is_closed():
 
             t = datetime.now()
@@ -173,7 +175,7 @@ class Feesh(FunCog):
                 weights = []
                 for m in members_list:
                     try:
-                        exp = cog_levels.data[m.id].exp
+                        exp = self.cog_levels.data[m.id].exp
                         # 1 if above 0, 0 if equal to 0, never under 0 anyway
                         weights.append(np.sign(exp))
                     except KeyError:
@@ -290,8 +292,6 @@ class Feesh(FunCog):
         channel = ctx.channel
         message = ctx.message
 
-        cog_levels = self.bot.get_cog('Levels')
-
         if self.data['members'][author.id]['amount'] == 0:
             out_str = f'You have no {self.feesh_emoji} though.'
             await channel.send(out_str)
@@ -315,7 +315,7 @@ class Feesh(FunCog):
 
         def isvalid(m):
             try:
-                return (cog_levels.data[m.id].exp > 0
+                return (self.cog_levels.data[m.id].exp > 0
                     and m != ctx.author)
             except KeyError:
                 return False
@@ -380,7 +380,7 @@ class Feesh(FunCog):
 
     @commands.cooldown(1, 24 * 3600, commands.BucketType.member)
     @feesh.command(name='steal', hidden=True, aliases=['yoink'])
-    async def feesh_steal(self, ctx, target: discord.Member):
+    async def feesh_steal(self, ctx, *, target: discord.Member):
         """Attempts to steal a feesh from a given member.
         This is a secret command! Shhhhhhhhh...
         """
@@ -513,7 +513,7 @@ class Feesh(FunCog):
                 self.transfer_feesh(thief, donor=target, amount=1)
 
     @feesh.command(name='stats')
-    async def feesh_stats(self, ctx, member: discord.Member = None):
+    async def feesh_stats(self, ctx, *, member: discord.Member = None):
         """Generates a plot of the feesh distribution."""
 
         await ctx.trigger_typing()
@@ -614,8 +614,9 @@ class Feesh(FunCog):
         if subcommand in valid_subcommands:
             # create the new message
             member = np.random.choice(ctx.guild.members)
+            member_str = f'{member.id}'  # use ID in case names are weird
             msg = copy.copy(ctx.message)
-            arguments = ' '.join([root_parent.name, subcommand, str(member)])
+            arguments = ' '.join([root_parent.name, subcommand, member_str])
             msg.content = ctx.prefix + arguments
             new_ctx = await self.bot.get_context(msg, cls=type(ctx))
             # treat it like a normal message
@@ -731,7 +732,7 @@ class Feesh(FunCog):
     @commands.has_permissions(administrator=True)
     async def collect_feesh(self, ctx):
         """Give the feesh from members that left to the bot."""
-        
+
         n = 0
         for id in self.data['members'].keys():
             if self.data['members'][id]['is_member']:

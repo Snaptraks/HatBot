@@ -1,29 +1,15 @@
 import asyncio
-import json
 import logging
 import platform
 import sys
 
 import aiohttp
-from datetime import datetime, timedelta
+from datetime import datetime
 import discord
 from discord.ext.commands import Bot
 from discord.ext import commands
-import numpy as np
 
 import config
-
-
-logger = logging.getLogger('discord')
-logger.setLevel(logging.INFO)
-handler = logging.FileHandler(
-    filename='HatBot.log',
-    encoding='utf-8',
-    mode='a',
-    )
-handler.setFormatter(logging.Formatter(
-    '%(asctime)s:%(levelname)s:%(name)s: %(message)s'))
-logger.addHandler(handler)
 
 
 async def create_http_session(loop):
@@ -37,10 +23,6 @@ class MyBot(Bot):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-        # background tasks
-        game_period = timedelta(hours=1)
-        self.bg_game = self.loop.create_task(self.change_game(game_period))
-
         # Create HTTP session
         self.http_session = self.loop.run_until_complete(
             create_http_session(self.loop))
@@ -52,57 +34,35 @@ class MyBot(Bot):
         await super().close()
 
     async def on_ready(self):
-        print('Logged in as ' +
-              self.user.name +
-              ' (ID:' +
-              str(self.user.id) +
-              ') | Connected to ' +
-              str(len(self.guilds)) +
-              ' guilds | Connected to ' +
-              str(len(set(self.get_all_members()))) +
-              ' users')
+        print(
+            f'Logged in as {self.user.name} (ID:{self.user.id}) '
+            f'| Connected to {len(self.guilds)} guilds '
+            f'| Connected to {len(set(self.get_all_members()))} users'
+            )
         print('--------')
-        print('Startup Time: {}'.format(datetime.now()))
+        print(f'Startup Time: {datetime.now()}')
         print('--------')
-        print(('Current Discord.py Version: {} | ' +
-               'Current Python Version: {}').format(discord.__version__,
-                                                    platform.python_version()))
+        print(
+            f'Current Discord.py Version: {discord.__version__} '
+            f'| Current Python Version: {platform.python_version()}'
+            )
         print('--------')
-        print('Use this link to invite {}:'.format(self.user.name))
-        inv_link = discord.utils.oauth_url(self.user.id)
-        print(inv_link.format(self.user.id))
+        print(f'Use this link to invite {self.user.name}:')
+        print(discord.utils.oauth_url(self.user.id))
         print('--------')
-
-    async def on_reaction_add(self, reaction, user):
-        message = reaction.message
-        if not user.bot and not message.author.bot:
-            emoji = reaction.emoji
-            r = np.random.randint(10)
-            if r == 0:
-                await asyncio.sleep(2)
-                await message.add_reaction(emoji)
-
-    async def change_game(self, period):
-        """
-        Input
-        -----
-        period : timedelta
-            Period of the message.
-        """
-        if not isinstance(period, timedelta):
-            raise ValueError('period {:f} is not timedelta'.format(period))
-
-        await self.wait_until_ready()
-
-        while not self.is_closed():
-            with open('games.json', 'r') as f:
-                games = json.load(f)['games']
-            game_name = np.random.choice(games)
-            await self.change_presence(activity=discord.Game(name=game_name))
-            await asyncio.sleep(period.total_seconds())
 
 
 if __name__ == '__main__':
+    logger = logging.getLogger('discord')
+    logger.setLevel(logging.INFO)
+    handler = logging.FileHandler(
+        filename='HatBot.log',
+        encoding='utf-8',
+        mode='w',
+        )
+    handler.setFormatter(logging.Formatter(
+        '%(asctime)s:%(levelname)s:%(name)s: %(message)s'))
+    logger.addHandler(handler)
 
     if 'win32' in sys.platform:
         asyncio.set_event_loop(asyncio.ProactorEventLoop())
@@ -129,6 +89,8 @@ if __name__ == '__main__':
         'cogs.Minigames',
         'cogs.Moderation',
         'cogs.Poll',
+        'cogs.Presence',
+        'cogs.Reminders',
         'cogs.Responses',
         'cogs.Roles',
         ]

@@ -17,7 +17,7 @@ import discord
 from discord.ext import commands
 
 from ..utils.dicts import AttrDict
-import config
+from ..utils.gifs import random_gif
 
 VALID_HEROES = [
     'all',
@@ -72,15 +72,6 @@ class Overwatch(commands.Cog):
 
         # Init guild and channel data, and activity status.
         self.bot.loop.create_task(self.load_data())
-
-        # Background tasks
-        self.bg_tasks = [
-            self.bot.loop.create_task(self.on_mention()),
-            ]
-
-    def cog_unload(self):
-        for task in self.bg_tasks:
-            task.cancel()  # Cancel background tasks
 
     @commands.Cog.listener()
     async def on_member_update(self, before, after):
@@ -154,8 +145,8 @@ class Overwatch(commands.Cog):
             self.voice_lines['Kills'] + \
             self.voice_lines['Ultimate']
         vl = np.random.choice(vl)
-        # gif_url = await self.random_gif('overwatch zenyatta')
-        gif_url = await self.random_gif('overwatch')
+        # gif_url = await random_gif('overwatch zenyatta')
+        gif_url = await random_gif(self.bot.http_session, 'overwatch')
         out_str = (
             f'{vl} {member.display_name} is {_ing}, join the fight.\n'
             f'{gif_url}'
@@ -526,24 +517,22 @@ class Overwatch(commands.Cog):
 
         await ctx.send(embed=e, file=discord.File('cogs/Overwatch/full.png'))
 
-    async def on_mention(self):
+    @commands.Cog.listener(name='on_message')
+    async def on_mention(self, message):
         """Send a Zenyatta voice line."""
 
-        await self.bot.wait_until_ready()
+        ctx = await self.bot.get_context(message)
 
         mentions = self.voice_lines['Ability'] + \
             self.voice_lines['Communication'] + \
             self.voice_lines['Hello']
 
-        def check(message):
-            content = message.content
-            valid = self.bot.user.mention in content
-            return valid and not content.startswith(self.bot.command_prefix)
+        if ctx.me.mentioned_in(message) \
+                and not message.author.bot \
+                and not message.content.startswith(self.bot.command_prefix):
 
-        while not self.bot.is_closed():
-            message = await self.bot.wait_for('message', check=check)
-            out_str = np.random.choice(mentions)
-            await message.channel.send(out_str)
+            out = np.random.choice(mentions)
+            await message.channel.send(out)
 
     async def play_overwatch(self):
         self.is_playing = True
@@ -552,29 +541,3 @@ class Overwatch(commands.Cog):
     async def stop_overwatch(self):
         self.is_playing = False
         await self.bot.change_presence(activity=None)
-
-
-    async def random_gif(self, query):
-        """Random gifs from Tenor"""
-        
-        query = query.split()
-        if len(query) >= 1:
-            search_random = (
-                f'https://api.tenor.com/v1/random?key={config.tenor_api_key}'
-                f'&q={query}&limit=1&media_filter=basic'
-                )
-            async with self.bot.http_session.get(search_random) as resp:
-                if resp.status == 200:
-                    try:
-                        # json_random = await resp.json()['results']
-                        json_random = await resp.json()
-                        json_random = json_random['results']
-                        gif = json_random[0]
-                        gif = gif.get('media')
-                        gif = gif[0]
-                        gif = gif.get('gif')
-                        gif = gif.get('url')
-                        return gif
-                    except Exception as e:
-                        pass
-        return ''
