@@ -70,6 +70,7 @@ class Responses(BasicCog):
 
         if ctx.me.mentioned_in(message) \
                 and not message.author.bot \
+                and not message.mention_everyone \
                 and not message.content.startswith(self.bot.command_prefix):
 
             with open('cogs/Responses/mentions.json', 'r') as f:
