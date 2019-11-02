@@ -51,13 +51,24 @@ class Admin(BasicCog):
         await ctx.message.add_reaction('\U00002935')  # :arrow_heading_down:
         await self._cogs_manage(ctx, self.bot.unload_extension, module)
 
-    @cogs.command(name='reload')
+    @cogs.group(name='reload', invoke_without_command=True)
     async def cogs_reload(self, ctx, module):
         """Reload an extension."""
 
         # :arrows_counterclockwise:
         await ctx.message.add_reaction('\U0001F504')
         await self._cogs_manage(ctx, self.bot.reload_extension, module)
+
+    @cogs_reload.command(name='all')
+    async def cogs_reload_all(self, ctx):
+        """Reload all currently loaded extensions."""
+
+        # :arrows_counterclockwise:
+        await ctx.message.add_reaction('\U0001F504')
+        loaded_extensions = list(self.bot.cogs.keys())
+        print(loaded_extensions)
+        for cog in loaded_extensions:
+            await self._cogs_manage(ctx, self.bot.reload_extension, cog)
 
     async def _cogs_manage(self, ctx, method, module):
         """Helper method to load/unload/reload modules.
