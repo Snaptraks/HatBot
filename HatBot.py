@@ -27,6 +27,8 @@ class MyBot(Bot):
         self.http_session = self.loop.run_until_complete(
             create_http_session(self.loop))
 
+        self.boot_time = datetime.now()
+
     async def close(self):
         """Subclass the close() method to close the HTTP Session."""
 

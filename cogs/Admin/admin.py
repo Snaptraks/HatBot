@@ -20,8 +20,6 @@ class Admin(BasicCog):
 
     def __init__(self, bot):
         super().__init__(bot)
-        # self.bot = bot
-        self.boottime = datetime.now()
 
     async def cog_check(self, ctx):
         return await self.bot.is_owner(ctx.author)
@@ -86,9 +84,9 @@ class Admin(BasicCog):
         """Display the uptime in days, and the boot time."""
 
         # message = 'I have been online for {}! (Since {:%Y-%m-%d %H:%M:%S})'
-        uptime_ = datetime.now() - self.boottime
+        uptime_ = datetime.now() - self.bot.boot_time
         out_str = (f'I have been online for {uptime_.days} days! '
-                   f'(Since {self.boottime:%c})')
+                   f'(Since {self.bot.boot_time:%c})')
         await ctx.send(out_str)
 
     @commands.command()
