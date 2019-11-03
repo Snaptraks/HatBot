@@ -1,0 +1,100 @@
+[
+  {
+    "activitytype": 0,
+    "name": "Board Games Online"
+  },
+  {
+    "activitytype": 0,
+    "name": "Sid Meier's Civilization V"
+  },
+  {
+    "activitytype": 0,
+    "name": "Fortnite"
+  },
+  {
+    "activitytype": 0,
+    "name": "Golf with your Friends"
+  },
+  {
+    "activitytype": 0,
+    "name": "GTA Online"
+  },
+  {
+    "activitytype": 0,
+    "name": "Mario Kart"
+  },
+  {
+    "activitytype": 0,
+    "name": "Minecraft"
+  },
+  {
+    "activitytype": 0,
+    "name": "Overwatch"
+  },
+  {
+    "activitytype": 0,
+    "name": "Sea of Thieves"
+  },
+  {
+    "activitytype": 0,
+    "name": "Stardew Valley"
+  },
+  {
+    "activitytype": 0,
+    "name": "Super Smash Bros."
+  },
+  {
+    "activitytype": 0,
+    "name": "Tabletop Simulator"
+  },
+  {
+    "activitytype": 0,
+    "name": "Trouble in Terrorist Town"
+  },
+  {
+    "activitytype": 0,
+    "name": "Worms"
+  },
+  {
+    "activitytype": 1,
+    "name": "MxSpoike's Twitch page",
+    "url": "https://twitch.tv/mxspoike"
+  },
+  {
+    "activitytype": 1,
+    "name": "Capgun's Twitch page",
+    "url": "https://twitch.tv/capgun"
+  },
+  {
+    "activitytype": 2,
+    "name": "you ramble"
+  },
+  {
+    "activitytype": 2,
+    "name": "Hatventures Community's TeamSpeak server"
+  },
+  {
+    "activitytype": 2,
+    "name": "Snap's microphone"
+  },
+  {
+    "activitytype": 2,
+    "name": "some electronic music"
+  },
+  {
+    "activitytype": 3,
+    "name": "Short Circuit"
+  },
+  {
+    "activitytype": 3,
+    "name": "The Terminator"
+  },
+  {
+    "activitytype": 3,
+    "name": "you cuties"
+  },
+  {
+    "activitytype": 3,
+    "name": "Snap in the shower"
+  }
+]
