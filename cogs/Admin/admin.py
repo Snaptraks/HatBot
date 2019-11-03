@@ -114,7 +114,6 @@ class Admin(BasicCog):
         await ctx.send(exc)  # because there is lots of info
         raise error
 
-
     @commands.command()
     async def uptime(self, ctx):
         """Display the uptime in days, and the boot time."""
