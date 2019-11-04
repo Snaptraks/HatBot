@@ -61,3 +61,18 @@ class Suits(Enum):
 class HighLow(Enum):
     HIGH = '\U000023EB'  # :arrow_double_up:
     LOW = '\U000023EC'  # :arrow_double_down:
+
+
+class TicTacToe(Enum):
+    UL = '\U00002196'  # :arrow_upper_left:
+    UM = '\U00002B06'  # :arrow_up:
+    UR = '\U00002197'  # :arrow_upper_right:
+    ML = '\U00002B05'  # :arrow_left:
+    MM = '\U000023FA'  # :record_button:
+    MR = '\U000027A1'  # :arrow_right:
+    LL = '\U00002199'  # :arrow_lower_left:
+    LM = '\U00002B07'  # :arrow_down:
+    LR = '\U00002198'  # :arrow_lower_right:
+    X = Alphabet.X.value  # :regional_indicator_x:
+    O = '\U0001F17E'  # :o2:
+    BLANK = '\U00002B1C'  # :white_large_square:
