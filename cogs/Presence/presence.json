@@ -95,6 +95,14 @@
   },
   {
     "activitytype": 3,
+    "name": "my code being written"
+  },
+  {
+    "activitytype": 3,
+    "name": "the Matrix being edited"
+  },
+  {
+    "activitytype": 3,
     "name": "Snap in the shower"
   }
 ]
