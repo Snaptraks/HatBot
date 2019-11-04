@@ -37,8 +37,8 @@ class Minigames(FunCog):
         elif isinstance(error, commands.MissingRequiredArgument):
             await ctx.send('You need another player to play that game.')
 
-        elif isinstance(error, commands.CommandInvokeError):
-            await ctx.send('Cannot play a game against that member.')
+        elif isinstance(error, commands.BadArgument):
+            await ctx.send(error)
 
         else:
             raise error
@@ -65,7 +65,8 @@ class Minigames(FunCog):
         the winner is the first to put four tokens in a row.
         """
         if other_player.bot or other_player == ctx.author:
-            raise ValueError('Cannot play a game against that member.')
+            raise commands.BadArgument(
+                'Cannot play a game against that member.')
 
         game = Connect4(ctx, self.bot, other_player)
         await game.play()
