@@ -99,11 +99,9 @@ class Minigames(FunCog):
         """A game of Tic-Tac-Toe with another member.
         Proposed by Princerbang.
         """
-        # if other_player.bot or other_player == ctx.author:
-        #     raise commands.BadArgument(
-        #         'Cannot play a game against that member.')
-        if other_player is None:
-            other_player = ctx.author
+        if other_player.bot or other_player == ctx.author:
+            raise commands.BadArgument(
+                'Cannot play a game against that member.')
 
         game = TicTacToe(ctx, self.bot, other_player)
         await game.play()
