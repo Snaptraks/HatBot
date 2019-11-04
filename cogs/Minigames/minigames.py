@@ -64,7 +64,6 @@ class Minigames(FunCog):
         Each player takes turn in placing a token on the board,
         the winner is the first to put four tokens in a row.
         """
-
         if other_player.bot or other_player == ctx.author:
             raise ValueError('Cannot play a game against that member.')
 
@@ -76,7 +75,6 @@ class Minigames(FunCog):
         """A game of Hangman with a random word.
         You guess letters by typing them in chat.
         """
-
         game = Hangman(ctx, self.bot)
         await game.play()
 

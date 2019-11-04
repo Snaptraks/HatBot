@@ -94,9 +94,6 @@ class Connect4:
             title=None,
             type='rich',
             color=np.random.randint(0xFFFFFF),  # Random color
-            # ).set_author(
-            # name=self.ctx.author.display_name,
-            # icon_url=self.ctx.author.avatar_url_as(static_format='png'),
             ).add_field(
             name='Connect 4',
             value=None,  # will be filled later
@@ -154,7 +151,7 @@ class Connect4:
                 self.update_embed(hint_message, player)
                 await self.message_game.edit(embed=self.embed)
                 await asyncio.sleep(2)
-                continue # skips the rest, restart the iteration
+                continue  # skips the rest, restart the iteration
 
             if self.board.check_winner(player + 1):
                 self.winner = player + 1
@@ -170,6 +167,7 @@ class Connect4:
                 )
         else:
             hint_message = f'It is a tie!'
+            
         self.update_embed(hint_message, player)
         await self.message_game.edit(embed=self.embed)
         await self.message_game.clear_reactions()
@@ -178,7 +176,6 @@ class Connect4:
         """Edit the Embed with the current board state, and who's
         next to play.
         """
-
         self.embed.set_author(
             name=self.players[player].display_name,
             icon_url=self.players[player].avatar_url_as(static_format='png'),
