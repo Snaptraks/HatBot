@@ -126,10 +126,14 @@ class Admin(BasicCog):
 
     @commands.command()
     async def susay(self, ctx, channel: discord.TextChannel, *, message: str):
-        """Send a message in the requested channel as the Bot."""
+        """Send a message in the requested channel as the Bot.
+        If in DMs, will send to any channel with the given ID.
+        If in a guild, will only work in the current one.
+        """
 
         await channel.send(message)
-        await ctx.message.delete()
+        if ctx.guild:
+            await ctx.message.delete()
 
     @commands.command()
     async def sudo(self, ctx, who: discord.Member, *, command: str):
