@@ -378,7 +378,7 @@ class Feesh(FunCog):
 
         await ctx.channel.send(out_str)
 
-    @commands.cooldown(1, 24 * 3600, commands.BucketType.member)
+    @commands.cooldown(1, 24 * 3600, commands.BucketType.user)
     @feesh.command(name='steal', hidden=True, aliases=['yoink'])
     async def feesh_steal(self, ctx, *, target: discord.Member):
         """Attempts to steal a feesh from a given member.
