@@ -18,32 +18,32 @@ class BasicCog(commands.Cog):
             # Open the cog's cooldowns
             with open(f'cogs/{self.qualified_name}/cooldowns.pkl', 'rb') as f:
                 buckets = pickle.load(f)
-            # iterate on the set() of commands, in case of aliases
-            for command in set(self.walk_commands()):
-                try:
-                    cld_map = buckets[command.name]
-                    original_cd = cld_map._cooldown
-
-                    # Restore BucketType Enum
-                    if original_cd is not None:
-                        cld_map._cooldown = restore_cooldown(original_cd)
-
-                    # Restore the _cache
-                    for key in cld_map._cache.keys():
-                        cld_map._cache[key] = \
-                            restore_cooldown(cld_map._cache[key])
-
-                    # Restore to command
-                    command._buckets = cld_map
-
-                except KeyError:
-                    # If the command does not have a cooldown,
-                    # ie. it was added and has not been backed up yet
-                    pass
-
-        except FileNotFoundError:
+        except (FileNotFoundError, EOFError):
             # If the file does not already exist, just skip
-            pass
+            buckets = {}
+
+        # iterate on the set() of commands, in case of aliases
+        for command in set(self.walk_commands()):
+            try:
+                cld_map = buckets[command.name]
+                original_cd = cld_map._cooldown
+
+                # Restore BucketType Enum
+                if original_cd is not None:
+                    cld_map._cooldown = restore_cooldown(original_cd)
+
+                # Restore the _cache
+                for key in cld_map._cache.keys():
+                    cld_map._cache[key] = \
+                        restore_cooldown(cld_map._cache[key])
+
+                # Restore to command
+                command._buckets = cld_map
+
+            except KeyError:
+                # If the command does not have a cooldown,
+                # ie. it was added and has not been backed up yet
+                pass
 
     def cog_unload(self):
         # Save cooldowns to disk
