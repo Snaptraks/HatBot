@@ -521,58 +521,15 @@ class Feesh(FunCog):
         if member is None:
             member = ctx.author
 
-        fig, ax = plt.subplots()
+        img = await self.bot.loop.run_in_executor(
+            None, self._make_feesh_stats_figure, member)
 
-        members = self.data['members']
-        won = []
-        for u in members:
-            if (members[u]['amount'] != 0 or
-                    members[u]['bot_given'] != 0) and \
-                    members[u]['is_member']:
-                if u == 460499306223239188:
-                    continue  # Exclude HatBot
-                won.append(members[u]['amount'])
-        won = np.asarray(won)
-        total = self.data['total']
+        member_amount = self.data['members'][member.id]['amount']
 
-        d = np.diff(np.unique(won)).min()
-        l = won.min() - d / 2
-        r = won.max() + d / 2
-        bins = np.arange(l, r + d, d)
-
-        # _, _, patches = ax.hist(won, bins, rwidth=0.9, ec='k')
-        _, _, patches = ax.hist(won, bins)
-        member_amount = members[member.id]['amount']
-        for i in range(len(patches)):
-            if bins[i] < member_amount and member_amount - 1 < bins[i]:
-                if not member.bot:
-                    patches[i].set_facecolor('C1')
-
-        ax.set_xlabel('Number of feesh')
-        ax.set_ylabel('Number of members')
-        fig.suptitle(f'Total: {total} feesh')
-
-        annotation = (
-            f'Average: {np.mean(won):>5.2f}\n'
-            f'Median: {np.median(won):>6.1f}\n'
-            f'Mode: {max(set(won), key=list(won).count):>7d}\n'
-            fr'$\sigma$: {np.std(won):>5.2f}'
-            )
-
-        ax.annotate(annotation, xy=(0.98, 0.97), xycoords='axes fraction',
-                    size=14, ha='right', va='top',
-                    bbox=dict(boxstyle='round', fc='w'))
-
-        ax.xaxis.set_major_locator(MaxNLocator(integer=True))
-        ax.yaxis.set_major_locator(MaxNLocator(integer=True))
-
-        fig.savefig('cogs/Feesh/feesh_stats.png')
-        plt.close(fig)
         out_str = (
             f'{escape(member.display_name)} has {member_amount} '
             f'{self.feesh_emoji}.'
             )
-        img = discord.File('cogs/Feesh/feesh_stats.png')
         await ctx.send(out_str, file=img)
 
     @feesh.command(name='whohas')
@@ -625,7 +582,6 @@ class Feesh(FunCog):
         else:
             raise commands.BadArgument(
                 f'Unknown subcommand of {root_parent.name}')
-
 
     @feesh_give.error
     @feesh_stats.error
@@ -750,6 +706,58 @@ class Feesh(FunCog):
         print(f'Collected {n} feesh.')
 
         pkl_dump(self.data, FEESH_DATA_FILE)
+
+    def _make_feesh_stats_figure(self, member):
+        fig, ax = plt.subplots()
+
+        members = self.data['members']
+        won = []
+        for u in members:
+            if (members[u]['amount'] != 0 or
+                    members[u]['bot_given'] != 0) and \
+                    members[u]['is_member']:
+                if u == 460499306223239188:
+                    continue  # Exclude HatBot
+                won.append(members[u]['amount'])
+        won = np.asarray(won)
+        total = self.data['total']
+
+        d = np.diff(np.unique(won)).min()
+        l = won.min() - d / 2
+        r = won.max() + d / 2
+        bins = np.arange(l, r + d, d)
+
+        # _, _, patches = ax.hist(won, bins, rwidth=0.9, ec='k')
+        _, _, patches = ax.hist(won, bins)
+        member_amount = members[member.id]['amount']
+        for i in range(len(patches)):
+            if bins[i] < member_amount and member_amount - 1 < bins[i]:
+                if not member.bot:
+                    patches[i].set_facecolor('C1')
+
+        ax.set_xlabel('Number of feesh')
+        ax.set_ylabel('Number of members')
+        fig.suptitle(f'Total: {total} feesh')
+
+        annotation = (
+            f'Average: {np.mean(won):>5.2f}\n'
+            f'Median: {np.median(won):>6.1f}\n'
+            f'Mode: {max(set(won), key=list(won).count):>7d}\n'
+            fr'$\sigma$: {np.std(won):>5.2f}'
+            )
+
+        ax.annotate(annotation, xy=(0.98, 0.97), xycoords='axes fraction',
+                    size=14, ha='right', va='top',
+                    bbox=dict(boxstyle='round', fc='w'))
+
+        ax.xaxis.set_major_locator(MaxNLocator(integer=True))
+        ax.yaxis.set_major_locator(MaxNLocator(integer=True))
+
+        fig.savefig('cogs/Feesh/feesh_stats.png')
+        plt.close(fig)
+        img = discord.File('cogs/Feesh/feesh_stats.png')
+
+        return img
 
 
 def feesh_wall():

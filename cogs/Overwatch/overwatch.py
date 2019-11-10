@@ -279,24 +279,9 @@ class Overwatch(commands.Cog):
                     with open(f'cogs/Overwatch/{img}.png', 'wb') as f:
                         f.write(await resp.content.read())
 
-        # load pictures
-        icon = Image.open('cogs/Overwatch/icon.png')
-        portrait = Image.open('cogs/Overwatch/levelIcon.png')
-        prestige = Image.open('cogs/Overwatch/prestigeIcon.png')
-        filter = Image.open(
-            'cogs/Overwatch/portraitFilter.png').convert('RGBA')
-        # create empty canvas
-        new = Image.new('RGBA', portrait.size)
-        # paste icon in the middle
-        new.paste(icon, (64, 64))  # found by hand
-        # trim the edges
-        new = Image.composite(new, filter, filter)
-        # paste portrait on top
-        new.paste(portrait, mask=portrait)
-        # paste prestige on top
-        if data.prestige % 6 != 0:
-            new.paste(prestige, (0, 128), mask=prestige)
-        new.save('cogs/Overwatch/full.png')
+        # Edit profile portrait
+        await self.bot.loop.run_in_executor(
+            None, self._make_overwatch_profile_figure, data)
 
         title_dict = {
             'profile': 'profile',
@@ -542,3 +527,28 @@ class Overwatch(commands.Cog):
     async def stop_overwatch(self):
         self.is_playing = False
         await self.bot.change_presence(activity=None)
+
+    def _make_overwatch_profile_figure(self, data):
+        # load pictures
+        icon = Image.open('cogs/Overwatch/icon.png')
+        # resize icon to 256x256
+        icon = icon.resize((128, 128), Image.ANTIALIAS)
+        portrait = Image.open('cogs/Overwatch/levelIcon.png')
+        prestige = Image.open('cogs/Overwatch/prestigeIcon.png')
+        filter = Image.open(
+            'cogs/Overwatch/portraitFilter.png').convert('RGBA')
+        # create empty canvas
+        new = Image.new('RGBA', portrait.size)
+        # paste icon in the middle
+        new.paste(icon, (64, 64))  # found by hand
+        # trim the edges
+        new = Image.composite(new, filter, filter)
+        # paste portrait on top
+        new.paste(portrait, mask=portrait)
+        # paste prestige on top
+        if data.prestige % 6 != 0:
+            new.paste(prestige, (0, 128), mask=prestige)
+        new.save('cogs/Overwatch/full.png')
+        img = discord.File('cogs/Overwatch/full.png')
+
+        return img
