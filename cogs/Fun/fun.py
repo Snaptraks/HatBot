@@ -55,7 +55,7 @@ class Fun(FunCog):
         """Fortune-telling or advice seeking."""
 
         r = np.random.randint(50)
-        r = 0  # Force the picture answer
+        # r = 0  # Force the picture answer
         async with ctx.typing():
             if r != 0:
                 question = tuple(sorted(question))
