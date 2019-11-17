@@ -3,6 +3,7 @@ import copy
 import json
 import pickle
 import re
+import typing
 
 import discord
 from discord.ext import commands
@@ -50,25 +51,32 @@ class Feesh(FunCog):
             task.cancel()  # Cancel background tasks
 
     async def load_data(self):
-        """Loads data from the guild, such as channel and emoji"""
+        """Load data from the guild, such as channel and emoji"""
 
         await self.bot.wait_until_ready()
         guild = discord.utils.get(
             self.bot.guilds, name='Hatventures Community'
             )
-        channel = discord.utils.find(
-            lambda c: c.name.startswith('hatbot'),
-            guild.channels
-            )
-        feesh = discord.utils.get(guild.emojis, name='feesh')
 
-        self.guild = guild
-        self.channel_msg = channel
-        self.feesh_emoji = feesh
+        if not guild is None:
+            channel = discord.utils.find(
+                lambda c: c.name.startswith('hatbot'),
+                guild.channels
+                )
+            feesh = discord.utils.get(guild.emojis, name='feesh')
+
+            self.guild = guild
+            self.channel_msg = channel
+            self.feesh_emoji = feesh
+
+        else:
+            self.guild = None
+            self.channel_msg = None
+            self.feesh_emoji = ':fish:'
 
     @commands.Cog.listener()
     async def on_member_join(self, member):
-        """Updates feesh stats when a new member joins."""
+        """Update feesh stats when a new member joins."""
 
         try:
             # Cancel the removal of feesh task
@@ -95,15 +103,15 @@ class Feesh(FunCog):
 
     @commands.Cog.listener()
     async def on_member_remove(self, member):
-        """Clears the feesh of a member.
-        Allows other people to collect it.
+        """Clear the feesh of a member.
+        Allow other people to collect it.
         """
         # py 3.7
         task = asyncio.create_task(self.wait_and_remove_feesh(member))
         self.remove_tasks[member.id] = task
 
     async def wait_and_remove_feesh(self, member):
-        """Waits for 24 hours, then transfers the feesh to the bot."""
+        """Wait for 24 hours, then transfers the feesh to the bot."""
 
         try:
             print(f'{member} left. Waiting 24 hours.')
@@ -120,7 +128,7 @@ class Feesh(FunCog):
             print('member came back, did not lose their feesh.')
 
     async def periodic_feesh(self, period):
-        """Sends a feesh to a random member every 'period'.
+        """Send a feesh to a random member every 'period'.
 
         Input
         -----
@@ -219,36 +227,33 @@ class Feesh(FunCog):
                 # statistics
                 self.transfer_feesh(member=winner, amount=1)
 
-    @commands.group()
-    async def feesh(self, ctx):
-        """Gives statistics on the amount of feesh given."""
+    @commands.group(invoke_without_command=True)
+    async def feesh(self, ctx, *, member: discord.Member = None):
+        """Give statistics on the amount of feesh given."""
 
-        if ctx.invoked_subcommand is None:
-
+        if member is None:
             member = ctx.author
-            channel = ctx.channel
 
-            total = self.data['total']
+        total = self.data['total']
 
-            try:
-                amount = self.data['members'][member.id]['amount']
-            except KeyError as e:
-                amount = 0
+        try:
+            amount = self.data['members'][member.id]['amount']
+        except KeyError as e:
+            amount = 0
 
-            out_str = (
-                f'{total} {self.feesh_emoji} were given in total, '
-                f'{escape(member.display_name)} has {amount}.'
-                )
+        out_str = (
+            f'{total} {self.feesh_emoji} were given in total, '
+            f'{escape(member.display_name)} has {amount}.'
+            )
 
-            await channel.send(out_str)
+        await ctx.send(out_str)
 
-    @feesh.command(name='give', aliases=['kobe'])
-    async def feesh_give(self, ctx, member: discord.Member, amount=1):
+    @feesh.group(name='give', aliases=['kobe'], invoke_without_command=True)
+    async def feesh_give(self, ctx, amount: typing.Optional[int] = 1, *,
+            member: discord.Member):
         """Give a feesh from your feesh to a member."""
 
         donor = ctx.author
-        guild = ctx.guild
-        channel = ctx.channel
 
         # Checks to see if the member to receive a feesh is valid
         if donor == member:
@@ -280,11 +285,19 @@ class Feesh(FunCog):
                     f'{escape(member.display_name)}. Yay!'
                     )
 
-        await channel.send(out_str)
+        await ctx.send(out_str)
+
+    @feesh_give.command(name='random')
+    async def feesh_give_random(self, ctx):
+        """Give a feesh to a random member."""
+        member = np.random.choice([
+            m for m in ctx.guild.members if not m.bot and m != ctx.author
+            ])
+        await self._feesh_command_random(ctx, member)
 
     @feesh.command(name='bomb', hidden=True, aliases=['yeet'])
     async def feesh_bomb(self, ctx):
-        """Sends all your feesh to random online members (1 per member)."""
+        """Send all your feesh to random online members (1 per member)."""
 
         bomb = '\U0001F4A3'  # bomb
         cancel = '\U000026D4'  # no_entry
@@ -347,11 +360,11 @@ class Feesh(FunCog):
 
     @feesh.command(name='top')
     async def feesh_top(self, ctx):
-        """Displays the member(s) with the most feesh."""
+        """Display the member(s) with the most feesh."""
 
         L = []
         for x in self.data['members']:
-            if x == 460499306223239188:
+            if x == ctx.me.id:
                 continue  # Exclude HatBot
             L.append((x, self.data['members'][x]['amount']))
 
@@ -379,9 +392,10 @@ class Feesh(FunCog):
         await ctx.channel.send(out_str)
 
     @commands.cooldown(1, 24 * 3600, commands.BucketType.user)
-    @feesh.command(name='steal', hidden=True, aliases=['yoink'])
+    @feesh.group(name='steal', hidden=True, aliases=['yoink'],
+        invoke_without_command=True)
     async def feesh_steal(self, ctx, *, target: discord.Member):
-        """Attempts to steal a feesh from a given member.
+        """Attempt to steal a feesh from a given member.
         This is a secret command! Shhhhhhhhh...
         """
         if ctx.invoked_with == 'yoink':
@@ -512,9 +526,31 @@ class Feesh(FunCog):
                 # edit stats
                 self.transfer_feesh(thief, donor=target, amount=1)
 
+    @feesh_steal.command(name='random')
+    async def feesh_steal_random(self, ctx):
+        """Attempt to steal a feesh from a random member with more feesh
+        than the author.
+        """
+        max_amount = max([m['amount'] for m in self.data['members'].values()])
+        thief_amount = self.data['members'][ctx.author.id]['amount']
+
+        if thief_amount == max_amount:
+            # cannot steal, already have the top amount
+            await ctx.send('You have the most feesh, you cannot steal!')
+
+        else:
+            potential_targets = []
+            for id, data in self.data['members'].items():
+                if data['amount'] > thief_amount:
+                    potential_targets.append(id)
+
+            target_id = np.random.choice(potential_targets)
+            target = ctx.guild.get_member(target_id)
+            await self._feesh_command_random(ctx, target)
+
     @feesh.command(name='stats')
     async def feesh_stats(self, ctx, *, member: discord.Member = None):
-        """Generates a plot of the feesh distribution."""
+        """Generate a plot of the feesh distribution."""
 
         await ctx.trigger_typing()
 
@@ -534,7 +570,8 @@ class Feesh(FunCog):
 
     @feesh.command(name='whohas')
     async def feesh_whohas(self, ctx, amount: int):
-        """Returns the member(s) with the amount of feesh asked."""
+        """Return the member(s) with the amount of feesh asked."""
+
         await ctx.trigger_typing()
         if amount < 0:
             raise commands.BadArgument('amount needs to be positive.')
@@ -556,37 +593,18 @@ class Feesh(FunCog):
 
     @feesh.command(name='random')
     async def feesh_random(self, ctx, subcommand):
-        """Run the subcommand with a random Member as argument.
-        It can call all subcommands, even those that do not take a Member
-        as argument, so it can break. Goes through the cooldown and error
-        handling mechanisms.
-        """
-        root_parent = ctx.command.root_parent
-
-        valid_subcommands = []
-        for cmd in root_parent.commands:
-            valid_subcommands += [cmd.name] + cmd.aliases
-        valid_subcommands.remove(ctx.command.name)  # no aliases to remove
-
-        if subcommand in valid_subcommands:
-            # create the new message
-            member = np.random.choice(ctx.guild.members)
-            member_str = f'{member.id}'  # use ID in case names are weird
-            msg = copy.copy(ctx.message)
-            arguments = ' '.join([root_parent.name, subcommand, member_str])
-            msg.content = ctx.prefix + arguments
-            new_ctx = await self.bot.get_context(msg, cls=type(ctx))
-            # treat it like a normal message
-            await self.bot.invoke(new_ctx)
-
-        else:
-            raise commands.BadArgument(
-                f'Unknown subcommand of {root_parent.name}')
+        """Deprecated command. Return a command hint."""
+        command_hint = ' '.join([
+            ctx.command.full_parent_name,
+            subcommand,
+            'random',
+            ])
+        await ctx.send(f'Did you mean: `{ctx.prefix}{command_hint}`?')
 
     @feesh_give.error
     @feesh_stats.error
     async def feesh_error(self, ctx, error):
-        """Error handling for feesh give and stats subcommands."""
+        """Error handling for the feesh give and stats subcommands."""
 
         if isinstance(error, commands.BadArgument):
             await ctx.send('Unknown member! :dizzy_face:')
@@ -648,16 +666,8 @@ class Feesh(FunCog):
             bucket = ctx.command._buckets.get_bucket(ctx)
             bucket._tokens += 1
 
-    @feesh_random.error
-    async def feesh_random_error(self, ctx, error):
-        if isinstance(error, commands.BadArgument):
-            await ctx.send(f'Unknown subcommand.')
-
-        else:
-            raise
-
     def transfer_feesh(self, member, donor=None, amount=1):
-        """Transfers feesh from donor to member, or gives a new one
+        """Transfer feesh from donor to member, or give a new one
         if donor is None.
         """
         mid = member.id
@@ -706,6 +716,16 @@ class Feesh(FunCog):
         print(f'Collected {n} feesh.')
 
         pkl_dump(self.data, FEESH_DATA_FILE)
+
+    async def _feesh_command_random(self, ctx, member):
+        """Helper function to execute the command with the given member."""
+
+        member_str = f'{member.mention}'
+        msg = copy.copy(ctx.message)
+        arguments = ' '.join([ctx.command.full_parent_name, member_str])
+        msg.content = ctx.prefix + arguments
+        new_ctx = await self.bot.get_context(msg, cls=type(ctx))
+        await self.bot.invoke(new_ctx)
 
     def _make_feesh_stats_figure(self, member):
         fig, ax = plt.subplots()
