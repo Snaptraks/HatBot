@@ -20,7 +20,7 @@ class CustomHelpCommand(commands.DefaultHelpCommand):
             self.paginator.add_line(f'Cooldown: {cooldown}', empty=True)
 
     def get_command_cooldown(self, command):
-        """Retrieve the cooldown from the command, and formats it in
+        """Retrieve the cooldown from the command, and format it in
         a nice string.
         """
         cooldown = command._buckets._cooldown
