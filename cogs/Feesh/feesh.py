@@ -423,17 +423,25 @@ class Feesh(FunCog):
                 await channel.send(out_str)
                 raise ValueError('Target has no feesh')
 
-            def odds(x):
-                if x <= 0:
-                    return 1
-                else:
-                    # x > 0
-                    # 1 to 0.5
-                    return (np.exp(-x / 2) + 1) / 2
+			def odds(y):
+				L = []
+				for x in self.data['members']:
+					if x == 460499306223239188:
+						continue  # Exclude HatBot
+					L.append((x, self.data['members'][x]['amount']))
 
-            fail = odds(feesh_diff)
+				L = np.array(L, dtype=[('ID', '<i8'), ('amount', '<i8'), ])
+				top_amount = L['amount'].max()
 
-            drop = (1 - fail) / 2  # success = 1. - fail - drop
+				if y <= 0:
+					return 0
+				else:
+					# y > 0
+					# 0 to 0.4ish
+					return (np.tanh((y-(1.2*top))/top)/2+0.5)
+
+			drop = odds(feesh_diff)/3
+			fail = 2*odds(feesh_diff)/3 # success = 1. - fail - drop
 
             if target.id == 460499306223239188:  # HatBot
                 if feesh_target > 0:
