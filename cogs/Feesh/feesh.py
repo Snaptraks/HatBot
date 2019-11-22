@@ -629,24 +629,35 @@ class Feesh(FunCog):
         count it towards the cooldown.
         """
         if isinstance(error, commands.CommandOnCooldown):
-            await ctx.message.add_reaction('\U0000231B')  # :hourglass:
+            hourglass_emoji = '\U0000231B'  # :hourglass:
+            await ctx.message.add_reaction(hourglass_emoji)
 
-            if error.retry_after < 60:
-                # seconds
-                retry_after = '{:.0f} second(s)'.format(error.retry_after)
-            elif error.retry_after < 3600:
-                # minutes
-                retry_after = '{:.0f} minute(s)'.format(error.retry_after / 60)
+            def check(reaction, member):
+                return (member == ctx.author
+                    and reaction.message.id == ctx.message.id
+                    and reaction.emoji == hourglass_emoji)
+
+            try:
+                reaction, member = await self.bot.wait_for(
+                    'reaction_add', check=check, timeout=10 * 60)
+            except asyncio.TimeoutError:
+                pass
             else:
-                # hours
-                retry_after = '{:.0f} hour(s)'.format(error.retry_after / 3600)
+                if error.retry_after < 60:
+                    # seconds
+                    retry_after = '{:.0f} second(s)'.format(error.retry_after)
+                elif error.retry_after < 3600:
+                    # minutes
+                    retry_after = '{:.0f} minute(s)'.format(error.retry_after / 60)
+                else:
+                    # hours
+                    retry_after = '{:.0f} hour(s)'.format(error.retry_after / 3600)
 
-            out_str = (
-                f'You have already tried to {ctx.invoked_with} today, '
-                f'wait for {retry_after}.'
-                )
-
-            await ctx.author.send(out_str)
+                out_str = (
+                    f'You have already tried to {ctx.invoked_with} today, '
+                    f'wait for {retry_after}.'
+                    )
+                await ctx.author.send(out_str)
 
         else:
             if isinstance(error, commands.CommandInvokeError):
