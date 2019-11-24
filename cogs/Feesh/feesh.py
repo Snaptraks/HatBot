@@ -550,10 +550,10 @@ class Feesh(FunCog):
             potential_targets = []
             for id, data in self.data['members'].items():
                 if data['amount'] > thief_amount:
-                    potential_targets.append(id)
+                    potential_targets.append(ctx.guild.get_member(id))
 
-            target_id = np.random.choice(potential_targets)
-            target = ctx.guild.get_member(target_id)
+            potential_targets = [m for m in potential_targets if m is not None]
+            target = np.random.choice(potential_targets)
             await self._feesh_command_random(ctx, target)
 
     @feesh.command(name='stats')
