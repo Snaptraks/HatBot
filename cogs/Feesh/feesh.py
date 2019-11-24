@@ -454,8 +454,8 @@ class Feesh(FunCog):
                     # 0 to 0.4ish
                     return (np.tanh((y-(1.2*top_amount))/top_amount)/2+0.5)
 
-            drop = odds(feesh_diff)/3
-            fail = 2*odds(feesh_diff)/3 # success = 1. - fail - drop
+            drop = (1-odds(feesh_diff))/3
+            fail = 2*drop # success = 1. - fail - drop
 
             if target.id == 460499306223239188:  # HatBot
                 if feesh_target > 0:
