@@ -279,4 +279,4 @@ class Announcements(BasicCog):
                 )
 
         else:
-            raise
+            raise error

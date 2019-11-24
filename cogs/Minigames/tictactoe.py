@@ -10,60 +10,37 @@ class Board:
     """Class that contains the board of the game, allows to add a token in it,
     and checks if the board has a winning configuration."""
 
-    def __init__(self, size_x, size_y):
-        self.size_x = size_x
-        self.size_y = size_y
-        self.board = np.zeros((size_x, size_y), dtype=int)
-        self.winning_move = (slice(0, 0), slice(0, 0))
+    def __init__(self):
+        self.board = np.zeros(9, dtype=int)
 
-    def player_play(self, player, column):
-        """Add a player token (1 or 2) to the requested column."""
+    def player_play(self, player, position):
+        """Add a player token (1 or 2) to the requested position."""
 
-        if self.board[column, 0] == 0:  # if there is room
-            for i, r in enumerate(self.board[column]):
-                if r != 0:
-                    row = i - 1
-                    break
-            else:
-                row = -1
-
-            self.board[column, row] = player
-
+        if self.board[position] == 0:
+            self.board[position] = player
         else:
-            raise ValueError('Column is full.')
+            raise ValueError('Position already taken.')
 
     def check_winner(self, player):
         """Check if the board has a winning configuration for the player."""
 
-        # THIS IS A MESS
         # vertical
-        for c in range(self.size_x):
-            for r in range(self.size_y - 3):
-                s = (c, slice(r, r + 4))
-                if (self.board[s] == player).all():
-                    self.winning_move = s
-                    return True
+        for c in range(3):
+            if (self.board[c::3] == player).all():
+                return True
+
         # horizontal
-        for c in range(self.size_x - 3):
-            for r in range(self.size_y):
-                s = (slice(c, c + 4), r)
-                if (self.board[s] == player).all():
-                    self.winning_move = s
-                    return True
+        for r in range(3):
+            if (self.board[3 * r:3 * r + 3] == player).all():
+                return True
+
         # diagonal down
-        for c in range(self.size_x - 3):
-            for r in range(self.size_y -3):
-                s = (np.arange(c, c + 4), np.arange(r, r + 4))
-                if (self.board[s] == player).all():
-                    self.winning_move = s
-                    return True
+        if (self.board[::4] == player).all():
+            return True
+
         # diagonal up
-        for c in range(3, self.size_x):
-            for r in range(self.size_y - 3):
-                s = (np.arange(c, c - 4, -1), np.arange(r, r + 4))
-                if (self.board[s] == player).all():
-                    self.winning_move = s
-                    return True
+        if (self.board[2:7:2] == player).all():
+            return True
 
         return False
 
@@ -74,43 +51,40 @@ class Board:
         return rep
 
 
-class Connect4:
-    """Class that contains the Connect-4 game."""
+class TicTacToe:
+    """Class that contains the Tic-Tac-Toe game."""
 
     def __init__(self, ctx, bot, other_player):
         self.ctx = ctx
         self.bot = bot
         self.players = [ctx.author, other_player]
 
-        size_x, size_y = 7, 6
-        self.board = Board(size_x, size_y)
-        self.max_turns = size_x * size_y
-        self.emoji_numbers = [emoji.Numbers[f'_{i}'].value
-            for i in range(1, size_x + 1)]
+        self.board = Board()
+        self.emoji_positions = [x.value for x in list(emoji.TicTacToe)[:9]]
         self.winner = 0
-        self.turn = 0
 
         self.embed = discord.Embed(
             title=None,
             type='rich',
             color=np.random.randint(0xFFFFFF),  # Random color
             ).add_field(
-            name='Connect 4',
+            name='Tic-Tac-Toe',
             value=None,  # will be filled later
             )
 
     async def play(self):
-        """Play a game of Connect 4!"""
+        """Play a game of Tic-Tac-Toe!"""
 
         player = 0
-        tokens = [emoji.Connect4.RED.value, emoji.Connect4.BLUE.value]
+        turn = 0
+        tokens = [emoji.TicTacToe.O.value, emoji.TicTacToe.X.value]
         hint_message = 'Please wait, setting things up...'
         self.update_embed(hint_message, player)
         self.message_game = await self.ctx.send(embed=self.embed)
-        for number in self.emoji_numbers:
-            await self.message_game.add_reaction(number)
+        for pos in self.emoji_positions:
+            await self.message_game.add_reaction(pos)
 
-        while self.winner == 0 and self.turn < self.max_turns:
+        while self.winner == 0 and turn < 9:
             hint_message = (
                 f'It is {self.players[player].display_name}\'s turn! '
                 f'{tokens[player]}'
@@ -119,9 +93,9 @@ class Connect4:
             await self.message_game.edit(embed=self.embed)
 
             def check(reaction, user):
-                valid = user == self.players[player] and \
-                    reaction.message.id == self.message_game.id and \
-                    reaction.emoji in self.emoji_numbers
+                valid = user == self.players[player] \
+                    and reaction.message.id == self.message_game.id \
+                    and reaction.emoji in self.emoji_positions
                 return valid
 
             try:
@@ -141,13 +115,15 @@ class Connect4:
 
                 break
 
-            column = self.emoji_numbers.index(reaction.emoji)
-            await reaction.remove(user)
+            position = self.emoji_positions.index(reaction.emoji)
+
+            async for member in reaction.users():
+                await reaction.remove(member)
 
             try:
-                self.board.player_play(player + 1, column)
+                self.board.player_play(player + 1, position)
             except ValueError:
-                hint_message = 'Column is full, you can\'t do that!'
+                hint_message = 'Try another position.'
                 self.update_embed(hint_message, player)
                 await self.message_game.edit(embed=self.embed)
                 await asyncio.sleep(2)
@@ -158,7 +134,7 @@ class Connect4:
 
             else:
                 player = (player + 1) % 2
-                self.turn += 1
+                turn += 1
 
         if self.winner != 0:
             hint_message = (
@@ -167,10 +143,11 @@ class Connect4:
                 )
         else:
             hint_message = f'It is a tie!'
-            
+
         self.update_embed(hint_message, player)
         await self.message_game.edit(embed=self.embed)
         await self.message_game.clear_reactions()
+
 
     def update_embed(self, hint_message, player):
         """Edit the Embed with the current board state, and who's
@@ -191,24 +168,15 @@ class Connect4:
         """Return a string that represents the board state."""
 
         tokens = [
-            emoji.Connect4.BLACK.value,
-            emoji.Connect4.RED.value,
-            emoji.Connect4.BLUE.value,
-            ]
-        tokens_win = [
-            None,
-            emoji.Connect4.RED_WIN.value,
-            emoji.Connect4.BLUE_WIN.value,
+            emoji.TicTacToe.BLANK.value,
+            emoji.TicTacToe.O.value,
+            emoji.TicTacToe.X.value,
             ]
 
         int_to_emoji = np.vectorize(lambda i: tokens[i])
-        graphics = int_to_emoji(self.board.board)
+        graphics = int_to_emoji(self.board.board).reshape((3, 3))
 
-        if self.winner != 0:
-            graphics[self.board.winning_move] = tokens_win[self.winner]
-
-        graphics_str = '\n'.join(''.join(i for i in col)
-            for col in graphics.T)
-        graphics_str += '\n' + ''.join(self.emoji_numbers)
+        graphics_str = '\n'.join(' '.join(i for i in col)
+            for col in graphics)
 
         return graphics_str

@@ -79,22 +79,10 @@ class Fun(FunCog):
                         with open('cogs/Fun/8ball/avatar.png', 'wb') as f:
                             f.write(await resp.content.read())
 
-                # needed files
-                avatar = Image.open('cogs/Fun/8ball/avatar.png')
-                template = Image.open('cogs/Fun/8ball/magic_8ball_filter.png')
-                new = Image.new('RGBA', template.size)
+                # Edit template with avatar
+                img = await self.bot.loop.run_in_executor(
+                    None, self._make_8ball_figure)
 
-                # big profile picture
-                big = avatar.resize((375, 375), Image.ANTIALIAS)
-                new.paste(big, (349, 70))
-
-                # small profile picture
-                small = avatar.resize((204, 204), Image.ANTIALIAS)
-                new.paste(small, (105, 301))
-
-                new.paste(template, mask=template)
-                new.save('cogs/Fun/8ball/magic_8ball_avatar.png')
-                img = discord.File('cogs/Fun/8ball/magic_8ball_avatar.png')
                 await ctx.send(file=img)
 
     @commands.command()
@@ -124,3 +112,23 @@ class Fun(FunCog):
         embed.set_image(url=gif_url)
 
         await ctx.send(embed=embed)
+
+    def _make_8ball_figure(self):
+        # needed files
+        avatar = Image.open('cogs/Fun/8ball/avatar.png')
+        template = Image.open('cogs/Fun/8ball/magic_8ball_filter.png')
+        new = Image.new('RGBA', template.size)
+
+        # big profile picture
+        big = avatar.resize((375, 375), Image.ANTIALIAS)
+        new.paste(big, (349, 70))
+
+        # small profile picture
+        small = avatar.resize((204, 204), Image.ANTIALIAS)
+        new.paste(small, (105, 301))
+
+        new.paste(template, mask=template)
+        new.save('cogs/Fun/8ball/magic_8ball_avatar.png')
+        img = discord.File('cogs/Fun/8ball/magic_8ball_avatar.png')
+
+        return img

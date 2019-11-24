@@ -9,6 +9,7 @@ from .blackjack import Blackjack
 from .connect4 import Connect4
 from .hangman import Hangman
 from .highlow import HighLow
+from .tictactoe import TicTacToe
 
 
 class Minigames(FunCog):
@@ -37,8 +38,8 @@ class Minigames(FunCog):
         elif isinstance(error, commands.MissingRequiredArgument):
             await ctx.send('You need another player to play that game.')
 
-        elif isinstance(error, commands.CommandInvokeError):
-            await ctx.send('Cannot play a game against that member.')
+        elif isinstance(error, commands.BadArgument):
+            await ctx.send(error)
 
         else:
             raise error
@@ -64,9 +65,9 @@ class Minigames(FunCog):
         Each player takes turn in placing a token on the board,
         the winner is the first to put four tokens in a row.
         """
-
         if other_player.bot or other_player == ctx.author:
-            raise ValueError('Cannot play a game against that member.')
+            raise commands.BadArgument(
+                'Cannot play a game against that member.')
 
         game = Connect4(ctx, self.bot, other_player)
         await game.play()
@@ -76,7 +77,6 @@ class Minigames(FunCog):
         """A game of Hangman with a random word.
         You guess letters by typing them in chat.
         """
-
         game = Hangman(ctx, self.bot)
         await game.play()
 
@@ -94,10 +94,17 @@ class Minigames(FunCog):
         # Proposed by Princerbang
         pass
 
-    @commands.command(hidden=True)
-    async def tictactoe(self, ctx):
-        # Proposed by Princerbang
-        pass
+    @commands.command(name='tictactoe')
+    async def tic_tac_toe(self, ctx, other_player: discord.Member = None):
+        """A game of Tic-Tac-Toe with another member.
+        Proposed by Princerbang.
+        """
+        if other_player.bot or other_player == ctx.author:
+            raise commands.BadArgument(
+                'Cannot play a game against that member.')
+
+        game = TicTacToe(ctx, self.bot, other_player)
+        await game.play()
 
     @commands.command(hidden=True)
     async def wordsearch(self, ctx):
