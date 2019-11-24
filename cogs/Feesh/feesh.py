@@ -714,7 +714,7 @@ class Feesh(FunCog):
         pkl_dump(self.data, FEESH_DATA_FILE)
 
     @commands.command()
-    @commands.has_permissions(administrator=True)
+    @commands.is_owner()
     async def collect_feesh(self, ctx):
         """Give the feesh from members that left to the bot."""
 
