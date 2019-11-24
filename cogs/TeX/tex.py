@@ -46,7 +46,7 @@ class TeX(BasicCog):
     the resulting equation back.
     """
     def __init__(self, bot):
-        self.bot = bot
+        super().__init__(bot)
         self.clean_temp_folder.start(expiration=24 * 3600)
 
     def cog_unload(self):
