@@ -49,6 +49,7 @@ class Christmas(FunCog):
             self.giveaway_master_task.ctx = ctx
             self.giveaway_master_task.start(ctx)
         except RuntimeError as e:
+            await ctx.message.delete()
             await ctx.send('Task alread running.', delete_after=15)
 
     @commands.is_owner()
