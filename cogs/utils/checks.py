@@ -2,7 +2,7 @@ import discord
 from discord.ext import commands
 
 
-def has_role_above(item):
+def has_role_or_above(item):
     """A check decorator that checks if the member invoking the command
     has their top role equal or above the role specified via the name
     or ID specified.
