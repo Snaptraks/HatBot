@@ -42,11 +42,15 @@ class Christmas(FunCog):
     @commands.is_owner()
     @commands.group(aliases=['ga'])
     async def giveaway(self, ctx):
+        """Commands to control the giveaways."""
+
         pass
 
     @commands.is_owner()
     @giveaway.command(name='start')
     async def giveaway_start(self, ctx):
+        """Start the giveaways to create one at regular interval."""
+
         try:
             self.giveaway_master_task.ctx = ctx
             self.giveaway_master_task.start(ctx)
@@ -57,13 +61,22 @@ class Christmas(FunCog):
     @commands.is_owner()
     @giveaway.command(name='trigger')
     async def giveaway_trigger(self, ctx):
+        """Trigger one giveaway event."""
+
         self.bot.loop.create_task(self.giveaway_task(ctx))
 
     @tasks.loop(seconds=60)
     async def giveaway_master_task(self, ctx):
+        """Main task for giveaways.
+        Start a giveaway task at regular interval.
+        """
         self.bot.loop.create_task(self.giveaway_task(ctx))
 
     async def giveaway_task(self, ctx):
+        """Start one giveaway task.
+        Will send the message in the channel where `!giveaway start` or
+        `!giveaway trigger` was invoked.
+        """
         if len(self.steam_keys) == len(self.steam_keys_given):
             await ctx.send('No more keys!')
             # stop the master task just in case
@@ -101,7 +114,6 @@ class Christmas(FunCog):
             )
         giveaway_members = await giveaway_reaction.users().flatten()
         giveaway_members = [m for m in giveaway_members if not m.bot]
-        giveaway_winner = random.choice(giveaway_members)
 
         try:
             await giveaway_winner.send(
