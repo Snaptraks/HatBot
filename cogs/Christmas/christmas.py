@@ -23,7 +23,19 @@ class Christmas(FunCog):
                 if i != 0:
                     self.steam_keys.append(tuple(row))
 
-        self.steam_keys_given = set()  # save and load
+        try:
+            with open('cogs/Christmas/keys_given.txt', 'r') as f:
+                self.steam_keys_given = [key.strip() for key in f.readlines()]
+                self.steam_keys_given = set(self.steam_keys_given)
+
+        except FileNotFoundError:
+            self.steam_keys_given = set()
+
+
+    def cog_unload(self):
+        super().cog_unload()
+        with open('cogs/Christmas/keys_given.txt', 'w') as f:
+            f.write('\n'.join(self.steam_keys_given))
 
     @commands.is_owner()
     @commands.group(aliases=['ga'])
