@@ -117,7 +117,8 @@ class Christmas(FunCog):
 
         try:
             await giveaway_winner.send(
-                f'Congratulations! You won the giveaway for **{game_info[0]}**!\n'
+                f'Congratulations! You won the giveaway for '
+                f'**{game_info[0]}**!\n'
                 f'Your Steam key is ||{game_info[1]}|| .\n'
                 'Happy Holidays!'
                 )
