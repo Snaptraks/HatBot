@@ -173,3 +173,12 @@ class Christmas(FunCog):
 
     @giveaway_master_task.after_loop
     async def giveaway_master_after_loop(self):
+        if self.giveaway_master_task.is_being_cancelled():
+            await self.giveaway_master_task.ctx.send('Giveaway was stopped.')
+
+        elif self.giveaway_master_task.failed():
+            await self.giveaway_master_task.ctx.send(
+                'An exception occured. Contact the Tech!')
+
+        else:
+            await self.giveaway_master_task.ctx.send('No more keys!')
