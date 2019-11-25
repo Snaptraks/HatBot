@@ -86,7 +86,7 @@ class Christmas(FunCog):
 
         await ctx.send(f'```\n{remaining_str}\n```')
 
-    @tasks.loop(seconds=60)
+    @tasks.loop(hours=24)
     async def giveaway_master_task(self, ctx):
         """Main task for giveaways.
         Start a giveaway task at regular interval.
