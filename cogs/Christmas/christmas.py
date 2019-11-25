@@ -1,5 +1,6 @@
 import asyncio
 import csv
+from datetime import datetime, timedelta, timezone
 import random
 
 import numpy as np
@@ -10,6 +11,7 @@ from ..utils.cogs import FunCog
 
 
 GIFT_EMOJI = '\U0001F381'
+GIVEAWAY_TIME = timedelta(hours=24)
 
 
 class Christmas(FunCog):
@@ -75,14 +77,15 @@ class Christmas(FunCog):
                 f'React with {GIFT_EMOJI} to enter!'
                 )
             )
+        giveaway_end = datetime.now(timezone.utc) + GIVEAWAY_TIME
         embed.set_footer(
-            text='Giveaway ends at TIMEUTC',
+            text=f"This giveaway ends at {giveaway_end.strftime('%c %Z')}",
             )
 
         giveaway_message = await ctx.send(embed=embed)
         await giveaway_message.add_reaction(GIFT_EMOJI)
 
-        await asyncio.sleep(15)  # time for giveaway
+        await asyncio.sleep(GIVEAWAY_TIME.total_seconds())  # time for giveaway
 
         giveaway_message = await giveaway_message.channel.fetch_message(
             giveaway_message.id)
