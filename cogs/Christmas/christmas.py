@@ -116,6 +116,15 @@ class Christmas(FunCog):
         giveaway_members = [m for m in giveaway_members if not m.bot]
 
         try:
+            giveaway_winner = random.choice(giveaway_members)
+        except IndexError as e:
+            # If list is empty, remove key from steam_keys_given
+            # and delete the giveaway
+            self.steam_keys_given.remove(game_info[1])
+            await giveaway_message.delete()
+            return
+
+        try:
             await giveaway_winner.send(
                 f'Congratulations! You won the giveaway for '
                 f'**{game_info[0]}**!\n'
