@@ -64,6 +64,12 @@ class Christmas(FunCog):
         self.bot.loop.create_task(self.giveaway_task(ctx))
 
     async def giveaway_task(self, ctx):
+        if len(self.steam_keys) == len(self.steam_keys_given):
+            await ctx.send('No more keys!')
+            # stop the master task just in case
+            self.giveaway_master_task.cancel()
+            return
+
         game_info = random.choice(self.steam_keys)
         while game_info[1] in self.steam_keys_given:
             game_info = random.choice(self.steam_keys)
@@ -118,13 +124,9 @@ class Christmas(FunCog):
 
         await giveaway_message.edit(embed=embed)
 
-        if len(self.steam_keys) == len(self.steam_keys_given):
-            self.giveaway_master_task.cancel()
-
     @giveaway_master_task.before_loop
     async def giveaway_master_before_loop(self):
         pass
 
     @giveaway_master_task.after_loop
     async def giveaway_master_after_loop(self):
-        await self.giveaway_master_task.ctx.send('No more keys!')
