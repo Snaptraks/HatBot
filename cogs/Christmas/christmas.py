@@ -59,11 +59,32 @@ class Christmas(FunCog):
             await ctx.send('Task alread running.', delete_after=15)
 
     @commands.is_owner()
+    @giveaway.command(name='stop')
+    async def giveaway_stop(self, ctx):
+        """Stop the giveaways."""
+
+        self.giveaway_master_task.cancel()
+
+    @commands.is_owner()
     @giveaway.command(name='trigger')
     async def giveaway_trigger(self, ctx):
         """Trigger one giveaway event."""
 
         self.bot.loop.create_task(self.giveaway_task(ctx))
+
+    @commands.is_owner()
+    @giveaway.command(name='remaining')
+    async def giveaway_remaining(self, ctx):
+        """List of the remaining available games for the giveaway."""
+
+        remaining = []
+        for game_info in self.steam_keys:
+            if game_info[1] not in self.steam_keys_given:
+                remaining.append(game_info[0])
+
+        remaining_str = '\n'.join(remaining)
+
+        await ctx.send(f'```\n{remaining_str}\n```')
 
     @tasks.loop(seconds=60)
     async def giveaway_master_task(self, ctx):
