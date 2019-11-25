@@ -12,20 +12,6 @@ from ..utils.cogs import FunCog
 GIFT_EMOJI = '\U0001F381'
 
 
-def build_giveaway_embed(game_name, steam_url):
-    embed = discord.Embed(
-        title='Holidays Giveaway!',
-        color=0xB3000C,
-        # url=steam_url,
-        description=(
-            f'We are giving away [**{game_name}**]({steam_url})!\n'
-            f'React with {GIFT_EMOJI} to enter!'
-            )
-        )
-
-    return embed
-
-
 class Christmas(FunCog):
     def __init__(self, bot):
         super().__init__(bot)
