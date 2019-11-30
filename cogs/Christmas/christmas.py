@@ -86,7 +86,10 @@ class Christmas(FunCog):
 
         remaining_str = '\n'.join(remaining)
 
-        await ctx.send(f'```\n{remaining_str}\n```')
+        await ctx.send(
+            f'{len(remaining)} remaining games:\n'
+            f'```\n{remaining_str}\n```'
+            )
 
     @tasks.loop(hours=24)
     async def giveaway_master_task(self, ctx):
