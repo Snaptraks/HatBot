@@ -18,10 +18,10 @@ def has_role_or_above(item):
             raise commands.NoPrivateMessage()
 
         if isinstance(item, int):
-            role = discord.utils.get(ctx.author.roles, id=item)
+            role = discord.utils.get(ctx.guild.roles, id=item)
 
         else:
-            role = discord.utils.get(ctx.author.roles, name=item)
+            role = discord.utils.get(ctx.guild.roles, name=item)
 
         if role is None:
             raise commands.MissingRole(item)
