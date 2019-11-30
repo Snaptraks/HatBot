@@ -8,10 +8,12 @@ import discord
 from discord.ext import commands, tasks
 
 from ..utils.cogs import FunCog
+from ..utils.checks import has_role_or_above
 
 
 GIFT_EMOJI = '\U0001F381'
 GIVEAWAY_TIME = timedelta(hours=24)
+# GIVEAWAY_TIME = timedelta(seconds=15)
 
 
 class Christmas(FunCog):
@@ -65,14 +67,14 @@ class Christmas(FunCog):
 
         self.giveaway_master_task.cancel()
 
-    @commands.is_owner()
+    @has_role_or_above('Mod')
     @giveaway.command(name='trigger')
     async def giveaway_trigger(self, ctx):
         """Trigger one giveaway event."""
 
         self.bot.loop.create_task(self.giveaway_task(ctx))
 
-    @commands.is_owner()
+    # @commands.is_owner()
     @giveaway.command(name='remaining')
     async def giveaway_remaining(self, ctx):
         """List of the remaining available games for the giveaway."""
