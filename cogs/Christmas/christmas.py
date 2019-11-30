@@ -101,11 +101,13 @@ class Christmas(FunCog):
         `!giveaway trigger` was invoked.
         """
         if len(self.steam_keys) == len(self.steam_keys_given):
+            # if all keys have been given out, exit ASAP
             await ctx.send('No more keys!')
             # stop the master task just in case
             self.giveaway_master_task.cancel()
             return
 
+        # pick a key that isn't given out already
         game_info = random.choice(self.steam_keys)
         while game_info[1] in self.steam_keys_given:
             game_info = random.choice(self.steam_keys)
