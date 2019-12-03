@@ -73,6 +73,14 @@ class Christmas(BasicCog):
 
         self.giveaway_master_task.cancel()
 
+    @commands.is_owner()
+    @giveaway.command(name='reload')
+    async def giveaway_reload(self, ctx):
+        """Reload the list of games."""
+        self._load_games()
+        await ctx.send(
+            f'Reloaded list of games ({len(self.steam_keys)} games)')
+
     @has_role_or_above('Mod')
     @giveaway.command(name='trigger')
     async def giveaway_trigger(self, ctx):
