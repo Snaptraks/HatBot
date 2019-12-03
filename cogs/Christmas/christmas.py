@@ -89,21 +89,35 @@ class Christmas(BasicCog):
         self.bot.loop.create_task(self.giveaway_task(ctx))
 
     # @commands.is_owner()
-    @giveaway.command(name='remaining')
+    @giveaway.group(name='remaining', invoke_without_command=True)
     async def giveaway_remaining(self, ctx):
+        """Count of the remaining available games for the giveaway."""
+
+        remaining = self._get_remaining()
+
+        await ctx.send(
+            f'{len(remaining)} remaining games.'
+            )
+
+    @giveaway_remaining.command(name='list')
+    async def giveaway_remaining_list(self, ctx):
         """List of the remaining available games for the giveaway."""
 
-        remaining = []
-        for game_info in self.steam_keys:
-            if game_info[1] not in self.steam_keys_given:
-                remaining.append(game_info[0])
-
+        remaining = self._get_remaining()
         remaining_str = '\n'.join(remaining)
 
         await ctx.send(
             f'{len(remaining)} remaining games:\n'
             f'```\n{remaining_str}\n```'
             )
+
+    def _get_remaining(self):
+        """Get list of remaining games."""
+        remaining = []
+        for game_info in self.steam_keys:
+            if game_info[1] not in self.steam_keys_given:
+                remaining.append(game_info[0])
+        return remaining
 
     @tasks.loop(hours=24)
     async def giveaway_master_task(self, ctx):
