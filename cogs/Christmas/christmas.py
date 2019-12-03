@@ -48,7 +48,6 @@ class Christmas(BasicCog):
         with open('cogs/Christmas/keys_given.txt', 'w') as f:
             f.write('\n'.join(self.steam_keys_given))
 
-    @commands.is_owner()
     @commands.group(aliases=['ga'])
     async def giveaway(self, ctx):
         """Commands to control the giveaways."""
