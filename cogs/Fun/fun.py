@@ -85,7 +85,7 @@ class Fun(FunCog):
 
                 await ctx.send(file=img)
 
-    @commands.command()
+    @commands.command(aliases=['hugs'])
     async def hug(self, ctx, *, huggie: Union[discord.Member, str] = None):
         gif_url = await random_gif(self.bot.http_session, 'hug')
         if huggie is None:
