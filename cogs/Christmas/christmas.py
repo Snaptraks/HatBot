@@ -19,9 +19,16 @@ GIVEAWAY_TIME = timedelta(hours=24)
 class Christmas(BasicCog):
     def __init__(self, bot):
         super().__init__(bot)
+        self._load_games()
 
+    def cog_unload(self):
+        super().cog_unload()
+        self.giveaway_master_task.stop()
+
+    def _load_games(self):
         self.steam_keys = []
-        with open('cogs/Christmas/keys.csv', 'r') as f:
+        # with open('cogs/Christmas/keys.csv', 'r') as f:
+        with open('cogs/Christmas/xmas2019codes.csv', 'r') as f:
             csv_reader = csv.reader(f, delimiter=',')
             for i, row in enumerate(csv_reader):
                 if i != 0:
@@ -36,8 +43,8 @@ class Christmas(BasicCog):
             self.steam_keys_given = set()
 
 
-    def cog_unload(self):
-        super().cog_unload()
+    def _save_keys_given(self, key):
+        self.steam_keys_given.add(key)
         with open('cogs/Christmas/keys_given.txt', 'w') as f:
             f.write('\n'.join(self.steam_keys_given))
 
@@ -114,7 +121,7 @@ class Christmas(BasicCog):
         game_info = random.choice(self.steam_keys)
         while game_info[1] in self.steam_keys_given:
             game_info = random.choice(self.steam_keys)
-        self.steam_keys_given.add(game_info[1])
+        self._save_keys_given(game_info[1])
 
         embed = discord.Embed(
             title='Holidays Giveaway!',
