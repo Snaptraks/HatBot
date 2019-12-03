@@ -7,8 +7,8 @@ import numpy as np
 import discord
 from discord.ext import commands, tasks
 
-from ..utils.cogs import FunCog
 from ..utils.checks import has_role_or_above
+from ..utils.cogs import BasicCog
 
 
 GIFT_EMOJI = '\U0001F381'
@@ -16,7 +16,7 @@ GIVEAWAY_TIME = timedelta(hours=24)
 # GIVEAWAY_TIME = timedelta(seconds=15)
 
 
-class Christmas(FunCog):
+class Christmas(BasicCog):
     def __init__(self, bot):
         super().__init__(bot)
 
