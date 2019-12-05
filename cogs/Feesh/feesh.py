@@ -227,7 +227,8 @@ class Feesh(FunCog):
                 # statistics
                 self.transfer_feesh(member=winner, amount=1)
 
-    @commands.group(invoke_without_command=True)
+    @commands.group(aliases=['<:feesh:427018890137174016>'],
+        invoke_without_command=True)
     async def feesh(self, ctx, *, member: discord.Member = None):
         """Give statistics on the amount of feesh given."""
 
