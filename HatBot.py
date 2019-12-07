@@ -53,6 +53,15 @@ class MyBot(Bot):
         print(discord.utils.oauth_url(self.user.id))
         print('--------')
 
+    async def owner(self):
+        user = self.get_user(self.owner_id)
+        if user:
+            return user
+
+        else:
+            app = await self.application_info()
+            return app.owner
+
 
 if __name__ == '__main__':
     logger = logging.getLogger('discord')
