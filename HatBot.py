@@ -91,7 +91,6 @@ if __name__ == '__main__':
     startup_extensions = [
         'cogs.Admin',
         'cogs.Announcements',
-        'cogs.Christmas',
         'cogs.Dev',
         'cogs.Feesh',
         'cogs.Fun',
