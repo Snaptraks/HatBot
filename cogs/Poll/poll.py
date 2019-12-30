@@ -77,8 +77,7 @@ class Poll(BasicCog):
                     title="**" +
                     title +
                     "**",
-                    description=pollMessage +
-                    "\n\n[Support the development of Poll Bot](github.com/finnreid19/poll-bot)",
+                    description=pollMessage,
                     colour=0x83bae3)
                 pollMessage = await message.channel.send(embed=e)
                 i = 0
