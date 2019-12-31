@@ -20,8 +20,6 @@ class Admin(BasicCog):
 
     def __init__(self, bot):
         super().__init__(bot)
-        # self.bot = bot
-        self.boottime = datetime.now()
 
     async def cog_check(self, ctx):
         return await self.bot.is_owner(ctx.author)
@@ -53,13 +51,23 @@ class Admin(BasicCog):
         await ctx.message.add_reaction('\U00002935')  # :arrow_heading_down:
         await self._cogs_manage(ctx, self.bot.unload_extension, module)
 
-    @cogs.command(name='reload')
+    @cogs.group(name='reload', invoke_without_command=True)
     async def cogs_reload(self, ctx, module):
         """Reload an extension."""
 
         # :arrows_counterclockwise:
         await ctx.message.add_reaction('\U0001F504')
         await self._cogs_manage(ctx, self.bot.reload_extension, module)
+
+    @cogs_reload.command(name='all')
+    async def cogs_reload_all(self, ctx):
+        """Reload all currently loaded extensions."""
+
+        # :arrows_counterclockwise:
+        await ctx.message.add_reaction('\U0001F504')
+        loaded_extensions = list(self.bot.cogs.keys())
+        for cog in loaded_extensions:
+            await self._cogs_manage(ctx, self.bot.reload_extension, cog)
 
     async def _cogs_manage(self, ctx, method, module):
         """Helper method to load/unload/reload modules.
@@ -70,33 +78,62 @@ class Admin(BasicCog):
         if not module.startswith('cogs.'):
             module = f'cogs.{module}'
 
-        try:
-            method(module)
-        except Exception as e:
-            exc = f'{type(e).__name__}: {e}'
-            print(f'Failed to {ctx.invoked_with} extension {module}\n{exc}')
-            await ctx.message.add_reaction('\N{CROSS MARK}')
-            raise e
-        else:
-            print(f'Successfully {ctx.invoked_with}ed extension {module}')
+        # try it, and if an exception is raised, .error is called
+        method(module)
+
+    @cogs_load.after_invoke
+    @cogs_unload.after_invoke
+    @cogs_reload.after_invoke
+    async def cogs_after_invoke(self, ctx):
+        module = ctx.args[2]
+        if not ctx.command_failed:
+            print(f'Successfully {ctx.invoked_with}ed extension {module}.')
             await ctx.message.add_reaction('\N{WHITE HEAVY CHECK MARK}')
+
+    @cogs_reload_all.after_invoke
+    async def cogs_reload_all_after_invoke(self, ctx):
+        if not ctx.command_failed:
+            print('Successfully reloaded all extensions.')
+            await ctx.message.add_reaction('\N{WHITE HEAVY CHECK MARK}')
+
+    @cogs_load.error
+    @cogs_unload.error
+    @cogs_reload.error
+    async def cogs_error(self, ctx, error):
+        module = ctx.args[2]
+        exc = f'{type(error).__name__}: {error}'
+        print(f'Failed to {ctx.invoked_with} extension {module}.\n{exc}')
+        await ctx.message.add_reaction('\N{CROSS MARK}')
+        raise error
+
+    @cogs_reload_all.error
+    async def cogs_reload_all_error(self, ctx, error):
+        exc = f'{type(error).__name__}: {error}'
+        print('Failed to reload some extension.')
+        await ctx.message.add_reaction('\N{CROSS MARK}')
+        await ctx.send(exc)  # because there is lots of info
+        raise error
 
     @commands.command()
     async def uptime(self, ctx):
         """Display the uptime in days, and the boot time."""
 
         # message = 'I have been online for {}! (Since {:%Y-%m-%d %H:%M:%S})'
-        uptime_ = datetime.now() - self.boottime
+        uptime_ = datetime.now() - self.bot.boot_time
         out_str = (f'I have been online for {uptime_.days} days! '
-                   f'(Since {self.boottime:%c})')
+                   f'(Since {self.bot.boot_time:%c})')
         await ctx.send(out_str)
 
     @commands.command()
     async def susay(self, ctx, channel: discord.TextChannel, *, message: str):
-        """Send a message in the requested channel as the Bot."""
+        """Send a message in the requested channel as the Bot.
+        If in DMs, will send to any channel with the given ID.
+        If in a guild, will only work in the current one.
+        """
 
         await channel.send(message)
-        await ctx.message.delete()
+        if ctx.guild:
+            await ctx.message.delete()
 
     @commands.command()
     async def sudo(self, ctx, who: discord.Member, *, command: str):

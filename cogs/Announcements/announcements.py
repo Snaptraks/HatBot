@@ -193,8 +193,11 @@ class Announcements(BasicCog):
             await msg.add_reaction(emoji)
 
         def check(reaction, user):
-            valid = user == ctx.author \
+            valid = (
+                user == ctx.author
                 and reaction.emoji in yes_no
+                and reaction.message.id == msg.id
+                )
             return valid
 
         reaction, user = await self.bot.wait_for(
@@ -279,4 +282,4 @@ class Announcements(BasicCog):
                 )
 
         else:
-            raise
+            raise error

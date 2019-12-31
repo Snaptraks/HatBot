@@ -77,8 +77,7 @@ class Poll(BasicCog):
                     title="**" +
                     title +
                     "**",
-                    description=pollMessage +
-                    "\n\n[Support the development of Poll Bot](github.com/finnreid19/poll-bot)",
+                    description=pollMessage,
                     colour=0x83bae3)
                 pollMessage = await message.channel.send(embed=e)
                 i = 0
@@ -102,23 +101,17 @@ class Poll(BasicCog):
                     for reaction in pollMessage.reactions:
                         if reaction.me and reaction.emoji in self.emojiLetters:
                             reactions.append(reaction.count - 1)
-                    print(reactions)
-                    plt.subplots(figsize=(9, 6))
-                    plt.pie(
+
+                    # Create graph
+                    img = await self.bot.loop.run_in_executor(
+                        None,
+                        self._make_poll_figure, title,
                         reactions,
-                        labels=None,
-                        startangle=90,
-                        shadow=True,
-                        counterclock=False,
-                        autopct=lambda pct: form(
-                            pct,
-                            reactions))
-                    plt.title(title, fontsize=27)
-                    plt.axis('equal')
-                    plt.legend(labels=final_options, loc='lower right')
-                    plt.savefig('cogs/Poll/results.png')
+                        final_options,
+                        )
+
                     await message.channel.send('Results for a passed poll',
-                                               file=discord.File('cogs/Poll/results.png'))
+                        file=img)
                     if '+keep' not in message.content:
                         await pollMessage.delete()
 
@@ -179,6 +172,27 @@ class Poll(BasicCog):
 
         except KeyError:
             return "Please make sure you are using the format 'strawpoll {title} [Option1] [Option2] [Option 3]'"
+
+    def _make_poll_figure(self, title, reactions, final_options):
+        plt.subplots(figsize=(9, 6))
+        plt.pie(
+            reactions,
+            labels=None,
+            startangle=90,
+            shadow=True,
+            counterclock=False,
+            autopct=lambda pct: form(
+                pct,
+                reactions,
+                )
+            )
+        plt.title(title, fontsize=27)
+        plt.axis('equal')
+        plt.legend(labels=final_options, loc='lower right')
+        plt.savefig('cogs/Poll/results.png')
+        img = discord.File('cogs/Poll/results.png')
+
+        return img
 
 
 def form(pct, allvals):

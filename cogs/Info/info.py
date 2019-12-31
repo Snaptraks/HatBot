@@ -1,4 +1,5 @@
 import asyncio
+import io
 import json
 
 import discord
@@ -117,3 +118,24 @@ class Info(BasicCog):
 
         out_str = f'{emoji} It is {now} {tz_abr} ({tz_name}, {offset}).'
         await ctx.send(out_str)
+
+    @commands.command(aliases=['pfp'])
+    async def avatar(self, ctx, *, member: discord.Member = None):
+        """Send the member's avatar in the channel."""
+
+        if member is None:
+            member = ctx.author
+
+        avatar_url = str(member.avatar_url_as(size=4096))
+        try:
+            extension = \
+                avatar_url[avatar_url.rindex('.'):avatar_url.rindex('?')]
+        except ValueError as e:
+            extension = '.png'
+
+        async with self.bot.http_session.get(avatar_url) as resp:
+            if resp.status == 200:
+                data = io.BytesIO(await resp.content.read())
+        file = discord.File(data, filename=f'{member.id}{extension}')
+
+        await ctx.send(file=file)

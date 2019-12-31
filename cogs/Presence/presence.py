@@ -12,6 +12,9 @@ class Presence(BasicCog):
     def __init__(self, bot):
         super().__init__(bot)
 
+        with open('cogs/Presence/presence.json', 'r') as f:
+            self.activities = json.load(f)
+
         self.change_presence.start()
 
     def cog_unload(self):
@@ -26,10 +29,21 @@ class Presence(BasicCog):
     async def change_presence(self):
         """Change the Bot's presence periodically with a random activity."""
 
-        with open('games.json', 'r') as f:
-            games = json.load(f)['games']
-        game_name = np.random.choice(games)
-        await self.bot.change_presence(activity=discord.Game(name=game_name))
+        activity_dict = np.random.choice(self.activities)
+        type = activity_dict['activitytype']
+        name = activity_dict['name']
+        if type == 1:
+            # Streaming needs an URL
+            url = activity_dict['url']
+        else:
+            url = None
+        activity = discord.Activity(
+            type=discord.ActivityType.try_value(type),
+            name=name,
+            url=url,
+            )
+
+        await self.bot.change_presence(activity=activity)
 
     @change_presence.before_loop
     async def change_presence_before(self):

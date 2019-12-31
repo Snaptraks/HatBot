@@ -27,6 +27,8 @@ class MyBot(Bot):
         self.http_session = self.loop.run_until_complete(
             create_http_session(self.loop))
 
+        self.boot_time = datetime.now()
+
     async def close(self):
         """Subclass the close() method to close the HTTP Session."""
 
@@ -50,6 +52,15 @@ class MyBot(Bot):
         print(f'Use this link to invite {self.user.name}:')
         print(discord.utils.oauth_url(self.user.id))
         print('--------')
+
+    async def owner(self):
+        user = self.get_user(self.owner_id)
+        if user:
+            return user
+
+        else:
+            app = await self.application_info()
+            return app.owner
 
 
 if __name__ == '__main__':
@@ -84,6 +95,7 @@ if __name__ == '__main__':
         'cogs.Feesh',
         'cogs.Fun',
         'cogs.Git',
+        'cogs.Help',
         'cogs.Info',
         'cogs.Levels',
         'cogs.Minigames',

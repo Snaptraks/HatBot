@@ -1,11 +1,12 @@
 import asyncio
-from datetime import timedelta
+from datetime import datetime, timedelta
 import discord
 from discord.ext import commands
 from discord.utils import escape_markdown
 import logging
 
 from ..utils.cogs import BasicCog
+from ..utils.converters import Duration
 
 
 logger = logging.getLogger('discord')
@@ -19,16 +20,17 @@ class Moderation(BasicCog):
 
     @commands.command()
     @commands.has_permissions(kick_members=True)
-    async def mute(self, ctx, member: discord.Member, time='15m',
+    async def mute(self, ctx, member: discord.Member, time: Duration = None,
             *, reason=None):
         """Prevent the member to send messages and add reactions.
-        Syntax is '!mute <member> [time] [reason]', where time is ##A, where
-        ## is a number (any) and A is ONE of (s, m, h, d) for
-        seconds, minutes, hours, and days respectively. Defaults to
+        Syntax is '!mute <member> [time] [reason]'. time defaults to
         15 minutes ('15m'). The reason is optional and added to the Audit Log.
         """
         guild_permissions = member.guild_permissions
-        wait_time = parse_time(time).total_seconds()
+        if time is None:
+            wait_time = timedelta(minutes=15)
+        else:
+            wait_time = time - datetime.utcnow()
         # Because sometimes members have nicknames with markdown
         escaped_name = escape_markdown(member.display_name)
 
@@ -60,7 +62,7 @@ class Moderation(BasicCog):
                         reason=reason
                         )
 
-            await asyncio.sleep(wait_time)
+            await asyncio.sleep(wait_time.total_seconds())
             await ctx.invoke(self.unmute, member)
 
     @commands.command()
@@ -79,26 +81,9 @@ class Moderation(BasicCog):
     @mute.error
     async def mute_error(self, ctx, error):
         """Handle errors."""
-        
+
         if isinstance(error, commands.MissingRequiredArgument):
             await ctx.send('You need to provide someone to mute.')
 
         elif isinstance(error, commands.BadArgument):
             await ctx.send('Unknown member.')
-
-
-def parse_time(time):
-    # TODO: make a better time parsing function
-    units = {
-        's': 'seconds',
-        'm': 'minutes',
-        'h': 'hours',
-        'd': 'days',
-        }
-
-    for u in units.keys():
-        if u in time:
-            duration = timedelta(**{units[u]: float(time[:-1])})
-            return duration
-
-    raise ValueError('Invalid time format.')

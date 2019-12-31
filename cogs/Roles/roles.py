@@ -71,7 +71,7 @@ class Roles(BasicCog):
     @leave.error
     async def join_leave_error(self, ctx, error):
         """Error handling for the join and leave commands."""
-        
+
         if isinstance(error, commands.BadArgument):
             bot_msg = await ctx.send('I did not find that role, I\'m sorry!')
             await asyncio.sleep(30)
@@ -84,4 +84,5 @@ class Roles(BasicCog):
         available = [r for r in roles if r.permissions == everyone.permissions]
         available = [r for r in available if not r.managed]
         available = [r for r in available if not r.hoist]
-        return available
+        # return the roles form top of list to bottom
+        return sorted(available)[::-1]
