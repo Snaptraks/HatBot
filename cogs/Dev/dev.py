@@ -3,6 +3,7 @@ import io
 import re
 import textwrap
 import traceback
+import unicodedata
 import inspect
 from contextlib import redirect_stdout
 
@@ -96,7 +97,7 @@ class Dev(BasicCog):
     @commands.command()
     async def repl(self, ctx):
         """Launch an interactive REPL session."""
-        
+
         variables = {
             'ctx': ctx,
             'bot': self.bot,
@@ -188,3 +189,55 @@ class Dev(BasicCog):
                 pass
             except discord.HTTPException as e:
                 await ctx.send(f'Unexpected error: `{e}`')
+
+    @commands.command()
+    async def charinfo(self, ctx, *, characters):
+        """Shows you information on up to 25 unicode characters.
+        Adapted from https://github.com/python-discord/bot/blob/master/bot/cogs/utils.py
+        """
+        match = re.match(r"<(a?):(\w+):(\d+)>", characters)
+        if match:
+            embed = discord.Embed(
+                title="Non-Character Detected",
+                description=(
+                    "Only unicode characters can be processed, but a custom Discord emoji "
+                    "was found. Please remove it and try again."
+                )
+            )
+            embed.colour = discord.Colour.red()
+            await ctx.send(embed=embed)
+            return
+
+        if len(characters) > 25:
+            embed = discord.Embed(
+                title=f"Too many characters ({len(characters)}/25)",
+                colour=discord.Colour.red(),
+                )
+
+            await ctx.send(embed=embed)
+            return
+
+        def get_info(char):
+            digit = f"{ord(char):x}"
+            if len(digit) <= 4:
+                u_code = f"\\u{digit:>04}"
+            else:
+                u_code = f"\\U{digit:>08}"
+            url = f"https://www.compart.com/en/unicode/U+{digit:>04}"
+            name = f"[{unicodedata.name(char, '')}]({url})"
+            info = f"`{u_code.ljust(10)}`: {name} - {char}"
+            return info, u_code
+
+        charlist, rawlist = zip(*(get_info(c) for c in characters))
+
+        embed = discord.Embed(description="\n".join(charlist))
+        embed.set_author(name="Character Info")
+
+        if len(characters) > 1:
+            embed.add_field(
+                name='Raw',
+                value=f"`{''.join(rawlist)}`",
+                inline=False,
+                )
+
+        await ctx.send(embed=embed)
