@@ -4,6 +4,7 @@ import os
 
 import discord
 from discord.ext import commands
+import numpy as np
 
 from ..utils.cogs import FunCog
 
@@ -16,8 +17,16 @@ with open(os.path.join(COG_PATH, 'fish.json')) as f:
 
 class Fish:
     """One fish instance."""
-    pass
+    def __init__(self, size, species, smell):
+        self.size = size
+        self.species = species
+        self.smell = smell
 
+    @classmethod
+    def from_random(cls, size):
+        species = np.random.choice(FISH_SPECIES[size])
+        smell = 'bad'
+        return cls(size, species, smell)
 
 class FeeshCog(FunCog, name='Feesh'):
     pass
