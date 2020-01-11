@@ -7,12 +7,13 @@ from discord.ext import commands
 import numpy as np
 
 from ..utils.cogs import FunCog
+from ..utils.dicts import AttrDict
 
 
 COG_PATH = os.path.dirname(os.path.abspath(__file__))
 
 with open(os.path.join(COG_PATH, 'fish.json')) as f:
-    FISH_SPECIES = json.load(f)
+    FISH_SPECIES = AttrDict.from_nested_dict(json.load(f))
 
 
 class Fish:
