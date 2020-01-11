@@ -1,0 +1,26 @@
+{
+    "size0": {
+        "species": [
+            "Some Species",
+            "Fish type"
+        ],
+        "odds": 10,
+        "weight": [0.0, 1.0]
+    },
+    "size1": {
+        "species": [
+            "Some Species",
+            "Add More"
+        ],
+        "odds": 5,
+        "weight": [0.0, 2.0]
+    },
+    "size2": {
+        "species": [
+            "Some Species",
+            "More Here"
+        ],
+        "odds": 1,
+        "weight": [0.0, 3.0]
+    }
+}
