@@ -3,7 +3,7 @@ import json
 import os
 
 import discord
-from discord.ext import commands
+from discord.ext import commands, tasks
 import numpy as np
 
 from ..utils.cogs import FunCog
@@ -85,10 +85,21 @@ class Weather:
 class FeeshCog(FunCog, name='Feesh'):
     def __init__(self, bot):
         super().__init__(bot)
-        self.weather = Weather.from_random()
+        self.change_weather.start()
+
+    def cog_unload(self):
+        super().cog_unload()
+        self.change_weather.cancel()
 
     def cog_check(self, ctx):
         return bool(ctx.guild) and super().cog_check(ctx)
+
+    @tasks.loop(hours=24)
+    async def change_weather(self):
+        """Change the weather randomly every day."""
+
+        self.weather = Weather.from_random()
+
 
     @commands.group(aliases=['feesh'], invoke_without_command=True)
     async def fish(self, ctx):
