@@ -40,10 +40,11 @@ WEATHERS = [
 
 class Fish:
     """One fish instance."""
-    def __init__(self, size, species, smell):
+    def __init__(self, size, species, smell, weight):
         self.size = size
         self.species = species
         self.smell = smell
+        self.weight = weight
 
     @classmethod
     def from_random(cls, weather):
@@ -54,16 +55,19 @@ class Fish:
         for i in range(1, 4):  # giant and above are more common
             p[-i] += weather.state
         p = np.asarray(p) / sum(p)
-        print(p)
 
         size = np.random.choice(list(FISH_SPECIES.keys()), p=p)
         species = np.random.choice(FISH_SPECIES[size].species)
         smell = np.random.choice(SMELLS)
+        weight = np.random.uniform(*FISH_SPECIES[size].weight)
 
-        return cls(size, species, smell)
+        return cls(size, species, smell, weight)
 
     def __repr__(self):
-        return f'{self.size.title()} {self.species} ({self.smell} smell)'
+        return f'{self.size.title()} {self.species} ({self.weight:.3f}kg)'
+
+    def __lt__(self, other):
+        return (self.weight, self.species) < (other.weight, other.species)
 
 
 class Weather:
