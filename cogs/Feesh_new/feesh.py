@@ -104,8 +104,7 @@ class FeeshCog(FunCog, name='Feesh'):
 
         self.weather = Weather.from_random()
 
-
-    @commands.group(aliases=['feesh'], invoke_without_command=True)
+    @commands.group(aliases=['feesh', 'f'], invoke_without_command=True)
     async def fish(self, ctx):
         await ctx.send(Fish.from_random(self.weather))
 
