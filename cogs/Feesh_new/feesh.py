@@ -83,4 +83,33 @@ class Weather:
 
 
 class FeeshCog(FunCog, name='Feesh'):
-    pass
+    def __init__(self, bot):
+        super().__init__(bot)
+        self.weather = Weather.from_random()
+
+    def cog_check(self, ctx):
+        return bool(ctx.guild) and super().cog_check(ctx)
+
+    @commands.group(aliases=['feesh'], invoke_without_command=True)
+    async def fish(self, ctx):
+        await ctx.send(Fish.from_random(self.weather))
+
+    @commands.command()
+    async def fishing(self, ctx):
+        """Go fishing and get a random catch."""
+
+        await ctx.send('\U0001f3a3')
+
+    @commands.group(invoke_without_command=True)
+    async def weather(self, ctx):
+        """Check today's weather."""
+
+        await ctx.send(f'The weather currently is {self.weather}')
+
+    @commands.is_owner()
+    @weather.command(name='set')
+    async def weather_set(self, ctx, state: int):
+        """Set the weather to the given state (positive integer)."""
+
+        self.weather = Weather(state)
+        await ctx.send(f'Weather set to {self.weather}')
