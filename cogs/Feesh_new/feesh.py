@@ -25,6 +25,18 @@ SMELLS = [
     'ungodly',
     ]
 
+WEATHERS = [
+    '\u2600\ufe0f',
+    '\U0001f324\ufe0f',
+    '\u26c5',
+    '\U0001f325\ufe0f',
+    '\u2601\ufe0f',
+    '\U0001f326\ufe0f',
+    '\U0001f327\ufe0f',
+    '\u26c8\ufe0f',
+    '\U0001f328\ufe0f',
+    ]
+
 
 class Fish:
     """One fish instance."""
@@ -52,6 +64,22 @@ class Fish:
 
     def __repr__(self):
         return f'{self.size.title()} {self.species} ({self.smell} smell)'
+
+
+class Weather:
+    """Define the weather for the day."""
+    def __init__(self, state):
+        state = min(state, len(WEATHERS) - 1)  # not above the limit
+        state = max(state, 0)  # is above 0
+        self.state = state
+
+    @classmethod
+    def from_random(cls):
+        state = np.random.randint(len(WEATHERS))
+        return cls(state)
+
+    def __repr__(self):
+        return WEATHERS[self.state]
 
 
 class FeeshCog(FunCog, name='Feesh'):
