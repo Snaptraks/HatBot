@@ -67,7 +67,7 @@ class Fish:
         return f'{self.size.title()} {self.species} ({self.weight:.3f}kg)'
 
     def __lt__(self, other):
-        return (self.weight, self.species) < (other.weight, other.species)
+        return self.weight < other.weight
 
 
 class Weather:
