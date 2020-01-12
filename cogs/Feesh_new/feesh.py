@@ -49,6 +49,7 @@ class Fish:
         self.species = species
         self.smell = smell
         self.weight = weight
+        self.caught_on = datetime.datetime.utcnow()
 
     @classmethod
     def from_random(cls, weather):
@@ -142,20 +143,19 @@ class FeeshCog(FunCog, name='Feesh'):
         try:
             best_catch = self.data[member.id].best_catch
             amount_fished=self.data[member.id].exp
+            date_str = best_catch.caught_on.strftime('%b %d %Y')
 
         except KeyError:
-            best_catch = AttrDict(
-                fish=None,
-                date=None,
-                )
+            best_catch = None
             amount_fished = 0
+            date_str = None
 
         embed.add_field(
             name='Best Catch',
-            value=best_catch.fish,
+            value=best_catch,
         ).add_field(
             name='Caught on',
-            value=best_catch.date,
+            value=date_str,
         ).add_field(
             name='Amount Fished',
             value=f'{amount_fished:.3f} kg',
@@ -171,18 +171,13 @@ class FeeshCog(FunCog, name='Feesh'):
         catch = Fish.from_random(self.weather)
         id = ctx.author.id
         try:  # save best catch and exp
-            self.data[id].best_catch = AttrDict(
-                fish=max(self.data[id].best_catch, catch),
-                date=datetime.datetime.utcnow(),
-                )
+
+            self.data[id].best_catch = max(self.data[id].best_catch, catch)
             self.data[id].exp += catch.weight
 
         except KeyError:
             self.data[ctx.author.id] = AttrDict(
-                best_catch=AttrDict(
-                    fish=catch,
-                    date=datetime.datetime.utcnow(),
-                    ),
+                best_catch=catch,
                 exp=catch.weight,
                 )
 
@@ -196,6 +191,7 @@ class FeeshCog(FunCog, name='Feesh'):
             key=lambda x: x[1].best_catch)
         member = ctx.guild.get_member(member_id)
         top_catch = member_data.best_catch
+        date_str = top_catch.caught_on.strftime('%b %d %Y')
 
         embed = discord.Embed(
             title='Top Catch of the Server',
@@ -204,13 +200,13 @@ class FeeshCog(FunCog, name='Feesh'):
             url=member.avatar_url,
         ).add_field(
             name='Top Catch',
-            value=top_catch.fish,
+            value=top_catch,
         ).add_field(
             name='Caught by',
             value=member.display_name,
         ).add_field(
             name='Caught on',
-            value=top_catch.date,
+            value=date_str,
         )
 
         await ctx.send(embed=embed)
