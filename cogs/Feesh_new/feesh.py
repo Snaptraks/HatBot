@@ -109,6 +109,8 @@ class FeeshCog(FunCog, name='Feesh'):
             pickle.dump(self.data, f)
 
     def cog_check(self, ctx):
+        """Check if is in a guild, and if in appropriate channel."""
+
         return bool(ctx.guild) and super().cog_check(ctx)
 
     @tasks.loop(hours=24)
