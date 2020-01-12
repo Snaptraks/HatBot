@@ -1,4 +1,6 @@
 import asyncio
+import inspect
+import os
 import pickle
 
 import discord
@@ -13,10 +15,11 @@ class BasicCog(commands.Cog):
 
     def __init__(self, bot):
         self.bot = bot
+        self._cog_path = os.path.dirname(inspect.getfile(self.__class__))
         # Restore cooldowns
         try:
             # Open the cog's cooldowns
-            with open(f'cogs/{self.qualified_name}/cooldowns.pkl', 'rb') as f:
+            with open(os.path.join(self._cog_path, 'cooldowns.pkl'), 'rb') as f:
                 buckets = pickle.load(f)
         except (FileNotFoundError, EOFError):
             # If the file does not already exist, just skip
@@ -70,7 +73,7 @@ class BasicCog(commands.Cog):
             buckets[command.name] = cld_map
 
         # Save the cog's cooldowns to a file
-        with open(f'cogs/{self.qualified_name}/cooldowns.pkl', 'wb') as f:
+        with open(os.path.join(self._cog_path, 'cooldowns.pkl'), 'wb') as f:
             pickle.dump(buckets, f)
 
 
