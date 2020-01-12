@@ -217,6 +217,8 @@ class FeeshCog(FunCog, name='Feesh'):
                 and isinstance(error.original, ValueError)):
             # send this only if there is no data in self.data
             await ctx.send('No fish caught yet!')
+        else:
+            raise error
 
 
     @commands.group(invoke_without_command=True)
