@@ -10,7 +10,7 @@ from ..utils.cogs import FunCog
 from ..utils.dicts import AttrDict
 
 
-COG_PATH = os.path.dirname(os.path.abspath(__file__))
+COG_PATH = os.path.dirname(__file__)
 
 with open(os.path.join(COG_PATH, 'fish.json')) as f:
     FISH_SPECIES = AttrDict.from_nested_dict(json.load(f))
