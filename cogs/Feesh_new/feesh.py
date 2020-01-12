@@ -1,6 +1,7 @@
 import asyncio
 import json
 import os
+import pickle
 
 import discord
 from discord.ext import commands, tasks
@@ -91,9 +92,18 @@ class FeeshCog(FunCog, name='Feesh'):
         super().__init__(bot)
         self.change_weather.start()
 
+        try:
+            with open(os.path.join(self._cog_path, 'fish_data.pkl'), 'rb') as f:
+                self.data = pickle.load(f)
+        except FileNotFoundError:
+            self.data = AttrDict()
+
     def cog_unload(self):
         super().cog_unload()
         self.change_weather.cancel()
+
+        with open(os.path.join(self._cog_path, 'fish_data.pkl'), 'wb') as f:
+            pickle.dump(self.data, f)
 
     def cog_check(self, ctx):
         return bool(ctx.guild) and super().cog_check(ctx)
