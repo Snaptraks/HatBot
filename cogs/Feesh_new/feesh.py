@@ -64,7 +64,7 @@ class Fish:
         return cls(size, species, smell, weight)
 
     def __repr__(self):
-        return f'{self.size.title()} {self.species} ({self.weight:.3f}kg)'
+        return f'{self.size.title()} {self.species} ({self.weight:.3f} kg)'
 
     def __lt__(self, other):
         return self.weight < other.weight
