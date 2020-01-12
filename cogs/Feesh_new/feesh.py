@@ -1,4 +1,5 @@
 import asyncio
+import datetime
 import json
 import os
 import pickle
@@ -37,6 +38,8 @@ WEATHERS = [
     '\u26c8\ufe0f',
     '\U0001f328\ufe0f',
     ]
+
+EMBED_COLOR = 0x0094FF
 
 
 class Fish:
@@ -116,13 +119,107 @@ class FeeshCog(FunCog, name='Feesh'):
 
     @commands.group(aliases=['feesh', 'f'], invoke_without_command=True)
     async def fish(self, ctx):
-        await ctx.send(Fish.from_random(self.weather))
+        """Command group for the fishing commands."""
 
-    @commands.command()
-    async def fishing(self, ctx):
+        await ctx.send_help(ctx.command)
+
+    @fish.command(name='card')
+    async def fish_card(self, ctx, member: discord.Member = None):
+        """Show some statistics about a member's fishing experience."""
+
+        if member is None:
+            member = ctx.author
+
+        embed = discord.Embed(
+            title=f'Fishing Card of {member.display_name}',
+            color=EMBED_COLOR,
+        ).set_thumbnail(
+            url=member.avatar_url,
+        )
+
+        try:
+            best_catch = self.data[member.id].best_catch
+            amount_fished=self.data[member.id].exp
+
+        except KeyError:
+            best_catch = AttrDict(
+                fish=None,
+                date=None,
+                )
+            amount_fished = 0
+
+        embed.add_field(
+            name='Best Catch',
+            value=best_catch.fish,
+        ).add_field(
+            name='Caught on',
+            value=best_catch.date,
+        ).add_field(
+            name='Amount Fished',
+            value=f'{amount_fished:.3f} kg',
+        )
+
+        await ctx.send(embed=embed)
+
+    @fish.command(name='catch')
+    @commands.cooldown(2, 3600, commands.BucketType.member)  # twice per hour
+    async def fish_catch(self, ctx):
         """Go fishing and get a random catch."""
 
-        await ctx.send('\U0001f3a3')
+        catch = Fish.from_random(self.weather)
+        id = ctx.author.id
+        try:  # save best catch and exp
+            self.data[id].best_catch = AttrDict(
+                fish=max(self.data[id].best_catch, catch),
+                date=datetime.datetime.utcnow(),
+                )
+            self.data[id].exp += catch.weight
+
+        except KeyError:
+            self.data[ctx.author.id] = AttrDict(
+                best_catch=AttrDict(
+                    fish=catch,
+                    date=datetime.datetime.utcnow(),
+                    ),
+                exp=catch.weight,
+                )
+
+        await ctx.send(f'\U0001f3a3 {catch}')
+
+    @fish.command(name='top')
+    async def fish_top(self, ctx):
+        """Display the best catch guild-wide."""
+
+        member_id, member_data = max(self.data.items(),
+            key=lambda x: x[1].best_catch)
+        member = ctx.guild.get_member(member_id)
+        top_catch = member_data.best_catch
+
+        embed = discord.Embed(
+            title='Top Catch of the Server',
+            color=EMBED_COLOR,
+        ).set_thumbnail(
+            url=member.avatar_url,
+        ).add_field(
+            name='Top Catch',
+            value=top_catch.fish,
+        ).add_field(
+            name='Caught by',
+            value=member.display_name,
+        ).add_field(
+            name='Caught on',
+            value=top_catch.date,
+        )
+
+        await ctx.send(embed=embed)
+
+    @fish_top.error
+    async def fish_top_error(self, ctx, error):
+        if (isinstance(error, commands.CommandInvokeError)
+                and isinstance(error.original, ValueError)):
+            # send this only if there is no data in self.data
+            await ctx.send('No fish caught yet!')
+
 
     @commands.group(invoke_without_command=True)
     async def weather(self, ctx):
