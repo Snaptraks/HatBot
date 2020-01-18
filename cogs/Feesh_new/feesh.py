@@ -82,6 +82,7 @@ class Fish:
         return f'{self.size.title()} {self.species} ({self.weight:.3f} kg)'
 
     def __lt__(self, other):
+        """Less than operator. Compare instances on the weight attribute."""
         return self.weight < other.weight
 
 
@@ -135,6 +136,7 @@ class FeeshCog(FunCog, name='Feesh'):
         """Command group for the fishing commands."""
 
         await ctx.send_help(ctx.command)
+        await ctx.message.add_reaction('\U0001f3a3')
 
     @fish.command(name='card')
     async def fish_card(self, ctx, member: discord.Member = None):
@@ -235,7 +237,6 @@ class FeeshCog(FunCog, name='Feesh'):
             await ctx.send('No fish caught yet!')
         else:
             raise error
-
 
     @commands.group(invoke_without_command=True)
     async def weather(self, ctx):
