@@ -4,7 +4,7 @@
             "Some Species",
             "Fish type"
         ],
-        "odds": 10,
+        "rates": [10, 10],
         "weight": [0.0, 1.0]
     },
     "size1": {
@@ -12,7 +12,7 @@
             "Some Species",
             "Add More"
         ],
-        "odds": 5,
+        "rates": [5, 9],
         "weight": [0.0, 2.0]
     },
     "size2": {
@@ -20,7 +20,7 @@
             "Some Species",
             "More Here"
         ],
-        "odds": 1,
+        "rates": [1, 5],
         "weight": [0.0, 3.0]
     }
 }

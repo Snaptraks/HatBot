@@ -52,14 +52,13 @@ class Fish:
         self.caught_on = datetime.datetime.utcnow()
 
     @classmethod
-    def from_random(cls, weather):
+    def from_random(cls, exp, weather):
         """Create a fish randomly based on the weather."""
 
         # need a better way to calculate probabilities (p)...
-        p = [x.odds for x in FISH_SPECIES.values()]
-        for i in range(1, 4):  # giant and above are more common
-            p[-i] += weather.state
-        p = np.asarray(p) / sum(p)
+        rates = [cls._catch_rate(exp, weather, *size.rates)
+            for size in FISH_SPECIES.values()]
+        p = np.asarray(rates) / sum(rates)
 
         size = np.random.choice(list(FISH_SPECIES.keys()), p=p)
         species = np.random.choice(FISH_SPECIES[size].species)
@@ -67,6 +66,17 @@ class Fish:
         weight = np.random.uniform(*FISH_SPECIES[size].weight)
 
         return cls(size, species, smell, weight)
+
+    @staticmethod
+    def _catch_rate(exp, weather, r_min, r_max):
+        """Defines the rate of catching a fish with.
+        exp: The member's experience. Higher exp means better rate.
+        weather: The current weather. The higher the value, the
+                 higher the rates.
+        r_min: The minimal catch rate. Is the value returned if exp = 0.
+        r_max: The maximal catch rate. Is the value returned if exp -> infinity.
+        """
+        return r_min + (r_max - r_min) * (1 - np.exp(- weather * exp / 2e3))
 
     def __repr__(self):
         return f'{self.size.title()} {self.species} ({self.weight:.3f} kg)'
@@ -168,8 +178,14 @@ class FeeshCog(FunCog, name='Feesh'):
     async def fish_catch(self, ctx):
         """Go fishing and get a random catch."""
 
-        catch = Fish.from_random(self.weather)
         id = ctx.author.id
+        try:
+            exp = self.data[id].exp
+        except KeyError:
+            exp = 0
+
+        catch = Fish.from_random(exp, self.weather.state)
+
         try:  # save best catch and exp
 
             self.data[id].best_catch = max(self.data[id].best_catch, catch)
