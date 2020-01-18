@@ -205,8 +205,13 @@ class FeeshCog(FunCog, name='Feesh'):
     async def fish_top(self, ctx):
         """Display the best catch guild-wide."""
 
-        member_id, member_data = max(self.data.items(),
-            key=lambda x: x[1].best_catch)
+        try:
+            member_id, member_data = max(self.data.items(),
+                key=lambda x: x[1].best_catch)
+        except ValueError:
+            await ctx.send('No fish caught yet!')
+            return
+
         member = ctx.guild.get_member(member_id)
         top_catch = member_data.best_catch
         date_str = top_catch.caught_on.strftime('%b %d %Y')
@@ -228,15 +233,6 @@ class FeeshCog(FunCog, name='Feesh'):
         )
 
         await ctx.send(embed=embed)
-
-    @fish_top.error
-    async def fish_top_error(self, ctx, error):
-        if (isinstance(error, commands.CommandInvokeError)
-                and isinstance(error.original, ValueError)):
-            # send this only if there is no data in self.data
-            await ctx.send('No fish caught yet!')
-        else:
-            raise error
 
     @commands.group(invoke_without_command=True)
     async def weather(self, ctx):
