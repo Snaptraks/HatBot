@@ -55,7 +55,6 @@ class Fish:
     def from_random(cls, exp, weather):
         """Create a fish randomly based on the weather."""
 
-        # need a better way to calculate probabilities (p)...
         rates = [cls._catch_rate(exp, weather, *size.rates)
             for size in FISH_SPECIES.values()]
         p = np.asarray(rates) / sum(rates)
