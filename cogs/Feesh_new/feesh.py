@@ -10,6 +10,7 @@ import numpy as np
 
 from ..utils.cogs import FunCog
 from ..utils.dicts import AttrDict
+from ..utils.formats import pretty_print_timedelta
 
 
 COG_PATH = os.path.dirname(__file__)
@@ -226,6 +227,43 @@ class FeeshCog(FunCog, name='Feesh'):
         )
 
         await ctx.send(embed=embed)
+
+    @fish.error
+    async def fish_error(self, ctx, error):
+        """Error handling for the fish command.
+        In case of CommandOnCooldown error, allow user to check how much
+        time is left.
+        """
+        if isinstance(error, commands.CommandOnCooldown):
+            hourglass_emoji = '\U0000231B'  # :hourglass:
+            await ctx.message.add_reaction(hourglass_emoji)
+
+            def check(reaction, member):
+                return (member == ctx.author
+                    and reaction.message.id == ctx.message.id
+                    and reaction.emoji == hourglass_emoji)
+
+            try:
+                reaction, member = await self.bot.wait_for(
+                    'reaction_add', check=check, timeout=10 * 60)
+
+            except asyncio.TimeoutError:
+                reaction = discord.utils.get(ctx.message.reactions,
+                    emoji=hourglass_emoji)
+                await reaction.clear()
+
+            else:
+                retry_after = datetime.timedelta(seconds=error.retry_after)
+
+                out_str = (
+                    f'You have already tried to fish today, '
+                    f'wait for {pretty_print_timedelta(retry_after)}.'
+                    )
+                # await ctx.author.send(out_str)
+                await ctx.send(out_str)
+
+        else:
+            raise error
 
     @commands.group(invoke_without_command=True)
     async def weather(self, ctx):
