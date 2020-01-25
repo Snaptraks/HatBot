@@ -8,6 +8,7 @@ from mcstatus import MinecraftServer
 
 from ..utils.cogs import BasicCog
 from ..utils.datetime_modulo import datetime
+from ..utils.formats import pretty_print_timedelta
 from datetime import timedelta
 import config
 
@@ -19,6 +20,83 @@ class Info(BasicCog):
         super().__init__(bot)
         with open('cogs/Info/tz/tz.json', 'r') as f:
             self.tz_table = json.load(f)
+
+    @commands.command()
+    async def about(self, ctx):
+        """Get information about the bot itself.
+        Inspired by RoboDanny.
+        """
+        embed = discord.Embed(
+            title='Official GitHub Repository',
+            url='https://github.com/Snaptraks/HatBot',
+            color=discord.Color.blurple(),
+            description=(
+                f'Information about {str(self.bot.user)}.'
+                ),
+            )
+
+        owner = await self.bot.owner()
+        embed.set_author(
+            name=str(self.bot.user),
+            icon_url=self.bot.user.avatar_url,
+            )
+
+        # some statistics
+        version = discord.__version__
+
+        total_members = 0
+        total_online = 0
+        offline = discord.Status.offline
+        for member in self.bot.get_all_members():
+            total_members += 1
+            if member.status is not offline:
+                total_online += 1
+
+        total_unique = len(self.bot.users)
+
+        text_channels = 0
+        voice_channels = 0
+        guilds = 0
+        for guild in self.bot.guilds:
+            guilds += 1
+            for channel in guild.channels:
+                if isinstance(channel, discord.TextChannel):
+                    text_channels += 1
+                elif isinstance(channel, discord.VoiceChannel):
+                    voice_channels += 1
+
+        embed.add_field(
+            name='Members',
+            value=(
+                f'{total_members} total\n'
+                f'{total_unique} unique\n'
+                f'{total_online} online'
+                ),
+            )
+        embed.add_field(
+            name='Channels',
+            value=(
+                f'{text_channels + voice_channels} total\n'
+                f'{text_channels} text\n'
+                f'{voice_channels} voice'
+                ),
+            )
+        embed.add_field(
+            name='Servers',
+            value=guilds,
+            )
+        embed.add_field(
+            name='Uptime',
+            value=pretty_print_timedelta(datetime.now() - self.bot.boot_time),
+            )
+
+        embed.set_footer(
+            text=f'Made with discord.py v{version} by {str(owner)}',
+            icon_url='http://i.imgur.com/5BFecvA.png',
+            )
+        embed.timestamp = datetime.utcnow()
+
+        await ctx.send(embed=embed)
 
     @commands.command()
     async def ts(self, ctx):
