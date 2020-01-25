@@ -22,7 +22,6 @@ class Dev(BasicCog):
     def __init__(self, bot):
         super().__init__(bot)
         self._last_result = None
-        self.sessions = set()
 
     def cleanup_code(self, content):
         """Automatically remove code blocks from the code."""
@@ -95,6 +94,7 @@ class Dev(BasicCog):
                 await ctx.send(f'```py\n{value}{ret}\n```')
 
     @commands.command()
+    @commands.max_concurrency(1, commands.BucketType.channel)
     async def repl(self, ctx):
         """Launch an interactive REPL session."""
 
@@ -108,12 +108,6 @@ class Dev(BasicCog):
             '_': None,
             }
 
-        if ctx.channel.id in self.sessions:
-            await ctx.send(('Already running a REPL session in this channel. '
-                            'Exit it with `quit`.'))
-            return None
-
-        self.sessions.add(ctx.channel.id)
         await ctx.send(('Enter code to execute or evaluate. '
                         '`exit()` or `quit` to exit.'))
 
@@ -131,14 +125,12 @@ class Dev(BasicCog):
                     )
             except asyncio.TimeoutError:
                 await ctx.send('Exiting REPL session.')
-                self.sessions.remove(ctx.channel.id)
                 break
 
             cleaned = self.cleanup_code(response.content)
 
             if cleaned in ('quit', 'exit', 'exit()'):
                 await ctx.send('Exiting.')
-                self.sessions.remove(ctx.channel.id)
                 return None
 
             executor = exec
@@ -189,6 +181,17 @@ class Dev(BasicCog):
                 pass
             except discord.HTTPException as e:
                 await ctx.send(f'Unexpected error: `{e}`')
+
+    @repl.error
+    async def repl_error(self, ctx, error):
+        """Error hangling for the repl command."""
+
+        if isinstance(error, commands.MaxConcurrencyReached):
+            await ctx.send(('Already running a REPL session. '
+                            'Exit it with `exit` or `quit`.'))
+
+        else:
+            raise error
 
     @commands.command()
     async def charinfo(self, ctx, *, characters):
