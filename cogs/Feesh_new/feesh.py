@@ -131,11 +131,31 @@ class FeeshCog(FunCog, name='Feesh'):
         self.weather = Weather.from_random()
 
     @commands.group(aliases=['feesh', 'f'], invoke_without_command=True)
+    @commands.cooldown(2, 3600, commands.BucketType.member)  # twice per hour
     async def fish(self, ctx):
-        """Command group for the fishing commands."""
+        """Command group for the fishing commands.
+        If invoked without subcommand, catches a random fish.
+        """
+        id = ctx.author.id
+        try:
+            exp = self.data[id].exp
+        except KeyError:
+            exp = 0
 
-        await ctx.send_help(ctx.command)
-        await ctx.message.add_reaction('\U0001f3a3')
+        catch = Fish.from_random(exp, self.weather.state)
+
+        try:  # save best catch and exp
+
+            self.data[id].best_catch = max(self.data[id].best_catch, catch)
+            self.data[id].exp += catch.weight
+
+        except KeyError:
+            self.data[ctx.author.id] = AttrDict(
+                best_catch=catch,
+                exp=catch.weight,
+                )
+
+        await ctx.send(f'\U0001f3a3 {catch}')
 
     @fish.command(name='card')
     async def fish_card(self, ctx, member: discord.Member = None):
@@ -173,32 +193,6 @@ class FeeshCog(FunCog, name='Feesh'):
         )
 
         await ctx.send(embed=embed)
-
-    @fish.command(name='catch')
-    @commands.cooldown(2, 3600, commands.BucketType.member)  # twice per hour
-    async def fish_catch(self, ctx):
-        """Go fishing and get a random catch."""
-
-        id = ctx.author.id
-        try:
-            exp = self.data[id].exp
-        except KeyError:
-            exp = 0
-
-        catch = Fish.from_random(exp, self.weather.state)
-
-        try:  # save best catch and exp
-
-            self.data[id].best_catch = max(self.data[id].best_catch, catch)
-            self.data[id].exp += catch.weight
-
-        except KeyError:
-            self.data[ctx.author.id] = AttrDict(
-                best_catch=catch,
-                exp=catch.weight,
-                )
-
-        await ctx.send(f'\U0001f3a3 {catch}')
 
     @fish.command(name='top')
     async def fish_top(self, ctx):
