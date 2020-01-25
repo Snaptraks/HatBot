@@ -122,7 +122,7 @@ class FeeshCog(FunCog, name='Feesh'):
     def cog_check(self, ctx):
         """Check if is in a guild, and if in appropriate channel."""
 
-        return bool(ctx.guild) and super().cog_check(ctx)
+        return ctx.guild is not None and super().cog_check(ctx)
 
     @tasks.loop(hours=24)
     async def change_weather(self):
