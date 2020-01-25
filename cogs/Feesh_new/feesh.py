@@ -248,9 +248,7 @@ class FeeshCog(FunCog, name='Feesh'):
                     'reaction_add', check=check, timeout=10 * 60)
 
             except asyncio.TimeoutError:
-                reaction = discord.utils.get(ctx.message.reactions,
-                    emoji=hourglass_emoji)
-                await reaction.clear()
+                await ctx.message.clear_reaction(hourglass_emoji)
 
             else:
                 retry_after = datetime.timedelta(seconds=error.retry_after)
