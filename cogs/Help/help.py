@@ -26,16 +26,14 @@ class CustomHelpCommand(commands.DefaultHelpCommand):
         cooldown = command._buckets._cooldown
 
         if cooldown is not None:
-            bucket_type_name = cooldown.type.name
             per = timedelta(seconds=cooldown.per)
-
-            if bucket_type_name == 'default':
-                bucket_type_name = 'global'
+            name = cooldown.type.name
+            suffix = f'per {name}' if name != 'default' else 'globally'
 
             return (
                 f'{cooldown.rate} time(s) '
                 f'per {pretty_print_timedelta(per)} '
-                f'per {bucket_type_name}.'
+                f'{suffix}.'
                 )
 
         else:
