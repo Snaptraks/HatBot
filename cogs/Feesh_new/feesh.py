@@ -211,6 +211,15 @@ class FeeshCog(FunCog, name='Feesh'):
 
         await ctx.send(embed=embed)
 
+    @fish.command(name='create')
+    @commands.is_owner()
+    async def fish_create(self, ctx, size: str, species: str, weight: float):
+        """Create a Fish and display it.
+        For testing purposes only.
+        """
+        fish = Fish(size, species, 'good', weight)
+        await ctx.send(embed=fish.to_embed())
+
     @fish.command(name='top')
     async def fish_top(self, ctx):
         """Display the best catch guild-wide."""
