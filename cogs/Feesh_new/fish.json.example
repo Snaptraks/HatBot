@@ -1,5 +1,6 @@
 {
     "size0": {
+        "color": "green",
         "species": [
             "Some Species",
             "Fish type"
@@ -8,6 +9,7 @@
         "weight": [0.0, 1.0]
     },
     "size1": {
+        "color" : "teal",
         "species": [
             "Some Species",
             "Add More"
@@ -16,6 +18,7 @@
         "weight": [0.0, 2.0]
     },
     "size2": {
+        "color" : "blue",
         "species": [
             "Some Species",
             "More Here"
