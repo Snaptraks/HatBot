@@ -51,6 +51,8 @@ class Fish:
         self.smell = smell
         self.weight = weight
         self.caught_on = datetime.datetime.utcnow()
+        self.color = getattr(discord.Color, FISH_SPECIES[size].color,
+            discord.Color.default)()
 
     @classmethod
     def from_random(cls, exp, weather):
@@ -77,6 +79,20 @@ class Fish:
         r_max: The maximal catch rate. Is the value returned if exp -> infinity.
         """
         return r_min + (r_max - r_min) * (1 - np.exp(- weather * exp / 2e3))
+
+    def to_embed(self):
+        """Return a discord.Embed object to send in a discord.Message."""
+        embed = discord.Embed(
+            color=self.color
+        ).add_field(
+            name='Size',
+            value=self.size.title(),
+        ).add_field(
+            name='Species',
+            value=self.species,
+        )
+
+        return embed
 
     def __repr__(self):
         return f'{self.size.title()} {self.species} ({self.weight:.3f} kg)'
