@@ -156,6 +156,20 @@ class FeeshCog(FunCog, name='Feesh'):
 
         self.weather = Weather.from_random()
 
+    @tasks.loop(hours=12)
+    async def interest_experience(self):
+         """Give some experience to a random active member."""
+         pass
+
+    @interest_experience.before_loop
+    async def interest_experience_before(self):
+        """Wait until time mod 12h. and fetch the channel."""
+        # TODO: wait until 00 or 12
+
+    @commands.command()
+    async def start(self, ctx):
+        self.interest_experience.start()
+
     @commands.group(aliases=['feesh', 'f'], invoke_without_command=True)
     @commands.cooldown(2, 3600, commands.BucketType.member)  # twice per hour
     async def fish(self, ctx):
