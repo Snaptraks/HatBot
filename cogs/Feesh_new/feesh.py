@@ -226,6 +226,21 @@ class FeeshCog(FunCog, name='Feesh'):
             ctx.author.id)
         await ctx.send(embed=fish.to_embed())
 
+    @fish.command(name='inventory', aliases=['inv', 'bag', 'sell'])
+    async def fish_inventory(self, ctx):
+        """Look at your fishing inventory.
+        Also allows you to sell the fish you previously saved.
+        """
+        fishes = '\n'.join(
+            [str(fish) for fish in sorted(self.data[ctx.author.id].inventory)]
+            )
+        embed = discord.Embed(
+            color=EMBED_COLOR,
+            description=fishes,
+            title='Fish Inventory (WIP)',
+        )
+        await ctx.send(embed=embed)
+
     @fish.command(name='top')
     async def fish_top(self, ctx):
         """Display the best catch guild-wide."""
