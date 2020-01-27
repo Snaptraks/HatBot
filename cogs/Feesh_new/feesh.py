@@ -284,7 +284,7 @@ class FeeshCog(FunCog, name='Feesh'):
             value=top_catch,
         ).add_field(
             name='Caught by',
-            value=member.display_name,
+            value=member.mention,
         ).add_field(
             name='Caught on',
             value=date_str,
