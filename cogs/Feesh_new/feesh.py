@@ -40,7 +40,7 @@ WEATHERS = [
     '\U0001f328\ufe0f',
     ]
 
-EMBED_COLOR = 0x0094FF
+EMBED_COLOR = discord.Color.blurple()
 
 
 class Fish:
