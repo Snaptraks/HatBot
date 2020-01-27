@@ -210,8 +210,8 @@ class FeeshCog(FunCog, name='Feesh'):
             name='Caught on',
             value=date_str,
         ).add_field(
-            name='Amount Fished',
-            value=f'{amount_fished:.3f} kg',
+            name='Experience',
+            value=f'{amount_fished:.3f} xp',
         )
 
         await ctx.send(embed=embed)
