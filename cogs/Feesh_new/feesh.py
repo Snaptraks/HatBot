@@ -146,6 +146,10 @@ class FeeshCog(FunCog, name='Feesh'):
 
         return ctx.guild is not None and super().cog_check(ctx)
 
+    @property
+    def cog_levels(self):
+        return self.bot.get_cog('Levels')
+
     @tasks.loop(hours=24)
     async def change_weather(self):
         """Change the weather randomly every day."""
