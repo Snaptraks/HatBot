@@ -84,13 +84,17 @@ class Fish:
     def to_embed(self):
         """Return a discord.Embed object to send in a discord.Message."""
         embed = discord.Embed(
-            color=self.color
+            color=self.color,
+            description=self.smell,
         ).add_field(
-            name='Size',
-            value=self.size.title(),
+            name='Fish',
+            value=f'{self.size.title()} {self.species}',
         ).add_field(
-            name='Species',
-            value=self.species,
+            name='Weight',
+            value=f'{self.weight:.3f} kg',
+        ).add_field(
+            name='Caught By',
+            value=f'<@{self.caught_by_id}>',
         )
 
         return embed
