@@ -45,17 +45,18 @@ EMBED_COLOR = discord.Color.blurple()
 
 class Fish:
     """One fish instance."""
-    def __init__(self, size, species, smell, weight):
+    def __init__(self, size, species, smell, weight, caught_by_id):
         self.size = size
         self.species = species
         self.smell = smell
         self.weight = weight
+        self.caught_by_id = caught_by_id
         self.caught_on = datetime.datetime.utcnow()
         self.color = getattr(discord.Color, FISH_SPECIES[size].color,
             discord.Color.default)()
 
     @classmethod
-    def from_random(cls, exp, weather):
+    def from_random(cls, exp, weather, caught_by_id):
         """Create a fish randomly based on the weather."""
 
         rates = [cls._catch_rate(exp, weather, *size.rates)
@@ -67,7 +68,7 @@ class Fish:
         smell = np.random.choice(SMELLS)
         weight = np.random.uniform(*FISH_SPECIES[size].weight)
 
-        return cls(size, species, smell, weight)
+        return cls(size, species, smell, weight, caught_by_id)
 
     @staticmethod
     def _catch_rate(exp, weather, r_min, r_max):
@@ -159,7 +160,7 @@ class FeeshCog(FunCog, name='Feesh'):
         except KeyError:
             exp = 0
 
-        catch = Fish.from_random(exp, self.weather.state)
+        catch = Fish.from_random(exp, self.weather.state, ctx.author.id)
 
         try:  # save best catch and exp
 
@@ -217,7 +218,8 @@ class FeeshCog(FunCog, name='Feesh'):
         """Create a Fish and display it.
         For testing purposes only.
         """
-        fish = Fish(size, species, 'good', weight)
+        fish = Fish(size, species, 'It smells cheated...', weight,
+            ctx.author.id)
         await ctx.send(embed=fish.to_embed())
 
     @fish.command(name='top')
