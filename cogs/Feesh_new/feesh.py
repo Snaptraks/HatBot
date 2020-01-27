@@ -42,6 +42,9 @@ WEATHERS = [
 
 EMBED_COLOR = discord.Color.blurple()
 
+INVENTORY_EMOJI = '\U0001f9f0'  # :toolbox:
+EXPERIENCE_EMOJI = '\U0001f4b0'  # :moneybag:
+
 
 class Fish:
     """One fish instance."""
@@ -184,18 +187,59 @@ class FeeshCog(FunCog, name='Feesh'):
 
         catch = Fish.from_random(exp, self.weather.state, ctx.author.id)
 
-        try:  # save best catch and exp
+        try:  # save best catch
 
             self.data[id].best_catch = max(self.data[id].best_catch, catch)
-            self.data[id].exp += catch.weight
 
         except KeyError:
             self.data[ctx.author.id] = AttrDict(
                 best_catch=catch,
-                exp=catch.weight,
+                exp=0,
+                inventory=[]
                 )
 
-        await ctx.send(f'\U0001f3a3 {catch}')
+        embed = catch.to_embed()
+        embed.description = 'You caught something!\n' + embed.description
+        embed.set_footer(
+            text=(
+                f'Do you want to keep it {INVENTORY_EMOJI} '
+                f'or sell it {EXPERIENCE_EMOJI} for experience?'
+                ),
+            )
+
+        message = await ctx.send(embed=embed)
+
+        for emoji in (INVENTORY_EMOJI, EXPERIENCE_EMOJI):
+            await message.add_reaction(emoji)
+
+        def check(reaction, member):
+            return (member == ctx.author
+                and reaction.message.id == message.id
+                and reaction.emoji in (INVENTORY_EMOJI, EXPERIENCE_EMOJI))
+
+        try:
+            reaction, member = await self.bot.wait_for(
+                'reaction_add', check=check, timeout=60)
+
+        except asyncio.TimeoutError:
+            new_footer = 'You did not answer quickly enough, I kept it for you.'
+            # add to inventory
+            self.data[id].inventory.append(catch)
+
+        else:
+            if reaction.emoji == INVENTORY_EMOJI:
+                new_footer = 'You kept it in your inventory.'
+                # add to inventory
+                self.data[id].inventory.append(catch)
+
+            elif reaction.emoji == EXPERIENCE_EMOJI:
+                new_footer = 'You sold it for experience.'
+                # add experience
+                self.data[id].exp += catch.weight
+
+        embed.set_footer(text=new_footer)
+        await message.edit(embed=embed)
+        await message.clear_reactions()
 
     @fish.command(name='card')
     async def fish_card(self, ctx, member: discord.Member = None):
