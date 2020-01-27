@@ -19,13 +19,13 @@ with open(os.path.join(COG_PATH, 'fish.json')) as f:
     FISH_SPECIES = AttrDict.from_nested_dict(json.load(f))
 
 SMELLS = [
-    'delightful',
-    'alright',
-    'not that bad',
-    'not good',
-    'bad',
-    'horrible',
-    'ungodly',
+    'It smells delightful!',
+    'It smells alright.',
+    'It does not smell that bad.',
+    'It does not smell good.',
+    'It smells bad.',
+    'It smells horrible!',
+    'Oh no! What is that ungodly smell?!',
     ]
 
 WEATHERS = [
