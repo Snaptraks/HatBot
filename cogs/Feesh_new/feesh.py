@@ -204,8 +204,8 @@ class FeeshCog(FunCog, name='Feesh'):
 
         now = datetime.utcnow()
         _12h = timedelta(hours=12)
-        next = now // _12h + _12h
-        await asyncio.sleep((next - now).total_seconds())
+        next = now // _12h + _12h  # get next 00 or 12
+        await discord.utils.sleep_until(next)  # wait until then
 
     @commands.group(aliases=['feesh', 'f'], invoke_without_command=True)
     @commands.cooldown(2, 3600, commands.BucketType.member)  # twice per hour
