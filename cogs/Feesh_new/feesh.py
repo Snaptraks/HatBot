@@ -5,6 +5,7 @@ import pickle
 
 import discord
 from discord.ext import commands, tasks
+from discord.utils import escape_markdown as escape
 import numpy as np
 
 from ..utils.cogs import FunCog
@@ -131,6 +132,7 @@ class FeeshCog(FunCog, name='Feesh'):
     def __init__(self, bot):
         super().__init__(bot)
         self.change_weather.start()
+        self.interest_experience.start()
 
         try:
             with open(os.path.join(self._cog_path, 'fish_data.pkl'), 'rb') as f:
@@ -141,6 +143,7 @@ class FeeshCog(FunCog, name='Feesh'):
     def cog_unload(self):
         super().cog_unload()
         self.change_weather.cancel()
+        self.interest_experience.cancel()
 
         with open(os.path.join(self._cog_path, 'fish_data.pkl'), 'wb') as f:
             pickle.dump(self.data, f)
@@ -162,13 +165,47 @@ class FeeshCog(FunCog, name='Feesh'):
 
     @tasks.loop(hours=12)
     async def interest_experience(self):
-         """Give some experience to a random active member."""
-         pass
+        """Give some experience to a random active member."""
+
+        active_members = []
+        for m in self.guild.members:
+            try:
+                exp = self.cog_levels.data[m.id].exp
+
+            except KeyError:
+                exp = 0
+
+            if exp > 0:
+                active_members.append(m)
+
+        winner = np.random.choice(active_members)
+        # bonus_experience = np.random.normal(10, 3)  # can be negative
+        bonus_experience = np.random.triangular(3, 5, 15)
+        out_str = (
+            f':moneybag: {escape(winner.display_name)} got a little '
+            f'bit of experience! ({bonus_experience:.2f} xp)'
+            )
+
+        self.data[member.id].exp += bonus_experience
+
+        await self.channel_msg.send(out_str)
 
     @interest_experience.before_loop
     async def interest_experience_before(self):
         """Wait until time mod 12h. and fetch the channel."""
-        # TODO: wait until 00 or 12
+
+        await self.bot.wait_until_ready()
+        self.guild = discord.utils.get(
+            # self.bot.guilds, name='Hatventures Community')
+            self.bot.guilds, name='Bot Testing Server')
+        self.channel_msg = discord.utils.get(
+            # self.guild.channels, name='hatbot-land')
+            self.guild.channels, name='bot-0')
+
+        now = datetime.utcnow()
+        _12h = timedelta(hours=12)
+        next = now // _12h + _12h
+        await asyncio.sleep((next - now).total_seconds())
 
     @commands.command()
     async def start(self, ctx):
