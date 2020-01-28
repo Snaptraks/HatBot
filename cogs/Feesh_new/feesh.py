@@ -207,10 +207,6 @@ class FeeshCog(FunCog, name='Feesh'):
         next = now // _12h + _12h
         await asyncio.sleep((next - now).total_seconds())
 
-    @commands.command()
-    async def start(self, ctx):
-        self.interest_experience.start()
-
     @commands.group(aliases=['feesh', 'f'], invoke_without_command=True)
     @commands.cooldown(2, 3600, commands.BucketType.member)  # twice per hour
     async def fish(self, ctx):
