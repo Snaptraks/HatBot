@@ -1,5 +1,4 @@
 import asyncio
-import datetime
 import json
 import os
 import pickle
@@ -9,6 +8,8 @@ from discord.ext import commands, tasks
 import numpy as np
 
 from ..utils.cogs import FunCog
+from ..utils.datetime_modulo import datetime
+from datetime import timedelta
 from ..utils.dicts import AttrDict
 from ..utils.formats import pretty_print_timedelta
 
@@ -54,7 +55,7 @@ class Fish:
         self.smell = smell
         self.weight = weight
         self.caught_by_id = caught_by_id
-        self.caught_on = datetime.datetime.utcnow()
+        self.caught_on = datetime.utcnow()
         self.color = getattr(discord.Color, FISH_SPECIES[size].color,
             discord.Color.default)()
 
@@ -359,7 +360,7 @@ class FeeshCog(FunCog, name='Feesh'):
                 await ctx.message.clear_reaction(hourglass_emoji)
 
             else:
-                retry_after = datetime.timedelta(seconds=error.retry_after)
+                retry_after = timedelta(seconds=error.retry_after)
 
                 out_str = (
                     f'You have already tried to fish today, '
