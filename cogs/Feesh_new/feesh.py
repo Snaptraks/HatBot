@@ -221,16 +221,10 @@ class FeeshCog(FunCog, name='Feesh'):
         id = ctx.author.id
         entry = self._get_member_entry(ctx.author)
 
-        try:  # save best catch
+        catch = Fish.from_random(entry.exp, self.weather.state, id)
 
-            self.data[id].best_catch = max(self.data[id].best_catch, catch)
-
-        except KeyError:
-            self.data[ctx.author.id] = AttrDict(
-                best_catch=catch,
-                exp=0,
-                inventory=[]
-                )
+        # save best catch
+        self._set_best_catch_to(ctx.author, catch)
 
         embed = catch.to_embed()
         embed.description = 'You caught something!\n' + embed.description
@@ -440,6 +434,8 @@ class FeeshCog(FunCog, name='Feesh'):
 
     def _init_member_entry(self, *, best_catch=None, exp=0, inventory=[]):
         """Return an empty entry for member data."""
+    def _set_best_catch_to(self, member: discord.Member, catch: Fish):
+        """Helper function to save the best catch of a member."""
 
         return AttrDict(
             best_catch=best_catch,
