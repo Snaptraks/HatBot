@@ -444,6 +444,15 @@ class FeeshCog(FunCog, name='Feesh'):
     def _set_best_catch_to(self, member: discord.Member, catch: Fish):
         """Helper function to save the best catch of a member."""
 
+        entry = self._get_member_entry(member)
+
+        try:
+            entry.best_catch = max(entry.best_catch, catch)
+
+        except TypeError:
+            entry.best_catch = catch
+
+
     def _add_to_inventory_to(self, member, catch):
         """Helper function to add a catch to a member's inventory."""
 
