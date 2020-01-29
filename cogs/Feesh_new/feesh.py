@@ -411,6 +411,15 @@ class FeeshCog(FunCog, name='Feesh'):
         self.weather = Weather(state)
         await ctx.send(f'Weather set to {self.weather}')
 
+    def _init_member_entry(self, *, best_catch=None, exp=0, inventory=[]):
+        """Return an empty entry for member data."""
+
+        return AttrDict(
+            best_catch=best_catch,
+            exp=exp,
+            inventory=inventory,
+            )
+
     def _get_member_entry(self, member):
         """Return the member entry, or create one if it does not exist yet."""
 
@@ -432,13 +441,6 @@ class FeeshCog(FunCog, name='Feesh'):
         except KeyError:
             self.data[member.id] = self._init_member_entry(exp=amount)
 
-    def _init_member_entry(self, *, best_catch=None, exp=0, inventory=[]):
-        """Return an empty entry for member data."""
     def _set_best_catch_to(self, member: discord.Member, catch: Fish):
         """Helper function to save the best catch of a member."""
 
-        return AttrDict(
-            best_catch=best_catch,
-            exp=exp,
-            inventory=inventory,
-            )
