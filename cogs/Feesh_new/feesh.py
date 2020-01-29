@@ -219,12 +219,7 @@ class FeeshCog(FunCog, name='Feesh'):
         If invoked without subcommand, catches a random fish.
         """
         id = ctx.author.id
-        try:
-            exp = self.data[id].exp
-        except KeyError:
-            exp = 0
-
-        catch = Fish.from_random(exp, self.weather.state, ctx.author.id)
+        entry = self._get_member_entry(ctx.author)
 
         try:  # save best catch
 
@@ -294,25 +289,22 @@ class FeeshCog(FunCog, name='Feesh'):
             url=member.avatar_url,
         )
 
+        entry = self._get_member_entry(member)
         try:
-            best_catch = self.data[member.id].best_catch
-            amount_fished=self.data[member.id].exp
-            date_str = best_catch.caught_on.strftime('%b %d %Y')
+            date_str = entry.best_catch.caught_on.strftime('%b %d %Y')
 
-        except KeyError:
-            best_catch = None
-            amount_fished = 0
+        except AttributeError:
             date_str = None
 
         embed.add_field(
             name='Best Catch',
-            value=best_catch,
+            value=entry.best_catch,
         ).add_field(
             name='Caught on',
             value=date_str,
         ).add_field(
             name='Experience',
-            value=f'{amount_fished:.3f} xp',
+            value=f'{entry.exp:.3f} xp',
         )
 
         await ctx.send(embed=embed)
@@ -332,8 +324,9 @@ class FeeshCog(FunCog, name='Feesh'):
         """Look at your fishing inventory.
         Also allows you to sell the fish you previously saved.
         """
+        entry = self._get_member_entry(ctx.author)
         fishes = '\n'.join(
-            [str(fish) for fish in sorted(self.data[ctx.author.id].inventory)]
+            [str(fish) for fish in sorted(entry.inventory)]
             )
         embed = discord.Embed(
             color=EMBED_COLOR,
@@ -423,6 +416,18 @@ class FeeshCog(FunCog, name='Feesh'):
 
         self.weather = Weather(state)
         await ctx.send(f'Weather set to {self.weather}')
+
+    def _get_member_entry(self, member):
+        """Return the member entry, or create one if it does not exist yet."""
+
+        try:
+            entry = self.data[member.id]
+
+        except KeyError:
+            entry = self._init_member_entry()
+            self.data[member.id] = entry
+
+        return entry
 
     def _give_experience_to(self, member: discord.Member, amount: float):
         """Helper function to give experience, and handle KeyErrors."""
