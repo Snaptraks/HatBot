@@ -175,6 +175,11 @@ class FeeshCog(FunCog, name='Feesh'):
             except KeyError:
                 exp = 0
 
+            except AttributeError:
+                # often if cog_levels is None
+                # assume everyone is active
+                exp = 1
+
             if exp > 0:
                 active_members.append(m)
 
@@ -186,7 +191,7 @@ class FeeshCog(FunCog, name='Feesh'):
             f'bit of experience! ({bonus_experience:.2f} xp)'
             )
 
-        self.data[member.id].exp += bonus_experience
+        self._give_experience_to(winner, bonus_experience)
 
         await self.channel_msg.send(out_str)
 
@@ -418,3 +423,21 @@ class FeeshCog(FunCog, name='Feesh'):
 
         self.weather = Weather(state)
         await ctx.send(f'Weather set to {self.weather}')
+
+    def _give_experience_to(self, member: discord.Member, amount: float):
+        """Helper function to give experience, and handle KeyErrors."""
+
+        try:
+            self.data[member.id].exp += amount
+
+        except KeyError:
+            self.data[member.id] = self._init_member_entry(exp=amount)
+
+    def _init_member_entry(self, *, best_catch=None, exp=0, inventory=[]):
+        """Return an empty entry for member data."""
+
+        return AttrDict(
+            best_catch=best_catch,
+            exp=exp,
+            inventory=inventory,
+            )
