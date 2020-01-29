@@ -252,18 +252,18 @@ class FeeshCog(FunCog, name='Feesh'):
         except asyncio.TimeoutError:
             new_footer = 'You did not answer quickly enough, I kept it for you.'
             # add to inventory
-            self.data[id].inventory.append(catch)
+            self._add_to_inventory_to(ctx.author, catch)
 
         else:
             if reaction.emoji == INVENTORY_EMOJI:
                 new_footer = 'You kept it in your inventory.'
                 # add to inventory
-                self.data[id].inventory.append(catch)
+                self._add_to_inventory_to(ctx.author, catch)
 
             elif reaction.emoji == EXPERIENCE_EMOJI:
                 new_footer = 'You sold it for experience.'
                 # add experience
-                self.data[id].exp += catch.weight
+                self._give_experience_to(ctx.author, catch.weight)
 
         embed.set_footer(text=new_footer)
         await message.edit(embed=embed)
@@ -443,4 +443,10 @@ class FeeshCog(FunCog, name='Feesh'):
 
     def _set_best_catch_to(self, member: discord.Member, catch: Fish):
         """Helper function to save the best catch of a member."""
+
+    def _add_to_inventory_to(self, member, catch):
+        """Helper function to add a catch to a member's inventory."""
+
+        entry = self._get_member_entry(member)
+        entry.inventory.append(catch)
 
