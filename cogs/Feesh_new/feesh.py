@@ -330,22 +330,26 @@ class FeeshCog(FunCog, name='Feesh'):
         await ctx.send(embed=embed)
 
     @fish.command(name='top')
-    async def fish_top(self, ctx):
-        """Display the best catch guild-wide."""
+    async def fish_top(self, ctx, n: int = 1):
+        """Display the n-th best catch guild-wide."""
+
+        sorted_entries = self._get_sorted_best_catch()
+
+        if n < 1:
+            raise commands.BadArgument(
+                f'Cannot use a negative or zero value (n={n})')
 
         try:
-            member_id, member_data = max(self.data.items(),
-                key=lambda x: x[1].best_catch)
-        except ValueError:
-            await ctx.send('No fish caught yet!')
-            return
+            top_catch = sorted_entries[-n].best_catch
 
-        member = ctx.guild.get_member(member_id)
-        top_catch = member_data.best_catch
+        except IndexError:
+            raise commands.BadArgument(f'Not enough entries (n={n} is too big)')
+
+        member = ctx.guild.get_member(top_catch.caught_by_id)
         date_str = top_catch.caught_on.strftime('%b %d %Y')
 
         embed = discord.Embed(
-            title='Top Catch of the Server',
+            title=f'#{n} Top Catch of the Server',
             color=EMBED_COLOR,
         ).set_thumbnail(
             url=member.avatar_url,
@@ -359,6 +363,7 @@ class FeeshCog(FunCog, name='Feesh'):
             name='Caught on',
             value=date_str,
         )
+        embed.timestamp = datetime.utcnow()
 
         await ctx.send(embed=embed)
 
@@ -396,6 +401,13 @@ class FeeshCog(FunCog, name='Feesh'):
 
         else:
             raise error
+
+    @fish_top.error
+    async def fish_top_error(self, ctx, error):
+        """Error handling for the fish_top command."""
+
+        if isinstance(error, commands.BadArgument):
+            await ctx.send(error)
 
     @commands.group(invoke_without_command=True)
     async def weather(self, ctx):
@@ -459,3 +471,10 @@ class FeeshCog(FunCog, name='Feesh'):
         entry = self._get_member_entry(member)
         entry.inventory.append(catch)
 
+    def _get_sorted_best_catch(self):
+        """Return the list of catches, sorted by weight."""
+
+        entries = list(self.data.values())
+        entries = [e for e in entries if e.best_catch is not None]
+
+        return sorted(entries, key=lambda x: x.best_catch)
