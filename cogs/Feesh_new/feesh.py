@@ -276,7 +276,7 @@ class FeeshCog(FunCog, name='Feesh'):
             member = ctx.author
 
         embed = discord.Embed(
-            title=f'Fishing Card of {member.display_name}',
+            title=f'Fishing Card of {escape(member.display_name)}',
             color=EMBED_COLOR,
         ).set_thumbnail(
             url=member.avatar_url,
