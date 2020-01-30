@@ -191,13 +191,13 @@ class FeeshCog(FunCog, name='Feesh'):
             f'bit of experience! ({bonus_experience:.2f} xp)'
             )
 
-        self._give_experience_to(winner, bonus_experience)
+        self._give_experience(winner, bonus_experience)
 
         await self.channel_msg.send(out_str)
 
     @interest_experience.before_loop
     async def interest_experience_before(self):
-        """Wait until time mod 12h. and fetch the channel."""
+        """Wait until time mod 12h and fetch the channel."""
 
         await self.bot.wait_until_ready()
         self.guild = discord.utils.get(
@@ -224,7 +224,7 @@ class FeeshCog(FunCog, name='Feesh'):
         catch = Fish.from_random(entry.exp, self.weather.state, id)
 
         # save best catch
-        self._set_best_catch_to(ctx.author, catch)
+        self._set_best_catch(ctx.author, catch)
 
         embed = catch.to_embed()
         embed.description = 'You caught something!\n' + embed.description
@@ -252,18 +252,18 @@ class FeeshCog(FunCog, name='Feesh'):
         except asyncio.TimeoutError:
             new_footer = 'You did not answer quickly enough, I kept it for you.'
             # add to inventory
-            self._add_to_inventory_to(ctx.author, catch)
+            self._add_to_inventory(ctx.author, catch)
 
         else:
             if reaction.emoji == INVENTORY_EMOJI:
                 new_footer = 'You kept it in your inventory.'
                 # add to inventory
-                self._add_to_inventory_to(ctx.author, catch)
+                self._add_to_inventory(ctx.author, catch)
 
             elif reaction.emoji == EXPERIENCE_EMOJI:
                 new_footer = 'You sold it for experience.'
                 # add experience
-                self._give_experience_to(ctx.author, catch.weight)
+                self._give_experience(ctx.author, catch.weight)
 
         embed.set_footer(text=new_footer)
         await message.edit(embed=embed)
@@ -444,7 +444,7 @@ class FeeshCog(FunCog, name='Feesh'):
 
         return entry
 
-    def _give_experience_to(self, member: discord.Member, amount: float):
+    def _give_experience(self, member: discord.Member, amount: float):
         """Helper function to give experience, and handle KeyErrors."""
 
         try:
@@ -453,7 +453,7 @@ class FeeshCog(FunCog, name='Feesh'):
         except KeyError:
             self.data[member.id] = self._init_member_entry(exp=amount)
 
-    def _set_best_catch_to(self, member: discord.Member, catch: Fish):
+    def _set_best_catch(self, member: discord.Member, catch: Fish):
         """Helper function to save the best catch of a member."""
 
         entry = self._get_member_entry(member)
@@ -465,7 +465,7 @@ class FeeshCog(FunCog, name='Feesh'):
             entry.best_catch = catch
 
 
-    def _add_to_inventory_to(self, member, catch):
+    def _add_to_inventory(self, member, catch):
         """Helper function to add a catch to a member's inventory."""
 
         entry = self._get_member_entry(member)
