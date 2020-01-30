@@ -138,6 +138,7 @@ class FeeshCog(FunCog, name='Feesh'):
         try:
             with open(os.path.join(self._cog_path, 'fish_data.pkl'), 'rb') as f:
                 self.data = pickle.load(f)
+
         except FileNotFoundError:
             self.data = AttrDict()
 
