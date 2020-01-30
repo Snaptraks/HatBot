@@ -45,7 +45,8 @@ WEATHERS = [
 EMBED_COLOR = discord.Color.blurple()
 
 INVENTORY_EMOJI = '\U0001f9f0'  # :toolbox:
-EXPERIENCE_EMOJI = '\U0001f4b0'  # :moneybag:
+EXPERIENCE_EMOJI = '\U0001f4b5'  # :dollar:
+SELL_ALL_EMOJI = '\U0001f4b0'  # :moneybag:
 
 
 class Fish:
