@@ -218,10 +218,9 @@ class FeeshCog(FunCog, name='Feesh'):
         """Command group for the fishing commands.
         If invoked without subcommand, catches a random fish.
         """
-        id = ctx.author.id
         entry = self._get_member_entry(ctx.author)
 
-        catch = Fish.from_random(entry.exp, self.weather.state, id)
+        catch = Fish.from_random(entry.exp, self.weather.state, ctx.author.id)
 
         # save best catch
         self._set_best_catch(ctx.author, catch)
