@@ -471,6 +471,7 @@ class FeeshCog(FunCog, name='Feesh'):
 
         entry = self._get_member_entry(member)
         entry.inventory.append(catch)
+        entry.inventory.sort()
 
     def _get_sorted_best_catch(self):
         """Return the list of catches, sorted by weight."""
