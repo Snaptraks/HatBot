@@ -433,7 +433,7 @@ class FeeshCog(FunCog, name='Feesh'):
             inventory=inventory,
             )
 
-    def _get_member_entry(self, member):
+    def _get_member_entry(self, member: discord.Member):
         """Return the member entry, or create one if it does not exist yet."""
 
         try:
@@ -466,7 +466,7 @@ class FeeshCog(FunCog, name='Feesh'):
             entry.best_catch = catch
 
 
-    def _add_to_inventory(self, member, catch):
+    def _add_to_inventory(self, member: discord.Member, catch: Fish):
         """Helper function to add a catch to a member's inventory."""
 
         entry = self._get_member_entry(member)
