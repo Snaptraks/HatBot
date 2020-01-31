@@ -473,6 +473,14 @@ class FeeshCog(FunCog, name='Feesh'):
         entry.inventory.append(catch)
         entry.inventory.sort()
 
+    def _sell_from_inventory(self, member: discord.Member, catch: Fish):
+        """Helper function to sell a catch from a member's inventory."""
+
+        entry = self._get_member_entry(member)
+
+        self._give_experience(member, catch.weight)
+        entry.inventory.remove(catch)
+
     def _get_sorted_best_catch(self):
         """Return the list of catches, sorted by weight."""
 
