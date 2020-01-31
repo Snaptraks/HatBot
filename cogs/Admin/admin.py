@@ -30,28 +30,28 @@ class Admin(BasicCog):
 
         await self.bot.logout()
 
-    @commands.group(aliases=['cog'], invoke_without_command=True)
+    @commands.group(aliases=['cog', 'c'], invoke_without_command=True)
     async def cogs(self, ctx):
         """List current active cogs."""
 
         out_str = f'Active Cogs:\n`{", ".join(self.bot.cogs.keys())}`'
         await ctx.send(out_str)
 
-    @cogs.command(name='load')
+    @cogs.command(name='load', aliases=['l'])
     async def cogs_load(self, ctx, module):
         """Load an extension."""
 
         await ctx.message.add_reaction('\U00002934')  # :arrow_heading_up:
         await self._cogs_manage(ctx, self.bot.load_extension, module)
 
-    @cogs.command(name='unload')
+    @cogs.command(name='unload', aliases=['u'])
     async def cogs_unload(self, ctx, module):
         """Unload an extension."""
 
         await ctx.message.add_reaction('\U00002935')  # :arrow_heading_down:
         await self._cogs_manage(ctx, self.bot.unload_extension, module)
 
-    @cogs.group(name='reload', invoke_without_command=True)
+    @cogs.group(name='reload', aliases=['r'], invoke_without_command=True)
     async def cogs_reload(self, ctx, module):
         """Reload an extension."""
 
