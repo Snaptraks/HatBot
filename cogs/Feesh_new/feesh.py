@@ -51,6 +51,7 @@ SELL_ALL_EMOJI = '\U0001f4b0'  # :moneybag:
 
 class Fish:
     """One fish instance."""
+
     def __init__(self, size, species, smell, weight, caught_by_id):
         self.size = size
         self.species = species
@@ -59,14 +60,14 @@ class Fish:
         self.caught_by_id = caught_by_id
         self.caught_on = datetime.utcnow()
         self.color = getattr(discord.Color, FISH_SPECIES[size].color,
-            discord.Color.default)()
+                             discord.Color.default)()
 
     @classmethod
     def from_random(cls, exp, weather, caught_by_id):
         """Create a fish randomly based on the weather."""
 
         rates = [cls._catch_rate(exp, weather, *size.rates)
-            for size in FISH_SPECIES.values()]
+                 for size in FISH_SPECIES.values()]
         p = np.asarray(rates) / sum(rates)
 
         size = np.random.choice(list(FISH_SPECIES.keys()), p=p)
@@ -115,6 +116,7 @@ class Fish:
 
 class Weather:
     """Define the weather for the day."""
+
     def __init__(self, state):
         state = min(state, len(WEATHERS) - 1)  # not above the limit
         state = max(state, 0)  # is above 0
@@ -130,6 +132,8 @@ class Weather:
 
 
 class FeeshCog(FunCog, name='Feesh'):
+    """Cog for the fish commands."""
+
     def __init__(self, bot):
         super().__init__(bot)
         self.change_weather.start()
@@ -243,8 +247,8 @@ class FeeshCog(FunCog, name='Feesh'):
 
         def check(reaction, member):
             return (member == ctx.author
-                and reaction.message.id == message.id
-                and reaction.emoji in (INVENTORY_EMOJI, EXPERIENCE_EMOJI))
+                    and reaction.message.id == message.id
+                    and reaction.emoji in (INVENTORY_EMOJI, EXPERIENCE_EMOJI))
 
         try:
             reaction, member = await self.bot.wait_for(
@@ -311,7 +315,7 @@ class FeeshCog(FunCog, name='Feesh'):
         For testing purposes only.
         """
         fish = Fish(size, species, 'It smells cheated...', weight,
-            ctx.author.id)
+                    ctx.author.id)
         await ctx.send(embed=fish.to_embed())
 
     @fish.command(name='inventory', aliases=['inv', 'bag', 'sell'])
@@ -327,7 +331,7 @@ class FeeshCog(FunCog, name='Feesh'):
             color=EMBED_COLOR,
             description=fishes,
             title='Fish Inventory (WIP)',
-        )
+            )
         await ctx.send(embed=embed)
 
     @fish.command(name='top')
@@ -344,7 +348,8 @@ class FeeshCog(FunCog, name='Feesh'):
             top_catch = sorted_entries[-n].best_catch
 
         except IndexError:
-            raise commands.BadArgument(f'Not enough entries (n={n} is too big)')
+            raise commands.BadArgument(
+                f'Not enough entries (n={n} is too big)')
 
         member = ctx.guild.get_member(top_catch.caught_by_id)
         date_str = top_catch.caught_on.strftime('%b %d %Y')
@@ -380,8 +385,8 @@ class FeeshCog(FunCog, name='Feesh'):
 
             def check(reaction, member):
                 return (member == ctx.author
-                    and reaction.message.id == ctx.message.id
-                    and reaction.emoji == hourglass_emoji)
+                        and reaction.message.id == ctx.message.id
+                        and reaction.emoji == hourglass_emoji)
 
             try:
                 reaction, member = await self.bot.wait_for(
@@ -464,7 +469,6 @@ class FeeshCog(FunCog, name='Feesh'):
 
         except TypeError:
             entry.best_catch = catch
-
 
     def _add_to_inventory(self, member: discord.Member, catch: Fish):
         """Helper function to add a catch to a member's inventory."""
