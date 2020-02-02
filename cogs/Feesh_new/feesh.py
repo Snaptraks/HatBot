@@ -150,9 +150,7 @@ class FeeshCog(FunCog, name='Feesh'):
         super().cog_unload()
         self.change_weather.cancel()
         self.interest_experience.cancel()
-
-        with open(os.path.join(self._cog_path, 'fish_data.pkl'), 'wb') as f:
-            pickle.dump(self.data, f)
+        self._save_data()
 
     def cog_check(self, ctx):
         """Check if is in a guild, and if in appropriate channel."""
@@ -459,6 +457,8 @@ class FeeshCog(FunCog, name='Feesh'):
         except KeyError:
             self.data[member.id] = self._init_member_entry(exp=amount)
 
+        self._save_data()
+
     def _set_best_catch(self, member: discord.Member, catch: Fish):
         """Helper function to save the best catch of a member."""
 
@@ -470,6 +470,8 @@ class FeeshCog(FunCog, name='Feesh'):
         except TypeError:
             entry.best_catch = catch
 
+        self._save_data()
+
     def _add_to_inventory(self, member: discord.Member, catch: Fish):
         """Helper function to add a catch to a member's inventory."""
 
@@ -477,13 +479,15 @@ class FeeshCog(FunCog, name='Feesh'):
         entry.inventory.append(catch)
         entry.inventory.sort()
 
+        self._save_data()
+
     def _sell_from_inventory(self, member: discord.Member, catch: Fish):
         """Helper function to sell a catch from a member's inventory."""
 
         entry = self._get_member_entry(member)
 
-        self._give_experience(member, catch.weight)
         entry.inventory.remove(catch)
+        self._give_experience(member, catch.weight)  # saves data here
 
     def _get_sorted_best_catch(self):
         """Return the list of catches, sorted by weight."""
@@ -492,3 +496,9 @@ class FeeshCog(FunCog, name='Feesh'):
         entries = [e for e in entries if e.best_catch is not None]
 
         return sorted(entries, key=lambda x: x.best_catch)
+
+    def _save_data(self):
+        """Save the data to disk (keep it in memory also)."""
+
+        with open(os.path.join(self._cog_path, 'fish_data.pkl'), 'wb') as f:
+            pickle.dump(self.data, f)
