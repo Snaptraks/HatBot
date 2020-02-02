@@ -132,7 +132,7 @@ class Weather:
 
 
 class FeeshCog(FunCog, name='Feesh'):
-    """Cog for the fish commands."""
+    """Collection of fish-related commands."""
 
     def __init__(self, bot):
         super().__init__(bot)
