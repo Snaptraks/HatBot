@@ -510,7 +510,7 @@ class Feesh(FunCog):
                         # change nickname
                         old_display_name = thief.display_name
                         await thief.edit(
-                            nick='THIEF',
+                            nick=f'{old_display_name} the THIEF',
                             reason='Got caught trying to steal a feesh!'
                             )
                         # wait for 24 hours
