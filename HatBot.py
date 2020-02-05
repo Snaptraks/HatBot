@@ -14,7 +14,7 @@ import config
 
 async def create_http_session(loop):
     """Create an async HTTP session. Required to be from an async function
-    by aiohttp 3.5.4
+    by aiohttp>=3.5.4
     """
     return aiohttp.ClientSession(loop=loop)
 
