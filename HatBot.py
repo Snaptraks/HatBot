@@ -36,22 +36,20 @@ class MyBot(Bot):
         await super().close()
 
     async def on_ready(self):
-        print(
+        print((
             f'Logged in as {self.user.name} (ID:{self.user.id}) '
             f'| Connected to {len(self.guilds)} guilds '
-            f'| Connected to {len(set(self.get_all_members()))} users'
-            )
-        print('--------')
-        print(f'Startup Time: {datetime.now()}')
-        print('--------')
-        print(
+            f'| Connected to {len(set(self.get_all_members()))} users\n'
+            '--------\n'
+            f'Startup Time: {datetime.now()}\n'
+            '--------\n'
             f'Current Discord.py Version: {discord.__version__} '
-            f'| Current Python Version: {platform.python_version()}'
-            )
-        print('--------')
-        print(f'Use this link to invite {self.user.name}:')
-        print(discord.utils.oauth_url(self.user.id))
-        print('--------')
+            f'| Current Python Version: {platform.python_version()}\n'
+            '--------\n'
+            f'Use this link to invite {self.user.name}:\n'
+            f'{discord.utils.oauth_url(self.user.id)}\n'
+            '--------'
+            ))
 
     async def owner(self):
         user = self.get_user(self.owner_id)
