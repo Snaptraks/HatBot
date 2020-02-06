@@ -82,6 +82,10 @@
     "name": "some electronic music"
   },
   {
+    "activitytype": 2,
+    "name": "Snap practicing guitar (save me)"
+  },
+  {
     "activitytype": 3,
     "name": "Short Circuit"
   },
