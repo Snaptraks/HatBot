@@ -42,14 +42,14 @@ class Admin(BasicCog):
         """Load an extension."""
 
         await ctx.message.add_reaction('\U00002934')  # :arrow_heading_up:
-        await self._cogs_manage(ctx, self.bot.load_extension, module)
+        self._cogs_manage(ctx, self.bot.load_extension, module)
 
     @cogs.command(name='unload', aliases=['u'])
     async def cogs_unload(self, ctx, module):
         """Unload an extension."""
 
         await ctx.message.add_reaction('\U00002935')  # :arrow_heading_down:
-        await self._cogs_manage(ctx, self.bot.unload_extension, module)
+        self._cogs_manage(ctx, self.bot.unload_extension, module)
 
     @cogs.group(name='reload', aliases=['r'], invoke_without_command=True)
     async def cogs_reload(self, ctx, module):
@@ -57,7 +57,7 @@ class Admin(BasicCog):
 
         # :arrows_counterclockwise:
         await ctx.message.add_reaction('\U0001F504')
-        await self._cogs_manage(ctx, self.bot.reload_extension, module)
+        self._cogs_manage(ctx, self.bot.reload_extension, module)
 
     @cogs_reload.command(name='all')
     async def cogs_reload_all(self, ctx):
@@ -67,9 +67,9 @@ class Admin(BasicCog):
         await ctx.message.add_reaction('\U0001F504')
         loaded_extensions = list(self.bot.cogs.keys())
         for cog in loaded_extensions:
-            await self._cogs_manage(ctx, self.bot.reload_extension, cog)
+            self._cogs_manage(ctx, self.bot.reload_extension, cog)
 
-    async def _cogs_manage(self, ctx, method, module):
+    def _cogs_manage(self, ctx, method, module):
         """Helper method to load/unload/reload modules.
         This allows for more uniform handling (especially when exceptions
         occur) and less code repetition.
