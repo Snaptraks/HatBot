@@ -258,7 +258,7 @@ class Weather:
         return WEATHERS[self.state]
 
 
-class FeeshCog(FunCog, name='Feesh'):
+class Fishing(FunCog):
     """Collection of fish-related commands."""
 
     def __init__(self, bot):
