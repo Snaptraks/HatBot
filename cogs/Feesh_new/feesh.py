@@ -413,6 +413,9 @@ class FeeshCog(FunCog, name='Feesh'):
         if isinstance(error, commands.BadArgument):
             await ctx.send(error)
 
+        else:
+            raise error
+
     @commands.group(invoke_without_command=True)
     async def weather(self, ctx):
         """Check today's weather."""
