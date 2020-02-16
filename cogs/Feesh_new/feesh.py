@@ -1,10 +1,12 @@
 import asyncio
+import copy
 import json
 import os
 import pickle
 
 import discord
 from discord.ext import commands, tasks
+from discord.ext import menus
 from discord.utils import escape_markdown as escape
 import numpy as np
 
@@ -47,6 +49,131 @@ EMBED_COLOR = discord.Color.blurple()
 INVENTORY_EMOJI = '\U0001f9f0'  # :toolbox:
 EXPERIENCE_EMOJI = '\U0001f4b5'  # :dollar:
 SELL_ALL_EMOJI = '\U0001f4b0'  # :moneybag:
+TRADE_EMOJI = '\U0001f501'  # :repeat:
+
+
+class Middle(menus.Position):
+    __slots__ = ()
+    def __init__(self, number=0):
+        super().__init__(number, bucket=1)
+
+
+class InventoryPages(menus.MenuPages):
+    """Interactive menu to access Fish inventory."""
+
+    @menus.button(EXPERIENCE_EMOJI, position=Middle(0))
+    async def on_sell_one(self, payload):
+        """Sell the Fish on the current_page."""
+
+        self.source._to_sell.add(self.current_page)
+        await self.show_page(self.current_page)
+
+    @menus.button(SELL_ALL_EMOJI, position=Middle(1))
+    async def on_sell_all(self, payload):
+        """Sell all the Fish in the member's inventory."""
+
+        self.source._to_sell = set(range(self.source.get_max_pages()))
+        await self.show_page(self.current_page)
+
+    async def prompt(self, ctx):
+        """Start the menu and return the Fish to sell."""
+
+        await self.start(ctx, wait=True)
+        return self.source._to_sell
+
+
+class InventorySource(menus.ListPageSource):
+    """Page source to format the inventory menu."""
+
+    def __init__(self, data):
+        self._to_sell = set()
+        super().__init__(data, per_page=1)
+
+    async def format_page(self, menu, entries):
+        embed = entries.to_embed()
+        embed.title = 'Fish Inventory'
+        embed.color = EMBED_COLOR
+
+        if menu.current_page in self._to_sell:
+            footer_text = 'Sold!'
+
+        else:
+            footer_text = (
+                f'{EXPERIENCE_EMOJI} to sell current fish | '
+                f'{SELL_ALL_EMOJI} to sell all'
+                )
+
+        embed.set_footer(text=footer_text)
+        return embed
+
+
+class TradeConfirm(menus.Menu):
+    """Menu to get a confirmation from the other party."""
+
+    def __init__(self, msg):
+        super().__init__(timeout=30, clear_reactions_after=False)
+        self.msg = msg
+        self.result = None
+
+    async def send_initial_message(self, ctx, channel):
+        return await channel.send(self.msg)
+
+    @menus.button('\N{WHITE HEAVY CHECK MARK}')
+    async def do_confirm(self, payload):
+        self.result = True
+        self.stop()
+
+    @menus.button('\N{CROSS MARK}')
+    async def do_deny(self, payload):
+        self.result = False
+        self.stop()
+
+    async def prompt(self, ctx):
+        await self.start(ctx, wait=True)
+        return self.result
+
+
+class TradePages(menus.MenuPages):
+    """Interactive menu to trade Fish."""
+
+    @menus.button(TRADE_EMOJI, position=Middle(0))
+    async def on_select_trade(self, payload):
+        """Select the current Fish for trade."""
+
+        self.source._to_trade = self.current_page
+        await self.show_page(self.current_page)
+
+    async def prompt(self, ctx):
+        await self.start(ctx, wait=True)
+        return (self.ctx.author, self.source._to_trade)
+
+
+class TradeSource(menus.ListPageSource):
+    """Page source to format the trade menu."""
+
+    def __init__(self, data):
+        self._to_trade = None
+        super().__init__(data, per_page=1)
+
+    async def format_page(self, menu, entries):
+        embed = entries.to_embed()
+        embed.title = 'Trade Menu'
+        embed.color = EMBED_COLOR
+        embed.set_author(
+            name=menu.ctx.author.display_name,
+            icon_url=menu.ctx.author.avatar_url,
+            )
+
+        if menu.current_page == self._to_trade:
+            footer_text = 'Proposed for trade'
+
+        else:
+            footer_text = discord.Embed.Empty
+
+
+        embed.set_footer(text=footer_text)
+
+        return embed
 
 
 class Fish:
@@ -222,6 +349,7 @@ class FeeshCog(FunCog, name='Feesh'):
         """Command group for the fishing commands.
         If invoked without subcommand, catches a random fish.
         """
+        # TODO: use menus
         entry = self._get_member_entry(ctx.author)
 
         catch = Fish.from_random(entry.exp, self.weather.state, ctx.author.id)
@@ -316,21 +444,35 @@ class FeeshCog(FunCog, name='Feesh'):
                     ctx.author.id)
         await ctx.send(embed=fish.to_embed())
 
-    @fish.command(name='inventory', aliases=['inv', 'bag', 'sell'])
+    @fish.command(name='inventory', aliases=['inv', 'bag', 'sell', 'i'])
     async def fish_inventory(self, ctx):
         """Look at your fishing inventory.
         Also allows you to sell the fish you previously saved.
         """
         entry = self._get_member_entry(ctx.author)
-        fishes = '\n'.join(
-            [str(fish) for fish in sorted(entry.inventory)]
+        if len(entry.inventory) == 0:
+            embed = discord.Embed(
+                title='Fish Inventory',
+                description='No fish in inventory.',
+                color=EMBED_COLOR,
+                )
+            await ctx.send(embed=embed)
+            return
+
+        inventory = InventoryPages(
+            source=InventorySource(entry.inventory),
+            clear_reactions_after=True,
             )
-        embed = discord.Embed(
-            color=EMBED_COLOR,
-            description=fishes,
-            title='Fish Inventory (WIP)',
-            )
-        await ctx.send(embed=embed)
+        to_sell = await inventory.prompt(ctx)
+
+        if len(to_sell) != 0:
+            catches = []
+            for i in to_sell:
+                catches.append(entry.inventory[i])
+
+            for catch in catches:
+                self._sell_from_inventory(ctx.author, catch)
+
 
     @fish.command(name='top')
     async def fish_top(self, ctx, n: int = 1):
@@ -370,6 +512,88 @@ class FeeshCog(FunCog, name='Feesh'):
         embed.timestamp = datetime.utcnow()
 
         await ctx.send(embed=embed)
+
+    @fish.command(name='trade')
+    @commands.max_concurrency(1, per=commands.BucketType.channel)
+    async def fish_trade(self, ctx, *, other_member: discord.Member):
+        """Trade fish with another member."""
+
+        if other_member == ctx.author:
+            await ctx.send('You cannot trade with yourself!')
+            return
+
+        author_entry = self._get_member_entry(ctx.author)
+        other_entry = self._get_member_entry(other_member)
+        other_str = discord.utils.escape_markdown(other_member.display_name)
+
+        if len(author_entry.inventory) == 0:
+            await ctx.send('You have no fish to trade!')
+            return
+
+        elif len(other_entry.inventory) == 0:
+            await ctx.send(f'{other_str} has no fish to trade!')
+            return
+
+        if not other_member.mentioned_in(ctx.message):
+            other_str = other_member.mention
+
+        msg = copy.copy(ctx.message)
+        msg.author = other_member
+        other_ctx = await self.bot.get_context(msg, cls=type(ctx))
+
+        confirm_msg = (
+            f'Hey {other_str}, '
+            f'{discord.utils.escape_markdown(ctx.author.display_name)} '
+            'wants to trade with you! Do you accept?'
+            )
+
+        confirm = await TradeConfirm(confirm_msg).prompt(other_ctx)
+
+        if confirm:
+            await ctx.send('Trade accepted.')
+            # start both menus and then transfer the fish
+            author_menu = TradePages(
+                source=TradeSource(
+                    author_entry.inventory,
+                    ),
+                clear_reactions_after=True,
+                )
+            other_menu = TradePages(
+                source=TradeSource(
+                    other_entry.inventory,
+                    ),
+                clear_reactions_after=True,
+                )
+
+            tasks = [
+                asyncio.create_task(author_menu.prompt(ctx)),
+                asyncio.create_task(other_menu.prompt(other_ctx)),
+                ]
+
+            # done is a set of tasks, in the order they were COMPLETED
+            # (not in the order of `tasks`!!!)
+            # or not I can't seem to figure it out
+            done, pending = await asyncio.wait(tasks)
+
+            to_trade = [t.result() for t in done]
+            to_trade = {t[0].id: t[1] for t in to_trade}
+            if None in to_trade.values():
+                await ctx.send('Trade cancelled.')
+
+            # proceed to trade
+            author_trade = author_entry.inventory[to_trade[ctx.author.id]]
+            other_trade = other_entry.inventory[to_trade[other_member.id]]
+
+            self._remove_from_inventory(ctx.author, author_trade)
+            self._remove_from_inventory(other_member, other_trade)
+
+            self._add_to_inventory(ctx.author, other_trade)
+            self._add_to_inventory(other_member, author_trade)
+
+            await ctx.send('Trade successfull!')
+
+        else:
+            await ctx.send('Trade denied.')
 
     @fish.error
     async def fish_error(self, ctx, error):
@@ -411,6 +635,24 @@ class FeeshCog(FunCog, name='Feesh'):
         """Error handling for the fish_top command."""
 
         if isinstance(error, commands.BadArgument):
+            await ctx.send(error)
+
+        else:
+            raise error
+
+    @fish_trade.error
+    async def fish_trade_error(self, ctx, error):
+        """Error handling for the fish_trade command."""
+
+        if isinstance(error, commands.MaxConcurrencyReached):
+            name = error.per.name
+            suffix = f'for this {name}' if name != 'default' else 'globally'
+            await ctx.send(f'This command is already running {suffix}.')
+
+        elif isinstance(error, commands.MissingRequiredArgument):
+            await ctx.send('You need to specify a member to trade with.')
+
+        elif isinstance(error, commands.BadArgument):
             await ctx.send(error)
 
         else:
