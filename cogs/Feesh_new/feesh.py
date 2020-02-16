@@ -484,12 +484,18 @@ class FeeshCog(FunCog, name='Feesh'):
 
         self._save_data()
 
+    def _remove_from_inventory(self, member: discord.Member, catch: Fish):
+        """Helper function to remove a catch from a member's inventory."""
+
+        entry = self._get_member_entry(member)
+        entry.inventory.remove(catch)
+
+        self._save_data()
+
     def _sell_from_inventory(self, member: discord.Member, catch: Fish):
         """Helper function to sell a catch from a member's inventory."""
 
-        entry = self._get_member_entry(member)
-
-        entry.inventory.remove(catch)
+        self._remove_from_inventory(member, catch)
         self._give_experience(member, catch.weight)  # saves data here
 
     def _get_sorted_best_catch(self):
