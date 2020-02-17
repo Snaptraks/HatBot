@@ -579,6 +579,7 @@ class Fishing(FunCog):
             to_trade = {t[0].id: t[1] for t in to_trade}
             if None in to_trade.values():
                 await ctx.send('Trade cancelled.')
+                return
 
             # proceed to trade
             author_trade = author_entry.inventory[to_trade[ctx.author.id]]
