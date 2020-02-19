@@ -51,6 +51,9 @@ class MyBot(Bot):
             '--------'
             ))
 
+        # make sure to populate self.owner_id at startup
+        await self.owner()
+
     async def owner(self):
         user = self.get_user(self.owner_id)
         if user:
@@ -58,6 +61,7 @@ class MyBot(Bot):
 
         else:
             app = await self.application_info()
+            self.owner_id = app.owner.id
             return app.owner
 
 
