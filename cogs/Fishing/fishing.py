@@ -58,6 +58,49 @@ class Middle(menus.Position):
         super().__init__(number, bucket=1)
 
 
+class FishingMenu(menus.Menu):
+    """Menu for newly fished Fish."""
+
+    def __init__(self, embed):
+        super().__init__(timeout=60, clear_reactions_after=True)
+        self.embed = embed
+        self.keep = None
+
+    async def send_initial_message(self, ctx, channel):
+        return await channel.send(embed=self.embed)
+
+    @menus.button(INVENTORY_EMOJI)
+    async def on_keep(self, payload):
+        """Keep the Fish in inventory."""
+
+        self.keep = True
+        self.stop()
+
+    @menus.button(EXPERIENCE_EMOJI)
+    async def on_experience(self, payload):
+        """Sell the Fish for experience."""
+
+        self.keep = False
+        self.stop()
+
+    async def prompt(self, ctx):
+        await self.start(ctx, wait=True)
+        return self.keep if self.keep is not None else True
+
+    async def finalize(self):
+        if self.keep is None:
+            new_footer = 'You did not answer quickly enough, I kept it for you.'
+
+        elif self.keep:
+            new_footer = 'You kept it in your inventory.'
+
+        else:
+            new_footer = 'You sold it for experience.'
+
+        self.embed.set_footer(text=new_footer)
+        await self.message.edit(embed=self.embed)
+
+
 class InventoryPages(menus.MenuPages):
     """Interactive menu to access Fish inventory."""
 
@@ -357,7 +400,6 @@ class Fishing(FunCog):
         """Command group for the fishing commands.
         If invoked without subcommand, catches a random fish.
         """
-        # TODO: use menus
         entry = self._get_member_entry(ctx.author)
 
         catch = Fish.from_random(entry.exp, self.weather.state, ctx.author.id)
@@ -374,39 +416,14 @@ class Fishing(FunCog):
                 ),
             )
 
-        message = await ctx.send(embed=embed)
+        keep = await FishingMenu(embed).prompt(ctx)
 
-        for emoji in (INVENTORY_EMOJI, EXPERIENCE_EMOJI):
-            await message.add_reaction(emoji)
-
-        def check(reaction, member):
-            return (member == ctx.author
-                    and reaction.message.id == message.id
-                    and reaction.emoji in (INVENTORY_EMOJI, EXPERIENCE_EMOJI))
-
-        try:
-            reaction, member = await self.bot.wait_for(
-                'reaction_add', check=check, timeout=60)
-
-        except asyncio.TimeoutError:
-            new_footer = 'You did not answer quickly enough, I kept it for you.'
-            # add to inventory
+        if keep:
             self._add_to_inventory(ctx.author, catch)
 
         else:
-            if reaction.emoji == INVENTORY_EMOJI:
-                new_footer = 'You kept it in your inventory.'
-                # add to inventory
-                self._add_to_inventory(ctx.author, catch)
+            self._give_experience(ctx.author, catch.weight)
 
-            elif reaction.emoji == EXPERIENCE_EMOJI:
-                new_footer = 'You sold it for experience.'
-                # add experience
-                self._give_experience(ctx.author, catch.weight)
-
-        embed.set_footer(text=new_footer)
-        await message.edit(embed=embed)
-        await message.clear_reactions()
 
     @fish.command(name='card')
     async def fish_card(self, ctx, member: discord.Member = None):
