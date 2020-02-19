@@ -75,6 +75,10 @@ class InventoryPages(menus.MenuPages):
         self.source._to_sell = set(range(self.source.get_max_pages()))
         await self.show_page(self.current_page)
 
+    def should_add_reactions(self):
+        """Always show buttons, even when there is only one page."""
+        return True
+
     async def prompt(self, ctx):
         """Start the menu and return the Fish to sell."""
 
@@ -142,6 +146,10 @@ class TradePages(menus.MenuPages):
 
         self.source._to_trade = self.current_page
         await self.show_page(self.current_page)
+
+    def should_add_reactions(self):
+        """Always show buttons, even when there is only one page."""
+        return True
 
     async def prompt(self, ctx):
         await self.start(ctx, wait=True)
