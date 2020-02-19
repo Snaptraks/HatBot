@@ -7,7 +7,7 @@ import pickle
 import discord
 from discord.ext import commands, tasks
 from discord.ext import menus
-from discord.utils import escape_markdown as escape
+from discord.utils import escape_markdown
 import numpy as np
 
 from ..utils.cogs import FunCog
@@ -408,7 +408,7 @@ class Fishing(FunCog):
             member = ctx.author
 
         embed = discord.Embed(
-            title=f'Fishing Card of {escape(member.display_name)}',
+            title=f'Fishing Card of {escape_markdown(member.display_name)}',
             color=EMBED_COLOR,
         ).set_thumbnail(
             url=member.avatar_url,
@@ -517,6 +517,7 @@ class Fishing(FunCog):
     @commands.max_concurrency(1, per=commands.BucketType.channel)
     async def fish_trade(self, ctx, *, other_member: discord.Member):
         """Trade fish with another member."""
+        # TODO: have menu work with only 1 fish in inventory
 
         if other_member == ctx.author:
             await ctx.send('You cannot trade with yourself!')
@@ -524,7 +525,7 @@ class Fishing(FunCog):
 
         author_entry = self._get_member_entry(ctx.author)
         other_entry = self._get_member_entry(other_member)
-        other_str = discord.utils.escape_markdown(other_member.display_name)
+        other_str = escape_markdown(other_member.display_name)
 
         if len(author_entry.inventory) == 0:
             await ctx.send('You have no fish to trade!')
@@ -543,7 +544,7 @@ class Fishing(FunCog):
 
         confirm_msg = (
             f'Hey {other_str}, '
-            f'{discord.utils.escape_markdown(ctx.author.display_name)} '
+            f'{escape_markdown(ctx.author.display_name)} '
             'wants to trade with you! Do you accept?'
             )
 
