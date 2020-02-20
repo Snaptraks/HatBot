@@ -202,12 +202,10 @@ class Fishing(FunCog):
         """Wait until time mod 12h and fetch the channel."""
 
         await self.bot.wait_until_ready()
-        self.guild = discord.utils.get(
-            # self.bot.guilds, name='Hatventures Community')
-            self.bot.guilds, name='Bot Testing Server')
-        self.channel_msg = discord.utils.get(
-            # self.guild.channels, name='hatbot-land')
-            self.guild.channels, name='bot-0')
+
+        self.channel_msg = self.bot.get_channel(588171779957063680)  # bot-0
+        # self.channel_msg = self.bot.get_channel(548606793656303625)  # hatbot-land
+        self.guild = self.channel_msg.guild
 
         now = datetime.utcnow()
         _12h = timedelta(hours=12)
