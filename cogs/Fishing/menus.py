@@ -15,7 +15,7 @@ class Middle(menus.Position):
         super().__init__(number, bucket=1)
 
 
-class FishingMenu(menus.Menu):
+class FishingConfirm(menus.Menu):
     """Menu for newly fished Fish."""
 
     def __init__(self, embed):
@@ -66,7 +66,7 @@ class FishingMenu(menus.Menu):
         await self.message.edit(embed=self.embed)
 
 
-class InventoryPages(menus.MenuPages):
+class InventoryMenu(menus.MenuPages):
     """Interactive menu to access Fish inventory."""
 
     @menus.button(EXPERIENCE_EMOJI, position=Middle(0))
@@ -145,7 +145,7 @@ class TradeConfirm(menus.Menu):
         return self.result
 
 
-class TradePages(menus.MenuPages):
+class TradeMenu(menus.MenuPages):
     """Interactive menu to trade Fish."""
 
     @menus.button(TRADE_EMOJI, position=Middle(0))

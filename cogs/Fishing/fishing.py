@@ -229,7 +229,7 @@ class Fishing(FunCog):
 
         embed = catch.to_embed()
 
-        keep = await menus.FishingMenu(embed).prompt(ctx)
+        keep = await menus.FishingConfirm(embed).prompt(ctx)
 
         if keep:
             self._add_to_inventory(ctx.author, catch)
@@ -296,7 +296,7 @@ class Fishing(FunCog):
             await ctx.send(embed=embed)
             return
 
-        inventory = menus.InventoryPages(
+        inventory = menus.InventoryMenu(
             source=menus.InventorySource(entry.inventory),
             clear_reactions_after=True,
             )
@@ -390,13 +390,13 @@ class Fishing(FunCog):
         if confirm:
             await ctx.send('Trade accepted.')
             # start both menus and then transfer the fish
-            author_menu = menus.TradePages(
+            author_menu = menus.TradeMenu(
                 source=menus.TradeSource(
                     author_entry.inventory,
                     ),
                 clear_reactions_after=True,
                 )
-            other_menu = menus.TradePages(
+            other_menu = menus.TradeMenu(
                 source=menus.TradeSource(
                     other_entry.inventory,
                     ),
