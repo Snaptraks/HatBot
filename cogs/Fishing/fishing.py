@@ -584,8 +584,8 @@ class Fishing(FunCog):
 
         await ctx.send(f'The weather currently is {self.weather}')
 
-    @commands.is_owner()
     @weather.command(name='set')
+    @commands.is_owner()
     async def weather_set(self, ctx, state: int):
         """Set the weather to the given state (positive integer)."""
 
