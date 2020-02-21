@@ -54,6 +54,12 @@ class FishTopArgumentError(commands.BadArgument):
     pass
 
 
+class NoFishError(commands.CommandError):
+    """Exception raised when one member in a trade has no Fish to trade."""
+
+    pass
+
+
 class Fish:
     """One fish instance."""
 
@@ -361,20 +367,17 @@ class Fishing(FunCog):
         """Trade fish with another member."""
 
         if other_member == ctx.author:
-            await ctx.send('You cannot trade with yourself!')
-            return
+            raise commands.BadArgument('You cannot trade with yourself!')
 
         author_entry = self._get_member_entry(ctx.author)
         other_entry = self._get_member_entry(other_member)
         other_str = escape_markdown(other_member.display_name)
 
         if len(author_entry.inventory) == 0:
-            await ctx.send('You have no fish to trade!')
-            return
+            raise NoFishError('You have no fish to trade!')
 
         elif len(other_entry.inventory) == 0:
-            await ctx.send(f'{other_str} has no fish to trade!')
-            return
+            raise NoFishError(f'{other_str} has no fish to trade!')
 
         if not other_member.mentioned_in(ctx.message):
             other_str = other_member.mention
@@ -497,6 +500,9 @@ class Fishing(FunCog):
 
         elif isinstance(error, commands.MissingRequiredArgument):
             await ctx.send('You need to specify a member to trade with.')
+
+        elif isinstance(error, NoFishError):
+            await ctx.send(error)
 
         elif isinstance(error, commands.BadArgument):
             await ctx.send(error)
