@@ -352,7 +352,6 @@ class Fishing(FunCog):
     @commands.max_concurrency(1, per=commands.BucketType.channel)
     async def fish_trade(self, ctx, *, other_member: discord.Member):
         """Trade fish with another member."""
-        # TODO: have menu work with only 1 fish in inventory
 
         if other_member == ctx.author:
             await ctx.send('You cannot trade with yourself!')
