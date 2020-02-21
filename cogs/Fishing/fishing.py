@@ -47,6 +47,13 @@ WEATHERS = [
 EMBED_COLOR = discord.Color.blurple()
 
 
+class FishTopArgumentError(commands.BadArgument):
+    """Exception raised when the fish_top command is passed an invalid
+    number as argument.
+    """
+    pass
+
+
 class Fish:
     """One fish instance."""
 
@@ -316,14 +323,14 @@ class Fishing(FunCog):
         sorted_entries = self._get_sorted_best_catch()
 
         if n < 1:
-            raise commands.BadArgument(
+            raise FishTopArgumentError(
                 f'Cannot use a negative or zero value (n={n})')
 
         try:
             top_catch = sorted_entries[-n].best_catch
 
         except IndexError:
-            raise commands.BadArgument(
+            raise FishTopArgumentError(
                 f'Not enough entries (n={n} is too big)')
 
         member = ctx.guild.get_member(top_catch.caught_by_id)
@@ -470,8 +477,11 @@ class Fishing(FunCog):
     async def fish_top_error(self, ctx, error):
         """Error handling for the fish_top command."""
 
-        if isinstance(error, commands.BadArgument):
+        if isinstance(error, FishTopArgumentError):
             await ctx.send(error)
+
+        elif isinstance(error, commands.BadArgument):
+            await ctx.send('Please enter an integer.')
 
         else:
             raise error
