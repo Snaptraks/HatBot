@@ -541,6 +541,9 @@ class Fishing(FunCog):
         if isinstance(error, commands.MissingRequiredArgument):
             await ctx.send('You need to specify someone to slap.')
 
+        elif isinstance(error, commands.BadArgument):
+            await ctx.send(error)
+
         else:
             raise error
 
