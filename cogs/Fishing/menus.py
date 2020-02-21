@@ -103,7 +103,8 @@ class InventorySource(menus.ListPageSource):
 
     async def format_page(self, menu, entries):
         embed = entries.to_embed()
-        embed.title = 'Fish Inventory'
+        embed.title = \
+            f'Fish Inventory ({menu.current_page + 1}/{self.get_max_pages()})'
         embed.color = EMBED_COLOR
 
         if menu.current_page in self._to_sell:
@@ -173,7 +174,8 @@ class TradeSource(menus.ListPageSource):
 
     async def format_page(self, menu, entries):
         embed = entries.to_embed()
-        embed.title = 'Trade Menu'
+        embed.title = \
+            f'Trade Menu ({menu.current_page + 1}/{self.get_max_pages()})'
         embed.color = EMBED_COLOR
         embed.set_author(
             name=menu.ctx.author.display_name,
