@@ -467,11 +467,14 @@ class Fishing(FunCog):
                 retry_after = timedelta(seconds=error.retry_after)
 
                 out_str = (
-                    f'You have already tried to fish today, '
+                    f'You have already tried to fish recently, '
                     f'wait for {pretty_print_timedelta(retry_after)}.'
                     )
-                # await ctx.author.send(out_str)
-                await ctx.send(out_str)
+                await ctx.author.send(out_str)
+
+        else:
+            raise error
+
 
         else:
             raise error
