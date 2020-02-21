@@ -58,8 +58,32 @@ class NoFishError(commands.CommandError):
     """Exception raised when one member in a trade has no Fish in
     their inventory.
     """
+    pass
+
+
+class IsStunned(commands.CheckFailure):
+    """Exception raised when the predicate `is_not_stunned` has failed."""
 
     pass
+
+
+def is_not_stunned():
+    """Decorator that checks if the member is stunned and cannot fish."""
+
+    def predicate(ctx):
+        try:
+            stunned_until = ctx.cog.stunned_until[ctx.author.id]
+
+        except KeyError:
+            stunned_until = datetime.min()
+
+        stunned = datetime.utcnow() < stunned_until
+        if stunned:
+            raise IsStunned(f'Stunned until {stunned_until}')
+
+        return True
+
+    return commands.check(predicate)
 
 
 class Fish:
@@ -149,6 +173,7 @@ class Fishing(FunCog):
 
     def __init__(self, bot):
         super().__init__(bot)
+        self.stunned_until = {}
         self.change_weather.start()
         self.interest_experience.start()
 
@@ -229,6 +254,7 @@ class Fishing(FunCog):
 
     @commands.group(aliases=['feesh', 'f'], invoke_without_command=True)
     @commands.cooldown(2, 3600, commands.BucketType.member)  # twice per hour
+    @is_not_stunned()
     async def fish(self, ctx):
         """Command group for the fishing commands.
         If invoked without subcommand, catches a random fish.
@@ -323,6 +349,34 @@ class Fishing(FunCog):
             for catch in catches:
                 self._sell_from_inventory(ctx.author, catch)
 
+    @fish.command(name='slap')
+    async def fish_slap(self, ctx, member: discord.Member):
+        """Slap another member with one of your fish.
+        Slapping someone prevents them from fishing for a given amount
+        of time. The fish used to slap the member is destroyed upon
+        use, so think wisely.
+        """
+        entry = self._get_member_entry(ctx.author)
+
+        if len(entry.inventory) == 0:
+            raise NoFishError('You do not have any fish to slap with.')
+
+        slapping_fish = np.random.choice(entry.inventory)
+        self._remove_from_inventory(ctx.author, slapping_fish)
+
+        # get stunned for the sqrt of the weight of the fish, in minutes
+        stunned_time = timedelta(minutes=np.sqrt(slapping_fish.weight))
+        self.stunned_until[member.id] = datetime.utcnow() + stunned_time
+
+        out_str = (
+            f'{escape_markdown(member.display_name)} got slapped by '
+            f'{escape_markdown(ctx.author.display_name)} with a '
+            f'{slapping_fish}!\n'
+            f'They are stunned for {pretty_print_timedelta(stunned_time)} '
+            'and cannot go fishing!'
+            )
+
+        await ctx.send(out_str)
 
     @fish.command(name='top')
     async def fish_top(self, ctx, n: int = 1):
@@ -474,9 +528,18 @@ class Fishing(FunCog):
                     )
                 await ctx.author.send(out_str)
 
+        elif isinstance(error, IsStunned):
+            await ctx.send('You are stunned!')
+
         else:
             raise error
 
+    @fish_slap.error
+    async def fish_slap_error(self, ctx, error):
+        """Error handling for the fish_slap command."""
+
+        if isinstance(error, commands.MissingRequiredArgument):
+            await ctx.send('You need to specify someone to slap.')
 
         else:
             raise error
