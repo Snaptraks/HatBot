@@ -55,7 +55,9 @@ class FishTopArgumentError(commands.BadArgument):
 
 
 class NoFishError(commands.CommandError):
-    """Exception raised when one member in a trade has no Fish to trade."""
+    """Exception raised when one member in a trade has no Fish in
+    their inventory.
+    """
 
     pass
 
