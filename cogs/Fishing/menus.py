@@ -1,6 +1,10 @@
 import discord
 from discord.ext import menus
+from datetime import timedelta
 
+from ..utils.formats import pretty_print_timedelta
+
+HOURGLASS_EMOJI = '\U0000231B'  # :hourglass:
 INVENTORY_EMOJI = '\U0001f9f0'  # :toolbox:
 EXPERIENCE_EMOJI = '\U0001f4b5'  # :dollar:
 SELL_ALL_EMOJI = '\U0001f4b0'  # :moneybag:
@@ -13,6 +17,27 @@ class Middle(menus.Position):
     __slots__ = ()
     def __init__(self, number=0):
         super().__init__(number, bucket=1)
+
+
+class CooldownMenu(menus.Menu):
+    """Menu to check the remaining cooldown time."""
+
+    def __init__(self, error):
+        super().__init__(timeout=10 * 60)
+        self.error = error
+
+    async def send_initial_message(self, ctx, channel):
+        return ctx.message
+
+    @menus.button(HOURGLASS_EMOJI)
+    async def on_hourglass(self, payload):
+        """Send the remaining time to the author."""
+
+        retry_after = timedelta(seconds=self.error.retry_after)
+        await self.ctx.author.send(
+            f'You have already tried to fish recently, '
+            f'wait for {pretty_print_timedelta(retry_after)}.'
+            )
 
 
 class FishingConfirm(menus.Menu):

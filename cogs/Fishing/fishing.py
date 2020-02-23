@@ -541,29 +541,7 @@ class Fishing(FunCog):
         time is left.
         """
         if isinstance(error, commands.CommandOnCooldown):
-            hourglass_emoji = '\U0000231B'  # :hourglass:
-            await ctx.message.add_reaction(hourglass_emoji)
-
-            def check(reaction, member):
-                return (member == ctx.author
-                        and reaction.message.id == ctx.message.id
-                        and reaction.emoji == hourglass_emoji)
-
-            try:
-                reaction, member = await self.bot.wait_for(
-                    'reaction_add', check=check, timeout=10 * 60)
-
-            except asyncio.TimeoutError:
-                await ctx.message.clear_reaction(hourglass_emoji)
-
-            else:
-                retry_after = timedelta(seconds=error.retry_after)
-
-                out_str = (
-                    f'You have already tried to fish recently, '
-                    f'wait for {pretty_print_timedelta(retry_after)}.'
-                    )
-                await ctx.author.send(out_str)
+            await menus.CooldownMenu(error).start(ctx)
 
         elif isinstance(error, IsStunnedError):
             await ctx.send('You are stunned!')
