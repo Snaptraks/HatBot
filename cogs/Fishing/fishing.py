@@ -67,6 +67,12 @@ class IsStunned(commands.CheckFailure):
     pass
 
 
+class InTradeError(commands.CheckFailure):
+    """Exception raised when the check `is_not_trading` has failed."""
+
+    pass
+
+
 def is_not_stunned():
     """Decorator that checks if the member is stunned and cannot fish."""
 
@@ -80,6 +86,18 @@ def is_not_stunned():
         stunned = datetime.utcnow() < stunned_until
         if stunned:
             raise IsStunned(f'Stunned until {stunned_until}')
+
+        return True
+
+    return commands.check(predicate)
+
+
+def is_not_trading():
+    """Decorator that checks if the member is currently trading."""
+
+    def predicate(ctx):
+        if ctx.author.id in ctx.cog.in_trade:
+            raise InTradeError('You are in a trade, you cannot do that yet.')
 
         return True
 
@@ -174,6 +192,7 @@ class Fishing(FunCog):
     def __init__(self, bot):
         super().__init__(bot)
         self.stunned_until = {}
+        self.in_trade = set()
         self.change_weather.start()
         self.interest_experience.start()
 
@@ -255,6 +274,7 @@ class Fishing(FunCog):
     @commands.group(aliases=['feesh', 'f'], invoke_without_command=True)
     @commands.cooldown(2, 3600, commands.BucketType.member)  # twice per hour
     @is_not_stunned()
+    @is_not_trading()
     async def fish(self, ctx):
         """Command group for the fishing commands.
         If invoked without subcommand, catches a random fish.
@@ -350,6 +370,7 @@ class Fishing(FunCog):
                 self._sell_from_inventory(ctx.author, catch)
 
     @fish.command(name='slap')
+    @is_not_trading()
     async def fish_slap(self, ctx, *, member: discord.Member):
         """Slap another member with one of your fish.
         Slapping someone prevents them from fishing for a given amount
@@ -497,6 +518,22 @@ class Fishing(FunCog):
         else:
             await ctx.send('Trade denied.')
 
+    @fish_trade.before_invoke
+    async def fish_trade_before(self, ctx):
+        """Register the two members as currently in trade."""
+
+        other_member = ctx.kwargs['other_member']
+        self.in_trade.add(ctx.author.id)
+        self.in_trade.add(other_member.id)
+
+    @fish_trade.after_invoke
+    async def fish_trade_after(self, ctx):
+        """Remove the two members from being currently in trade."""
+
+        other_member = ctx.kwargs['other_member']
+        self.in_trade.remove(ctx.author.id)
+        self.in_trade.remove(other_member.id)
+
     @fish.error
     async def fish_error(self, ctx, error):
         """Error handling for the fish command.
@@ -531,6 +568,9 @@ class Fishing(FunCog):
         elif isinstance(error, IsStunned):
             await ctx.send('You are stunned!')
 
+        elif isinstance(error, InTradeError):
+            await ctx.send(error)
+
         else:
             raise error
 
@@ -545,6 +585,9 @@ class Fishing(FunCog):
             await ctx.send(error)
 
         elif isinstance(error, NoFishError):
+            await ctx.send(error)
+
+        elif isinstance(error, InTradeError):
             await ctx.send(error)
 
         else:
