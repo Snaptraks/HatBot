@@ -513,7 +513,7 @@ class Fishing(FunCog):
             self._add_to_inventory(ctx.author, other_trade)
             self._add_to_inventory(other_member, author_trade)
 
-            await ctx.send('Trade successfull!')
+            await ctx.send('Trade successful!')
 
         else:
             await ctx.send('Trade denied.')
