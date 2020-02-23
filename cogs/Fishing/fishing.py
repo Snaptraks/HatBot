@@ -75,7 +75,7 @@ def is_not_stunned():
             stunned_until = ctx.cog.stunned_until[ctx.author.id]
 
         except KeyError:
-            stunned_until = datetime.min()
+            stunned_until = datetime.min
 
         stunned = datetime.utcnow() < stunned_until
         if stunned:
@@ -277,7 +277,7 @@ class Fishing(FunCog):
             self._give_experience(ctx.author, catch.weight)
 
     @fish.command(name='card')
-    async def fish_card(self, ctx, member: discord.Member = None):
+    async def fish_card(self, ctx, *, member: discord.Member = None):
         """Show some statistics about a member's fishing experience."""
 
         if member is None:
@@ -350,7 +350,7 @@ class Fishing(FunCog):
                 self._sell_from_inventory(ctx.author, catch)
 
     @fish.command(name='slap')
-    async def fish_slap(self, ctx, member: discord.Member):
+    async def fish_slap(self, ctx, *, member: discord.Member):
         """Slap another member with one of your fish.
         Slapping someone prevents them from fishing for a given amount
         of time. The fish used to slap the member is destroyed upon
@@ -544,6 +544,9 @@ class Fishing(FunCog):
         elif isinstance(error, commands.BadArgument):
             await ctx.send(error)
 
+        elif isinstance(error, NoFishError):
+            await ctx.send(error)
+
         else:
             raise error
 
@@ -595,8 +598,11 @@ class Fishing(FunCog):
         self.weather = Weather(state)
         await ctx.send(f'Weather set to {self.weather}')
 
-    def _init_member_entry(self, *, best_catch=None, exp=0, inventory=[]):
+    def _init_member_entry(self, *, best_catch=None, exp=0, inventory=None):
         """Return an empty entry for member data."""
+
+        if inventory is None:
+            inventory = []
 
         return AttrDict(
             best_catch=best_catch,
