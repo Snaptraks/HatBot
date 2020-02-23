@@ -61,8 +61,8 @@ class NoFishError(commands.CommandError):
     pass
 
 
-class IsStunned(commands.CheckFailure):
-    """Exception raised when the predicate `is_not_stunned` has failed."""
+class IsStunnedError(commands.CheckFailure):
+    """Exception raised when the check `is_not_stunned` has failed."""
 
     pass
 
@@ -85,7 +85,7 @@ def is_not_stunned():
 
         stunned = datetime.utcnow() < stunned_until
         if stunned:
-            raise IsStunned(f'Stunned until {stunned_until}')
+            raise IsStunnedError(f'Stunned until {stunned_until}')
 
         return True
 
@@ -565,7 +565,7 @@ class Fishing(FunCog):
                     )
                 await ctx.author.send(out_str)
 
-        elif isinstance(error, IsStunned):
+        elif isinstance(error, IsStunnedError):
             await ctx.send('You are stunned!')
 
         elif isinstance(error, InTradeError):
