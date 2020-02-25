@@ -1,4 +1,5 @@
 import asyncio
+from collections import defaultdict
 import copy
 import json
 import os
@@ -77,11 +78,7 @@ def is_not_stunned():
     """Decorator that checks if the member is stunned and cannot fish."""
 
     def predicate(ctx):
-        try:
-            stunned_until = ctx.cog.stunned_until[ctx.author.id]
-
-        except KeyError:
-            stunned_until = datetime.min
+        stunned_until = ctx.cog.stunned_until[ctx.author.id]
 
         stunned = datetime.utcnow() < stunned_until
         if stunned:
@@ -191,7 +188,7 @@ class Fishing(FunCog):
 
     def __init__(self, bot):
         super().__init__(bot)
-        self.stunned_until = {}
+        self.stunned_until = defaultdict(lambda: datetime.min)
         self.in_trade = set()
         self.change_weather.start()
         self.interest_experience.start()
@@ -387,7 +384,10 @@ class Fishing(FunCog):
 
         # get stunned for the sqrt of the weight of the fish, in minutes
         stunned_time = timedelta(minutes=np.sqrt(slapping_fish.weight))
-        self.stunned_until[member.id] = datetime.utcnow() + stunned_time
+        beginning = max(datetime.utcnow(), self.stunned_until[member.id])
+        self.stunned_until[member.id] = beginning + stunned_time
+
+        stunned_time = self.stunned_until[member.id] - datetime.utcnow()
 
         out_str = (
             f'{escape_markdown(member.display_name)} got slapped by '
