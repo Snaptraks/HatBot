@@ -1,3 +1,4 @@
+import asyncio
 import discord
 from discord.ext import menus
 from datetime import timedelta
@@ -88,6 +89,14 @@ class FishingConfirm(menus.Menu):
             new_footer = 'You sold it for experience.'
 
         self.embed.set_footer(text=new_footer)
+        await self.message.edit(embed=self.embed)
+
+        asyncio.create_task(self._remove_desctiption(5 * 60))
+
+    async def _remove_desctiption(self, delay):
+        await asyncio.sleep(delay)
+        self.embed.description = discord.Embed.Empty
+        self.embed.set_footer(text=discord.Embed.Empty)
         await self.message.edit(embed=self.embed)
 
 
