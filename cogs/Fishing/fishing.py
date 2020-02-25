@@ -340,7 +340,7 @@ class Fishing(FunCog):
                     ctx.author.id)
         await ctx.send(embed=fish.to_embed())
 
-    @fish.command(name='inventory', aliases=['inv', 'bag', 'sell', 'i'])
+    @fish.command(name='inventory', aliases=['inv', 'bag', 'sell'])
     async def fish_inventory(self, ctx):
         """Look at your fishing inventory.
         Also allows you to sell the fish you previously saved.
