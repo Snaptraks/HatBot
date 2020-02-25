@@ -385,9 +385,8 @@ class Fishing(FunCog):
         # get stunned for the sqrt of the weight of the fish, in minutes
         stunned_time = timedelta(minutes=np.sqrt(slapping_fish.weight))
         beginning = max(datetime.utcnow(), self.stunned_until[member.id])
-        self.stunned_until[member.id] = beginning + stunned_time
-
-        stunned_time = self.stunned_until[member.id] - datetime.utcnow()
+        self.stunned_until[member.id] = until = beginning + stunned_time
+        stunned_time = until - datetime.utcnow()
 
         out_str = (
             f'{escape_markdown(member.display_name)} got slapped by '
