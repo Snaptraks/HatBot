@@ -11,8 +11,6 @@ EXPERIENCE_EMOJI = '\U0001f4b5'  # :dollar:
 SELL_ALL_EMOJI = '\U0001f4b0'  # :moneybag:
 TRADE_EMOJI = '\U0001f501'  # :repeat:
 
-EMBED_COLOR = discord.Color.blurple()
-
 
 class Middle(menus.Position):
     __slots__ = ()
