@@ -246,7 +246,7 @@ class Fishing(FunCog):
         bonus_experience = np.random.triangular(3, 5, 15)
         out_str = (
             f':moneybag: {escape_markdown(winner.display_name)} got a little '
-            f'bit of experience! ({bonus_experience:.2f} xp)'
+            f'bit of experience! ({bonus_experience:.3f} xp)'
             )
 
         self._give_experience(winner, bonus_experience)
