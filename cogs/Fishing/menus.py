@@ -139,7 +139,6 @@ class InventorySource(menus.ListPageSource):
         embed = entries.to_embed()
         embed.title = \
             f'Fish Inventory ({menu.current_page + 1}/{self.get_max_pages()})'
-        embed.color = EMBED_COLOR
 
         if menu.current_page in self._to_sell:
             footer_text = 'Sold!'
@@ -210,7 +209,6 @@ class TradeSource(menus.ListPageSource):
         embed = entries.to_embed()
         embed.title = \
             f'Trade Menu ({menu.current_page + 1}/{self.get_max_pages()})'
-        embed.color = EMBED_COLOR
         embed.set_author(
             name=menu.ctx.author.display_name,
             icon_url=menu.ctx.author.avatar_url,
