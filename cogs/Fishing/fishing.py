@@ -259,8 +259,9 @@ class Fishing(FunCog):
 
         await self.bot.wait_until_ready()
 
-        self.channel_msg = self.bot.get_channel(588171779957063680)  # bot-0
-        # self.channel_msg = self.bot.get_channel(548606793656303625)  # hatbot-land
+        # self.channel_msg = self.bot.get_channel(588171779957063680)  # bot-0
+        self.channel_msg = self.bot.get_channel(548606793656303625)  # hatbot-land
+        # self.channel_msg = self.bot.get_channel(680866127546679307)  # hatbot-beta
         self.guild = self.channel_msg.guild
 
         now = datetime.utcnow()
