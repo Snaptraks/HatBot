@@ -269,8 +269,8 @@ class Fishing(FunCog):
         next = now // _12h + _12h  # get next 00 or 12
         await discord.utils.sleep_until(next)  # wait until then
 
-    @commands.cooldown(2, 3600, commands.BucketType.member)  # twice per hour
     @commands.group(aliases=['feesh'], invoke_without_command=True)
+    @commands.cooldown(1, 20 * 60, commands.BucketType.member)  # 1 every 20 mins
     @is_not_stunned()
     @is_not_trading()
     async def fish(self, ctx):
