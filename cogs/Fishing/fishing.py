@@ -138,7 +138,7 @@ class Fish:
         r_min: The minimal catch rate. Is the value returned if exp = 0.
         r_max: The maximal catch rate. Is the value returned if exp -> infinity.
         """
-        return r_min + (r_max - r_min) * (1 - np.exp(- weather * exp / 5e3))
+        return r_min + (r_max - r_min) * (1 - np.exp(- weather * exp / 5e4))
 
     def to_embed(self):
         """Return a discord.Embed object to send in a discord.Message."""
