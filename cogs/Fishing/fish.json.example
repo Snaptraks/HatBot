@@ -1,0 +1,29 @@
+{
+    "size0": {
+        "color": "green",
+        "species": [
+            "Some Species",
+            "Fish type"
+        ],
+        "rates": [10, 10],
+        "weight": [0.0, 1.0]
+    },
+    "size1": {
+        "color" : "teal",
+        "species": [
+            "Some Species",
+            "Add More"
+        ],
+        "rates": [5, 9],
+        "weight": [0.0, 2.0]
+    },
+    "size2": {
+        "color" : "blue",
+        "species": [
+            "Some Species",
+            "More Here"
+        ],
+        "rates": [1, 5],
+        "weight": [0.0, 3.0]
+    }
+}

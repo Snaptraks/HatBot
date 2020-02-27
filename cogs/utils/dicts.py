@@ -8,10 +8,6 @@ class AttrDict(dict):
         super(AttrDict, self).__init__(*args, **kwargs)
         self.__dict__ = self
 
-    def __getattr__(self, name):
-        """Explicitly return NoneType when accessing non-existing attribute."""
-        return None
-
     @staticmethod
     def from_nested_dict(data):
         """Construct nested AttrDicts from nested dictionaries. """

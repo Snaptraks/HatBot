@@ -12,15 +12,15 @@ def pretty_print_timedelta(delta: timedelta):
 
     out_str = ''
     if seconds > 0:
-        out_str = f'{seconds}s{out_str}'
+        out_str = f'{seconds}s {out_str}'
 
     if minutes > 0:
-        out_str = f'{minutes}m{out_str}'
+        out_str = f'{minutes}m {out_str}'
 
     if hours > 0:
-        out_str = f'{hours}h{out_str}'
+        out_str = f'{hours}h {out_str}'
 
     if abs(days) > 0:
-        out_str = f'{days}d{out_str}'
+        out_str = f'{days}d {out_str}'
 
-    return out_str
+    return out_str.strip()
