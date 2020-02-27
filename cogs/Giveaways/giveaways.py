@@ -2,6 +2,7 @@ import asyncio
 import csv
 from datetime import datetime, timedelta, timezone
 import random
+import os
 
 import numpy as np
 import discord
@@ -16,7 +17,7 @@ GIVEAWAY_TIME = timedelta(hours=24)
 # GIVEAWAY_TIME = timedelta(seconds=15)
 
 
-class Christmas(BasicCog):
+class Giveaways(BasicCog):
     def __init__(self, bot):
         super().__init__(bot)
         self._load_games()
@@ -27,15 +28,14 @@ class Christmas(BasicCog):
 
     def _load_games(self):
         self.steam_keys = []
-        # with open('cogs/Christmas/keys.csv', 'r') as f:
-        with open('cogs/Christmas/xmas2019codes.csv', 'r') as f:
+        with open(os.path.join(self._cog_path, 'xmas2019codes.csv'), 'r') as f:
             csv_reader = csv.reader(f, delimiter=',')
             for i, row in enumerate(csv_reader):
                 if i != 0:
                     self.steam_keys.append(tuple(row))
 
         try:
-            with open('cogs/Christmas/keys_given.txt', 'r') as f:
+            with open(os.path.join(self._cog_path, 'keys_given.txt'), 'r') as f:
                 self.steam_keys_given = [key.strip() for key in f.readlines()]
                 self.steam_keys_given = set(self.steam_keys_given)
 
@@ -45,7 +45,7 @@ class Christmas(BasicCog):
 
     def _save_keys_given(self, key):
         self.steam_keys_given.add(key)
-        with open('cogs/Christmas/keys_given.txt', 'w') as f:
+        with open(os.path.join(self._cog_path, 'keys_given.txt'), 'w') as f:
             f.write('\n'.join(self.steam_keys_given))
 
     @commands.group(aliases=['ga'])
@@ -145,7 +145,7 @@ class Christmas(BasicCog):
         self._save_keys_given(game_info[1])
 
         embed = discord.Embed(
-            title='Holidays Giveaway!',
+            title='Giveaway!',
             color=0xB3000C,
             description=(
                 f'We are giving away [**{game_info[0]}**]({game_info[2]})!\n'
@@ -184,8 +184,7 @@ class Christmas(BasicCog):
             await giveaway_winner.send(
                 f'Congratulations! You won the giveaway for '
                 f'**{game_info[0]}**!\n'
-                f'Your Steam key is ||{game_info[1]}|| .\n'
-                'Happy Holidays!'
+                f'Your Steam key is ||{game_info[1]}|| .'
                 )
         except discord.Forbidden as e:
             app_info = await self.bot.application_info()

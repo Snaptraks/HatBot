@@ -18,9 +18,6 @@ class Responses(BasicCog):
     def __init__(self, bot):
         super().__init__(bot)
 
-        # Init messaging channel.
-        self.bot.loop.create_task(self.load_data())
-
         # hello_there parameters
         self.hello_there_params = {
             'cooldown': timedelta(minutes=1),
@@ -38,17 +35,6 @@ class Responses(BasicCog):
 
     def cog_unload(self):
         super().cog_unload()
-
-    async def load_data(self):
-        """Load data from the server, such as channel and emoji"""
-
-        await self.bot.wait_until_ready()
-        guild = discord.utils.get(
-            self.bot.guilds,
-            name='Hatventures Community'
-            )
-
-        self.guild = guild
 
     @commands.Cog.listener(name='on_reaction_add')
     async def react(self, reaction, user):

@@ -18,7 +18,7 @@ For more details check `CONTRIBUTING.md`.
 This repository is provided for education purposes, and community contributions only. Please do not create personal instances of the bot with this code without explicit written permission from me (Snaptraks#2606 on Discord).
 
 ### Requirements
-Nevertheless, to run the bot you will need Python 3.7.3 (anything up from 3.5 should work, but all is tested with 3.7.3) and the packages from `requirements.txt`.
+Nevertheless, to run the bot you will need Python 3.7+ and the packages from `requirements.txt`.
 
 ### Running the bot locally
 With all this in mind, to run the bot locally and help with the development, you will need a few things. Assuming your Python environment is correctly set up:
