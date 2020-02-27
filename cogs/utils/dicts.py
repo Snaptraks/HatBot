@@ -8,11 +8,11 @@ class AttrDict(dict):
         super(AttrDict, self).__init__(*args, **kwargs)
         self.__dict__ = self
 
-    @staticmethod
-    def from_nested_dict(data):
+    @classmethod
+    def from_nested_dict(cls, data):
         """Construct nested AttrDicts from nested dictionaries. """
         if not isinstance(data, dict):
             return data
         else:
-            return AttrDict({key: AttrDict.from_nested_dict(data[key])
+            return cls({key: cls.from_nested_dict(data[key])
                              for key in data})
