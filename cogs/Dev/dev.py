@@ -182,7 +182,6 @@ class Dev(BasicCog):
             except discord.HTTPException as e:
                 await ctx.send(f'Unexpected error: `{e}`')
 
-
     @repl.error
     async def repl_error(self, ctx, error):
         """Error hangling for the repl command."""
