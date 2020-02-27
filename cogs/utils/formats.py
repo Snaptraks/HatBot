@@ -23,4 +23,4 @@ def pretty_print_timedelta(delta: timedelta):
     if abs(days) > 0:
         out_str = f'{days}d {out_str}'
 
-    return out_str
+    return out_str.strip()
