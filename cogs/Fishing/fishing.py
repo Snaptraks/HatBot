@@ -368,6 +368,7 @@ class Fishing(FunCog):
                 self._sell_from_inventory(ctx.author, catch)
 
     @fish.command(name='slap')
+    @commands.cooldown(1, 30, commands.BucketType.member)
     @is_not_trading()
     async def fish_slap(self, ctx, *, member: discord.Member):
         """Slap another member with one of your fish.
