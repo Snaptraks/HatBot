@@ -97,7 +97,7 @@ if __name__ == '__main__':
         'cogs.Admin',
         'cogs.Announcements',
         'cogs.Dev',
-        'cogs.Feesh',
+        'cogs.Fishing',
         'cogs.Fun',
         'cogs.Git',
         'cogs.Help',
