@@ -18,6 +18,20 @@ class Middle(menus.Position):
         super().__init__(number, bucket=1)
 
 
+class _MenuUtils:
+    """Base class for useful methods on Menus."""
+
+    def should_add_reactions(self):
+        """Always show buttons, even when there is only one page."""
+
+        return True
+
+    async def _delete_message(self, delay):
+        await asyncio.sleep(delay)
+        await self.ctx.message.delete()
+        await self.message.delete()
+
+
 class CooldownMenu(menus.Menu):
     """Menu to check the remaining cooldown time."""
 
@@ -39,7 +53,7 @@ class CooldownMenu(menus.Menu):
             )
 
 
-class FishingConfirm(menus.Menu):
+class FishingConfirm(_MenuUtils, menus.Menu):
     """Menu for newly fished Fish."""
 
     def __init__(self, embed):
@@ -89,16 +103,10 @@ class FishingConfirm(menus.Menu):
         self.embed.set_footer(text=new_footer)
         await self.message.edit(embed=self.embed)
 
-        asyncio.create_task(self._remove_desctiption(5 * 60))
-
-    async def _remove_desctiption(self, delay):
-        await asyncio.sleep(delay)
-        self.embed.description = discord.Embed.Empty
-        self.embed.set_footer(text=discord.Embed.Empty)
-        await self.message.edit(embed=self.embed)
+        asyncio.create_task(self._delete_message(5 * 60))
 
 
-class InventoryMenu(menus.MenuPages):
+class InventoryMenu(_MenuUtils, menus.MenuPages):
     """Interactive menu to access Fish inventory."""
 
     @menus.button(EXPERIENCE_EMOJI, position=Middle(0))
@@ -115,15 +123,14 @@ class InventoryMenu(menus.MenuPages):
         self.source._to_sell = set(range(self.source.get_max_pages()))
         await self.show_page(self.current_page)
 
-    def should_add_reactions(self):
-        """Always show buttons, even when there is only one page."""
-        return True
-
     async def prompt(self, ctx):
         """Start the menu and return the Fish to sell."""
 
         await self.start(ctx, wait=True)
         return self.source._to_sell
+
+    async def finalize(self):
+        asyncio.create_task(self._delete_message(10))
 
 
 class InventorySource(menus.ListPageSource):
@@ -151,7 +158,7 @@ class InventorySource(menus.ListPageSource):
         return embed
 
 
-class TradeConfirm(menus.Menu):
+class TradeConfirm(_MenuUtils, menus.Menu):
     """Menu to get a confirmation from the other party."""
 
     def __init__(self, msg):
@@ -176,8 +183,11 @@ class TradeConfirm(menus.Menu):
         await self.start(ctx, wait=True)
         return self.result
 
+    async def finalize(self):
+        asyncio.create_task(self._delete_message(5 * 60))
 
-class TradeMenu(menus.MenuPages):
+
+class TradeMenu(_MenuUtils, menus.MenuPages):
     """Interactive menu to trade Fish."""
 
     @menus.button(TRADE_EMOJI, position=Middle(0))
@@ -187,13 +197,12 @@ class TradeMenu(menus.MenuPages):
         self.source._to_trade = self.current_page
         await self.show_page(self.current_page)
 
-    def should_add_reactions(self):
-        """Always show buttons, even when there is only one page."""
-        return True
-
     async def prompt(self, ctx):
         await self.start(ctx, wait=True)
         return (self.ctx.author, self.source._to_trade)
+
+    async def finalize(self):
+        asyncio.create_task(self._delete_message(5 * 60))
 
 
 class TradeSource(menus.ListPageSource):

@@ -475,7 +475,7 @@ class Fishing(FunCog):
         confirm = await menus.TradeConfirm(confirm_msg).prompt(other_ctx)
 
         if confirm:
-            await ctx.send('Trade accepted.')
+            await ctx.send('Trade accepted.', delete_after=5 * 60)
             # start both menus and then transfer the fish
             author_menu = menus.TradeMenu(
                 source=menus.TradeSource(
@@ -503,7 +503,7 @@ class Fishing(FunCog):
             to_trade = [t.result() for t in done]
             to_trade = {t[0].id: t[1] for t in to_trade}
             if None in to_trade.values():
-                await ctx.send('Trade cancelled.')
+                await ctx.send('Trade cancelled.', delete_after=5 * 60)
                 return
 
             # proceed to trade
@@ -516,10 +516,10 @@ class Fishing(FunCog):
             self._add_to_inventory(ctx.author, other_trade)
             self._add_to_inventory(other_member, author_trade)
 
-            await ctx.send('Trade successful!')
+            await ctx.send('Trade successful!', delete_after=5 * 60)
 
         else:
-            await ctx.send('Trade denied.')
+            await ctx.send('Trade denied.', delete_after=5 * 60)
 
     @fish_trade.before_invoke
     async def fish_trade_before(self, ctx):
