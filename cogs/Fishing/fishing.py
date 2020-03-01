@@ -544,7 +544,7 @@ class Fishing(FunCog):
         time is left.
         """
         if isinstance(error, commands.CommandOnCooldown):
-            await menus.CooldownMenu(error).start(ctx)
+            await menus.CooldownMenu(ctx.message, error).start(ctx)
 
         elif isinstance(error, IsStunnedError):
             await ctx.send(error)

@@ -35,12 +35,10 @@ class _MenuUtils:
 class CooldownMenu(menus.Menu):
     """Menu to check the remaining cooldown time."""
 
-    def __init__(self, error):
-        super().__init__(timeout=10 * 60)
+    def __init__(self, message, error):
+        super().__init__(timeout=10 * 60, delete_message_after=True,
+                         message=message)
         self.error = error
-
-    async def send_initial_message(self, ctx, channel):
-        return ctx.message
 
     @menus.button(HOURGLASS_EMOJI)
     async def on_hourglass(self, payload):
@@ -51,6 +49,8 @@ class CooldownMenu(menus.Menu):
             f'You have already tried to fish recently, '
             f'wait for {pretty_print_timedelta(retry_after)}.'
             )
+
+        self.stop()
 
 
 class FishingConfirm(_MenuUtils, menus.Menu):
