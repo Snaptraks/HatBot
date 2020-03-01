@@ -82,7 +82,9 @@ def is_not_stunned():
 
         stunned = datetime.utcnow() < stunned_until
         if stunned:
-            raise IsStunnedError(f'Stunned until {stunned_until}')
+            stunned_for = stunned_until - datetime.utcnow()
+            raise IsStunnedError('You are still stunned for '
+                f'{pretty_print_timedelta(stunned_for)}!')
 
         return True
 
@@ -367,7 +369,7 @@ class Fishing(FunCog):
             for catch in catches:
                 self._sell_from_inventory(ctx.author, catch)
 
-    @fish.command(name='slap')
+    @fish.command(name='slap', cooldown_after_parsing=True)
     @commands.cooldown(1, 30, commands.BucketType.member)
     @is_not_trading()
     async def fish_slap(self, ctx, *, member: discord.Member):
@@ -384,8 +386,8 @@ class Fishing(FunCog):
         slapping_fish = np.random.choice(entry.inventory)
         self._remove_from_inventory(ctx.author, slapping_fish)
 
-        # get stunned for the sqrt of the weight of the fish, in minutes
-        stunned_time = timedelta(minutes=np.sqrt(slapping_fish.weight))
+        # get stunned for the sqrt of the weight of the fish, in hours
+        stunned_time = timedelta(hours=np.sqrt(slapping_fish.weight))
         beginning = max(datetime.utcnow(), self.stunned_until[member.id])
         self.stunned_until[member.id] = until = beginning + stunned_time
         stunned_time = until - datetime.utcnow()
@@ -545,7 +547,7 @@ class Fishing(FunCog):
             await menus.CooldownMenu(error).start(ctx)
 
         elif isinstance(error, IsStunnedError):
-            await ctx.send('You are stunned!')
+            await ctx.send(error)
 
         elif isinstance(error, InTradeError):
             await ctx.send(error)
