@@ -352,7 +352,7 @@ class Fishing(FunCog):
                 description='No fish in inventory.',
                 color=EMBED_COLOR,
                 )
-            await ctx.send(embed=embed)
+            await ctx.send(embed=embed, delete_after=3 * 60)
             return
 
         inventory = menus.InventoryMenu(

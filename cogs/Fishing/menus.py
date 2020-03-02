@@ -103,8 +103,6 @@ class FishingConfirm(_MenuUtils, menus.Menu):
         self.embed.set_footer(text=new_footer)
         await self.message.edit(embed=self.embed)
 
-        asyncio.create_task(self._delete_message(5 * 60))
-
 
 class InventoryMenu(_MenuUtils, menus.MenuPages):
     """Interactive menu to access Fish inventory."""
@@ -182,9 +180,6 @@ class TradeConfirm(_MenuUtils, menus.Menu):
     async def prompt(self, ctx):
         await self.start(ctx, wait=True)
         return self.result
-
-    async def finalize(self):
-        asyncio.create_task(self._delete_message(5 * 60))
 
 
 class TradeMenu(_MenuUtils, menus.MenuPages):
