@@ -48,9 +48,9 @@ WEATHERS = [
 EMBED_COLOR = discord.Color.blurple()
 
 
-class FishTopArgumentError(commands.BadArgument):
-    """Exception raised when the fish_top command is passed an invalid
-    number as argument.
+class FishTopNoCatchesError(commands.CommandError):
+    """Exception raised when the fish_top command called but no best
+    catches are set yet.
     """
     pass
 
@@ -403,43 +403,21 @@ class Fishing(FunCog):
         await ctx.send(out_str)
 
     @fish.command(name='top')
-    async def fish_top(self, ctx, n: int = 1):
-        """Display the n-th best catch guild-wide."""
+    async def fish_top(self, ctx):
+        """Display the best catches server-wide."""
 
-        sorted_entries = self._get_sorted_best_catch()
+        sorted_best_catches = self._get_sorted_best_catches()
+        sorted_best_catches.reverse()
 
-        if n < 1:
-            raise FishTopArgumentError(
-                f'Cannot use a negative or zero value (n={n})')
+        if len(sorted_best_catches) == 0:
+            raise FishTopNoCatchesError('No best catches yet.')
 
-        try:
-            top_catch = sorted_entries[-n].best_catch
+        top_menu = menus.TopMenu(
+            source=menus.TopSource(sorted_best_catches),
+            clear_reactions_after=True,
+            )
 
-        except IndexError:
-            raise FishTopArgumentError(
-                f'Not enough entries (n={n} is too big)')
-
-        member = ctx.guild.get_member(top_catch.caught_by_id)
-        date_str = top_catch.caught_on.strftime('%b %d %Y')
-
-        embed = discord.Embed(
-            title=f'#{n} Top Catch of the Server',
-            color=EMBED_COLOR,
-        ).set_thumbnail(
-            url=member.avatar_url,
-        ).add_field(
-            name='Top Catch',
-            value=top_catch,
-        ).add_field(
-            name='Caught by',
-            value=member.mention,
-        ).add_field(
-            name='Caught on',
-            value=date_str,
-        )
-        embed.timestamp = datetime.utcnow()
-
-        await ctx.send(embed=embed)
+        await top_menu.start(ctx)
 
     @fish.command(name='trade')
     @commands.max_concurrency(1, per=commands.BucketType.channel)
@@ -578,11 +556,8 @@ class Fishing(FunCog):
     async def fish_top_error(self, ctx, error):
         """Error handling for the fish_top command."""
 
-        if isinstance(error, FishTopArgumentError):
+        if isinstance(error, FishTopNoCatchesError):
             await ctx.send(error)
-
-        elif isinstance(error, commands.BadArgument):
-            await ctx.send('Please enter an integer.')
 
         else:
             raise error
@@ -693,13 +668,13 @@ class Fishing(FunCog):
         self._remove_from_inventory(member, catch)
         self._give_experience(member, catch.weight)  # saves data here
 
-    def _get_sorted_best_catch(self):
+    def _get_sorted_best_catches(self):
         """Return the list of catches, sorted by weight."""
 
         entries = list(self.data.values())
-        entries = [e for e in entries if e.best_catch is not None]
+        best_catches = [e.best_catch for e in entries if e.best_catch is not None]
 
-        return sorted(entries, key=lambda x: x.best_catch)
+        return sorted(best_catches)
 
     def _save_data(self):
         """Save the data to disk (keep it in memory also)."""

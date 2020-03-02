@@ -1,7 +1,7 @@
 import asyncio
 import discord
 from discord.ext import menus
-from datetime import timedelta
+from datetime import datetime, timedelta
 
 from ..utils.formats import pretty_print_timedelta
 
@@ -10,6 +10,8 @@ INVENTORY_EMOJI = '\U0001f9f0'  # :toolbox:
 EXPERIENCE_EMOJI = '\U0001f4b5'  # :dollar:
 SELL_ALL_EMOJI = '\U0001f4b0'  # :moneybag:
 TRADE_EMOJI = '\U0001f501'  # :repeat:
+
+EMBED_COLOR = discord.Color.blurple()
 
 
 class Middle(menus.Position):
@@ -153,6 +155,41 @@ class InventorySource(menus.ListPageSource):
                 )
 
         embed.set_footer(text=footer_text)
+        return embed
+
+
+class TopMenu(_MenuUtils, menus.MenuPages):
+    """Interactive menu to see the top catches."""
+    pass
+
+
+class TopSource(menus.ListPageSource):
+    """Page source to format the top menu."""
+
+    def __init__(self, entries):
+        super().__init__(entries, per_page=1)
+
+    async def format_page(self, menu, page):
+        member = menu.ctx.guild.get_member(page.caught_by_id)
+        date_str = page.caught_on.strftime('%b %d %Y')
+
+        embed = discord.Embed(
+            title=f'#{menu.current_page + 1} Top Catch of the Server',
+            color=EMBED_COLOR,
+        ).set_thumbnail(
+            url=member.avatar_url,
+        ).add_field(
+            name='Top Catch',
+            value=page,
+        ).add_field(
+            name='Caught by',
+            value=member.mention,
+        ).add_field(
+            name='Caught on',
+            value=date_str,
+        )
+        embed.timestamp = datetime.utcnow()
+
         return embed
 
 
