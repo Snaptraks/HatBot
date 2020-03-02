@@ -46,7 +46,10 @@ class Responses(BasicCog):
             r = np.random.randint(10)
             if r == 0:
                 await asyncio.sleep(2)
-                await message.add_reaction(emoji)
+                try:
+                    await message.add_reaction(emoji)
+                except discord.NotFound:  # if message gets deleted before
+                    pass
 
     @commands.Cog.listener(name='on_message')
     async def on_mention(self, message):
