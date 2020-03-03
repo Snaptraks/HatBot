@@ -1,5 +1,5 @@
 import asyncio
-from collections import defaultdict
+from collections import Counter, defaultdict
 import copy
 import json
 import os
@@ -287,6 +287,9 @@ class Fishing(FunCog):
 
         catch = Fish.from_random(entry.exp, self.weather.state, ctx.author.id)
 
+        # add to journal
+        self._add_to_journal(ctx.author, catch)
+
         # save best catch
         self._set_best_catch(ctx.author, catch)
 
@@ -389,6 +392,55 @@ class Fishing(FunCog):
 
             for catch in catches:
                 self._sell_from_inventory(ctx.author, catch)
+
+    @fish.command(name='journal', aliases=['log'])
+    async def fish_journal(self, ctx):
+        """Fishing log of the amount of fish caught and different stats."""
+
+        entry = self._get_member_entry(ctx.author)
+
+        total_species = {key: len(value['species'])
+                         for key, value in FISH_SPECIES.items()}
+        species_caught = {key: len(value)
+                          for key, value in entry.journal.items()}
+        species_caught_str = '\n'.join(
+            f'{size.title()}: **{species_caught[size]}/{total_species[size]}**'
+            for size in FISH_SPECIES.keys()
+            )
+
+        most_caught = {key: value.most_common(1)[0][0]
+                       for key, value in entry.journal.items()
+                       if len(value) > 0}
+        most_caught_str = '\n'.join(
+            f'{size.title()} **{most_caught[size]}**'
+            for size in most_caught.keys()
+            )
+
+        totals_str = (
+            'Species Caught: '
+            f'**{sum(species_caught.values())}'
+            f'/{sum(total_species.values())}**\n'
+            f'Catches: **{entry.total_caught}**'
+            )
+
+        embed = discord.Embed(
+            title=('Fishing Journal of '
+                   f'{escape_markdown(ctx.author.display_name)}'),
+            color=EMBED_COLOR,
+        ).set_thumbnail(
+            url=ctx.author.avatar_url,
+        ).add_field(
+            name='Species Caught',
+            value=species_caught_str if species_caught_str else None,
+        ).add_field(
+            name='Most Caught',
+            value=most_caught_str if most_caught_str else None,
+        ).add_field(
+            name='Totals',
+            value=totals_str,
+        )
+
+        await ctx.send(embed=embed)
 
     @fish.command(name='slap', cooldown_after_parsing=True)
     @commands.cooldown(1, 30, commands.BucketType.member)
@@ -624,11 +676,13 @@ class Fishing(FunCog):
         if inventory is None:
             inventory = []
 
-        return AttrDict(
+        return AttrDict.from_nested_dict(dict(
             best_catch=best_catch,
             exp=exp,
             inventory=inventory,
-            )
+            journal={size: Counter() for size in FISH_SPECIES.keys()},
+            total_caught=0,
+            ))
 
     def _get_member_entry(self, member: discord.Member):
         """Return the member entry, or create one if it does not exist yet."""
@@ -641,6 +695,16 @@ class Fishing(FunCog):
             self.data[member.id] = entry
 
         return entry
+
+    def _add_to_journal(self, member: discord.Member, catch: Fish):
+        """Helper function to add a catch to a member's fishing journal."""
+
+        entry = self._get_member_entry(member)
+
+        entry.total_caught += 1
+        entry.journal[catch.size][catch.species] += 1
+
+        self._save_data()
 
     def _give_experience(self, member: discord.Member, amount: float):
         """Helper function to give experience, and handle KeyErrors."""
