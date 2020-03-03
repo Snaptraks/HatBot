@@ -264,6 +264,10 @@ class Fishing(FunCog):
         # self.channel_msg = self.bot.get_channel(588171779957063680)  # bot-0
         self.channel_msg = self.bot.get_channel(548606793656303625)  # hatbot-land
         # self.channel_msg = self.bot.get_channel(680866127546679307)  # hatbot-beta
+        if self.channel_msg is None:
+            self.interest_experience.cancel()
+            return
+
         self.guild = self.channel_msg.guild
 
         now = datetime.utcnow()
