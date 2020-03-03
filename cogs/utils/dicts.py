@@ -1,3 +1,6 @@
+from collections import Counter
+
+
 class AttrDict(dict):
     """Dictionary subclass whose entries can be accessed by attributes
     (as well as normally).
@@ -12,6 +15,8 @@ class AttrDict(dict):
     def from_nested_dict(cls, data):
         """Construct nested AttrDicts from nested dictionaries. """
         if not isinstance(data, dict):
+            return data
+        elif isinstance(data, Counter):
             return data
         else:
             return cls({key: cls.from_nested_dict(data[key])
