@@ -159,12 +159,12 @@ class InventorySource(menus.ListPageSource):
 
 
 class TopMenu(_MenuUtils, menus.MenuPages):
-    """Interactive menu to see the top catches."""
+    """Interactive menu to see the top catches or experience."""
     pass
 
 
-class TopSource(menus.ListPageSource):
-    """Page source to format the top menu."""
+class TopCatchesSource(menus.ListPageSource):
+    """Page source to format the top catches menu."""
 
     def __init__(self, entries):
         super().__init__(entries, per_page=1)
@@ -187,6 +187,35 @@ class TopSource(menus.ListPageSource):
         ).add_field(
             name='Caught on',
             value=date_str,
+        )
+        embed.timestamp = datetime.utcnow()
+
+        return embed
+
+
+class TopExperienceSource(menus.ListPageSource):
+    """Page source to format the top experience menu."""
+
+    def __init__(self, entries):
+        super().__init__(entries, per_page=1)
+
+    async def format_page(self, menu, page):
+        member = menu.ctx.guild.get_member(page[0])
+
+        embed = discord.Embed(
+            title=f'#{menu.current_page + 1} Experience of the Server',
+            color=EMBED_COLOR,
+        ).set_thumbnail(
+            url=member.avatar_url,
+        ).add_field(
+            name='Member',
+            value=member.mention,
+        ).add_field(
+            name='Experience',
+            value=f'{page[1].exp:.3f} xp',
+        ).add_field(
+            name='Best Catch',
+            value=page[1].best_catch,
         )
         embed.timestamp = datetime.utcnow()
 

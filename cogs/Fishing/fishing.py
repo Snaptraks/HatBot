@@ -48,7 +48,7 @@ WEATHERS = [
 EMBED_COLOR = discord.Color.blurple()
 
 
-class FishTopNoCatchesError(commands.CommandError):
+class FishTopNoEntriesError(commands.CommandError):
     """Exception raised when the fish_top command called but no best
     catches are set yet.
     """
@@ -344,6 +344,23 @@ class Fishing(FunCog):
                     ctx.author.id)
         await ctx.send(embed=fish.to_embed())
 
+    @fish.command(name='exptop')
+    async def fish_exptop(self, ctx):
+        """Display the users who have the most experience."""
+
+        sorted_experience = self._get_sorted_experience()
+        sorted_experience.reverse()
+
+        if len(sorted_experience) == 0:
+            raise FishTopNoEntriesError('No one with experience yet.')
+
+        top_menu = menus.TopMenu(
+            source=menus.TopExperienceSource(sorted_experience),
+            clear_reactions_after=True,
+            )
+
+        await top_menu.start(ctx)
+
     @fish.command(name='inventory', aliases=['inv', 'bag', 'sell'])
     async def fish_inventory(self, ctx):
         """Look at your fishing inventory.
@@ -414,10 +431,10 @@ class Fishing(FunCog):
         sorted_best_catches.reverse()
 
         if len(sorted_best_catches) == 0:
-            raise FishTopNoCatchesError('No best catches yet.')
+            raise FishTopNoEntriesError('No best catches yet.')
 
         top_menu = menus.TopMenu(
-            source=menus.TopSource(sorted_best_catches),
+            source=menus.TopCatchesSource(sorted_best_catches),
             clear_reactions_after=True,
             )
 
@@ -679,6 +696,14 @@ class Fishing(FunCog):
         best_catches = [e.best_catch for e in entries if e.best_catch is not None]
 
         return sorted(best_catches)
+
+    def _get_sorted_experience(self):
+        """Return the list of member entries, sorted by experience."""
+
+        entries = list(self.data.items())
+        entries = [e for e in entries if e[1].exp > 0]
+
+        return sorted(entries, key=lambda e: e[1].exp)
 
     def _save_data(self):
         """Save the data to disk (keep it in memory also)."""
