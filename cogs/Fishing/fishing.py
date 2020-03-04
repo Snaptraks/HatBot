@@ -84,7 +84,7 @@ def is_not_stunned():
         if stunned:
             stunned_for = stunned_until - datetime.utcnow()
             raise IsStunnedError('You are still stunned for '
-                f'{pretty_print_timedelta(stunned_for)}!')
+                                 f'{pretty_print_timedelta(stunned_for)}!')
 
         return True
 
@@ -254,9 +254,12 @@ class Fishing(FunCog):
 
         await self.bot.wait_until_ready()
 
-        # self.channel_msg = self.bot.get_channel(588171779957063680)  # bot-0
-        self.channel_msg = self.bot.get_channel(548606793656303625)  # hatbot-land
-        # self.channel_msg = self.bot.get_channel(680866127546679307)  # hatbot-beta
+        # bot-0
+        # self.channel_msg = self.bot.get_channel(588171779957063680)
+        # hatbot-land
+        self.channel_msg = self.bot.get_channel(548606793656303625)
+        # hatbot-meta
+        # self.channel_msg = self.bot.get_channel(680866127546679307)
         if self.channel_msg is None:
             self.interest_experience.cancel()
             return
@@ -270,7 +273,8 @@ class Fishing(FunCog):
 
     @commands.group(aliases=['feesh'], invoke_without_command=True,
                     cooldown_after_parsing=True)
-    @commands.cooldown(1, 20 * 60, commands.BucketType.member)  # 1 every 20 mins
+    # 1 every 20 mins                
+    @commands.cooldown(1, 20 * 60, commands.BucketType.member)
     @is_not_stunned()
     @no_opened_inventory()
     async def fish(self, ctx):
@@ -765,7 +769,8 @@ class Fishing(FunCog):
         """Return the list of catches, sorted by weight."""
 
         entries = list(self.data.values())
-        best_catches = [e.best_catch for e in entries if e.best_catch is not None]
+        best_catches = [
+            e.best_catch for e in entries if e.best_catch is not None]
 
         return sorted(best_catches)
 
