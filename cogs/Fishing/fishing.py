@@ -306,10 +306,7 @@ class Fishing(FunCog):
         if isinstance(error, commands.CommandOnCooldown):
             await menus.CooldownMenu(ctx.message, error).start(ctx)
 
-        elif isinstance(error, IsStunnedError):
-            await ctx.send(error)
-
-        elif isinstance(error, OpenedInventoryError):
+        elif isinstance(error, (IsStunnedError, OpenedInventoryError)):
             await ctx.send(error)
 
         else:
@@ -516,13 +513,11 @@ class Fishing(FunCog):
         if isinstance(error, commands.MissingRequiredArgument):
             await ctx.send('You need to specify someone to slap.')
 
-        elif isinstance(error, commands.BadArgument):
-            await ctx.send(error)
-
-        elif isinstance(error, NoFishError):
-            await ctx.send(error)
-
-        elif isinstance(error, OpenedInventoryError):
+        elif isinstance(error, (
+                commands.BadArgument,
+                NoFishError,
+                OpenedInventoryError,
+                )):
             await ctx.send(error)
 
         else:
@@ -663,10 +658,7 @@ class Fishing(FunCog):
         elif isinstance(error, commands.MissingRequiredArgument):
             await ctx.send('You need to specify a member to trade with.')
 
-        elif isinstance(error, NoFishError):
-            await ctx.send(error)
-
-        elif isinstance(error, commands.BadArgument):
+        elif isinstance(error, (commands.BadArgument, NoFishError)):
             await ctx.send(error)
 
         else:
