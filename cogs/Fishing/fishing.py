@@ -297,6 +297,24 @@ class Fishing(FunCog):
         else:
             self._give_experience(ctx.author, catch.weight)
 
+    @fish.error
+    async def fish_error(self, ctx, error):
+        """Error handling for the fish command.
+        In case of CommandOnCooldown error, allow user to check how much
+        time is left.
+        """
+        if isinstance(error, commands.CommandOnCooldown):
+            await menus.CooldownMenu(ctx.message, error).start(ctx)
+
+        elif isinstance(error, IsStunnedError):
+            await ctx.send(error)
+
+        elif isinstance(error, OpenedInventoryError):
+            await ctx.send(error)
+
+        else:
+            raise error
+
     @fish.command(name='card')
     async def fish_card(self, ctx, *, member: discord.Member = None):
         """Show some statistics about a member's fishing experience."""
@@ -358,6 +376,16 @@ class Fishing(FunCog):
 
         await top_menu.start(ctx)
 
+    @fish_exptop.error
+    async def fish_exptop_error(self, ctx, error):
+        """Error handling for the fish_exptop command."""
+
+        if isinstance(error, FishTopNoEntriesError):
+            await ctx.send(error)
+
+        else:
+            raise error
+
     @fish.command(name='inventory', aliases=['inv', 'bag', 'sell'])
     async def fish_inventory(self, ctx):
         """Look at your fishing inventory.
@@ -386,6 +414,18 @@ class Fishing(FunCog):
 
             for catch in catches:
                 self._sell_from_inventory(ctx.author, catch)
+
+    @fish_inventory.before_invoke
+    async def fish_inventory_before(self, ctx):
+        """Register the member as currently with an opened inventory."""
+
+        self.opened_inventory.add(ctx.author.id)
+
+    @fish_inventory.after_invoke
+    async def fish_inventory_after(self, ctx):
+        """Remove the member from being currently with an opened inventory."""
+
+        self.opened_inventory.remove(ctx.author.id)
 
     @fish.command(name='journal', aliases=['log'])
     async def fish_journal(self, ctx):
@@ -469,6 +509,25 @@ class Fishing(FunCog):
 
         await ctx.send(out_str)
 
+    @fish_slap.error
+    async def fish_slap_error(self, ctx, error):
+        """Error handling for the fish_slap command."""
+
+        if isinstance(error, commands.MissingRequiredArgument):
+            await ctx.send('You need to specify someone to slap.')
+
+        elif isinstance(error, commands.BadArgument):
+            await ctx.send(error)
+
+        elif isinstance(error, NoFishError):
+            await ctx.send(error)
+
+        elif isinstance(error, OpenedInventoryError):
+            await ctx.send(error)
+
+        else:
+            raise error
+
     @fish.command(name='top')
     async def fish_top(self, ctx):
         """Display the best catches server-wide."""
@@ -485,6 +544,16 @@ class Fishing(FunCog):
             )
 
         await top_menu.start(ctx)
+
+    @fish_top.error
+    async def fish_top_error(self, ctx, error):
+        """Error handling for the fish_top command."""
+
+        if isinstance(error, FishTopNoEntriesError):
+            await ctx.send(error)
+
+        else:
+            raise error
 
     @fish.command(name='trade')
     @commands.max_concurrency(1, per=commands.BucketType.channel)
@@ -579,53 +648,6 @@ class Fishing(FunCog):
         """Remove the two members from being currently in trade."""
 
         other_member = ctx.kwargs['other_member']
-
-    @fish.error
-    async def fish_error(self, ctx, error):
-        """Error handling for the fish command.
-        In case of CommandOnCooldown error, allow user to check how much
-        time is left.
-        """
-        if isinstance(error, commands.CommandOnCooldown):
-            await menus.CooldownMenu(ctx.message, error).start(ctx)
-
-        elif isinstance(error, IsStunnedError):
-            await ctx.send(error)
-
-        elif isinstance(error, InTradeError):
-            await ctx.send(error)
-
-        else:
-            raise error
-
-    @fish_slap.error
-    async def fish_slap_error(self, ctx, error):
-        """Error handling for the fish_slap command."""
-
-        if isinstance(error, commands.MissingRequiredArgument):
-            await ctx.send('You need to specify someone to slap.')
-
-        elif isinstance(error, commands.BadArgument):
-            await ctx.send(error)
-
-        elif isinstance(error, NoFishError):
-            await ctx.send(error)
-
-        elif isinstance(error, InTradeError):
-            await ctx.send(error)
-
-        else:
-            raise error
-
-    @fish_top.error
-    async def fish_top_error(self, ctx, error):
-        """Error handling for the fish_top command."""
-
-        if isinstance(error, FishTopNoCatchesError):
-            await ctx.send(error)
-
-        else:
-            raise error
         self.opened_inventory.remove(ctx.author.id)
         self.opened_inventory.remove(other_member.id)
 
