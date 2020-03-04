@@ -68,8 +68,8 @@ class IsStunnedError(commands.CheckFailure):
     pass
 
 
-class InTradeError(commands.CheckFailure):
-    """Exception raised when the check `is_not_trading` has failed."""
+class OpenedInventoryError(commands.CheckFailure):
+    """Exception raised when the check `no_opened_inventory` has failed."""
 
     pass
 
@@ -91,12 +91,13 @@ def is_not_stunned():
     return commands.check(predicate)
 
 
-def is_not_trading():
-    """Decorator that checks if the member is currently trading."""
+def no_opened_inventory():
+    """Decorator that checks if the member has an inventory opened."""
 
     def predicate(ctx):
-        if ctx.author.id in ctx.cog.in_trade:
-            raise InTradeError('You are in a trade, you cannot do that yet.')
+        if ctx.author.id in ctx.cog.opened_inventory:
+            raise OpenedInventoryError(
+                'You need to close your inventory/trade menu first.')
 
         return True
 
@@ -191,7 +192,7 @@ class Fishing(FunCog):
     def __init__(self, bot):
         super().__init__(bot)
         self.stunned_until = defaultdict(lambda: datetime.min)
-        self.in_trade = set()
+        self.opened_inventory = set()
         self.change_weather.start()
         self.interest_experience.start()
 
@@ -271,7 +272,7 @@ class Fishing(FunCog):
                     cooldown_after_parsing=True)
     @commands.cooldown(1, 20 * 60, commands.BucketType.member)  # 1 every 20 mins
     @is_not_stunned()
-    @is_not_trading()
+    @no_opened_inventory()
     async def fish(self, ctx):
         """Command group for the fishing commands.
         If invoked without subcommand, catches a random fish.
@@ -437,7 +438,7 @@ class Fishing(FunCog):
 
     @fish.command(name='slap', cooldown_after_parsing=True)
     @commands.cooldown(1, 30, commands.BucketType.member)
-    @is_not_trading()
+    @no_opened_inventory()
     async def fish_slap(self, ctx, *, member: discord.Member):
         """Slap another member with one of your fish.
         Slapping someone prevents them from fishing for a given amount
@@ -570,16 +571,14 @@ class Fishing(FunCog):
         """Register the two members as currently in trade."""
 
         other_member = ctx.kwargs['other_member']
-        self.in_trade.add(ctx.author.id)
-        self.in_trade.add(other_member.id)
+        self.opened_inventory.add(ctx.author.id)
+        self.opened_inventory.add(other_member.id)
 
     @fish_trade.after_invoke
     async def fish_trade_after(self, ctx):
         """Remove the two members from being currently in trade."""
 
         other_member = ctx.kwargs['other_member']
-        self.in_trade.remove(ctx.author.id)
-        self.in_trade.remove(other_member.id)
 
     @fish.error
     async def fish_error(self, ctx, error):
@@ -627,6 +626,8 @@ class Fishing(FunCog):
 
         else:
             raise error
+        self.opened_inventory.remove(ctx.author.id)
+        self.opened_inventory.remove(other_member.id)
 
     @fish_trade.error
     async def fish_trade_error(self, ctx, error):
