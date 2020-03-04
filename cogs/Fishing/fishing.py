@@ -49,8 +49,8 @@ EMBED_COLOR = discord.Color.blurple()
 
 
 class FishTopNoEntriesError(commands.CommandError):
-    """Exception raised when the fish_top command called but no best
-    catches are set yet.
+    """Exception raised when the fish_top or fish_exptop commands are
+    called but no best catches or experience are set yet.
     """
     pass
 
