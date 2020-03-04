@@ -230,18 +230,10 @@ class Fishing(FunCog):
         active_members = []
         for m in self.guild.members:
             try:
-                exp = self.cog_levels.data[m.id].exp
-
+                if self.data[m.id].total_caught > 0:
+                    active_members.append(m)
             except KeyError:
-                exp = 0
-
-            except AttributeError:
-                # often if cog_levels is None
-                # assume everyone is active
-                exp = 1
-
-            if exp > 0:
-                active_members.append(m)
+                pass
 
         winner = np.random.choice(active_members)
         # bonus_experience = np.random.normal(10, 3)  # can be negative
