@@ -425,10 +425,13 @@ class Fishing(FunCog):
         self.opened_inventory.remove(ctx.author.id)
 
     @fish.command(name='journal', aliases=['log', 'stats'])
-    async def fish_journal(self, ctx):
+    async def fish_journal(self, ctx, member: discord.Member = None):
         """Fishing log of the amount of fish caught and different stats."""
 
-        entry = self._get_member_entry(ctx.author)
+        if member is None:
+            member = ctx.author
+
+        entry = self._get_member_entry(member)
 
         total_species = {key: len(value['species'])
                          for key, value in FISH_SPECIES.items()}
@@ -456,10 +459,10 @@ class Fishing(FunCog):
 
         embed = discord.Embed(
             title=('Fishing Journal of '
-                   f'{escape_markdown(ctx.author.display_name)}'),
+                   f'{escape_markdown(member.display_name)}'),
             color=EMBED_COLOR,
         ).set_thumbnail(
-            url=ctx.author.avatar_url,
+            url=member.avatar_url,
         ).add_field(
             name='Species Caught',
             value=species_caught_str if species_caught_str else None,
