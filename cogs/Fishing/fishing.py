@@ -424,7 +424,7 @@ class Fishing(FunCog):
 
         self.opened_inventory.remove(ctx.author.id)
 
-    @fish.command(name='journal', aliases=['log'])
+    @fish.command(name='journal', aliases=['log', 'stats'])
     async def fish_journal(self, ctx):
         """Fishing log of the amount of fish caught and different stats."""
 
