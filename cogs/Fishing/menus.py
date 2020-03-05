@@ -113,14 +113,22 @@ class InventoryMenu(_MenuUtils, menus.MenuPages):
     async def on_sell_one(self, payload):
         """Sell the Fish on the current_page."""
 
-        self.source._to_sell.add(self.current_page)
+        if self.current_page in self.source._to_sell:
+            self.source._to_sell.remove(self.current_page)
+        else:
+            self.source._to_sell.add(self.current_page)
+
         await self.show_page(self.current_page)
 
     @menus.button(SELL_ALL_EMOJI, position=Middle(1))
     async def on_sell_all(self, payload):
         """Sell all the Fish in the member's inventory."""
 
-        self.source._to_sell = set(range(self.source.get_max_pages()))
+        if self.current_page in self.source._to_sell:
+            self.source._to_sell = set()
+        else:
+            self.source._to_sell = set(range(self.source.get_max_pages()))
+
         await self.show_page(self.current_page)
 
     async def prompt(self, ctx):
