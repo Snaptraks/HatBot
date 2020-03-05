@@ -181,11 +181,14 @@ class TopCatchesSource(menus.ListPageSource):
         member = menu.ctx.guild.get_member(page.caught_by_id)
         date_str = page.caught_on.strftime('%b %d %Y')
 
+        if member is None:
+            member = discord.Object(page[0])
+            member.avatar_url = None
+            member.mention = f'<@{page[0]}>'
+
         embed = discord.Embed(
             title=f'#{menu.current_page + 1} Top Catch of the Server',
             color=EMBED_COLOR,
-        ).set_thumbnail(
-            url=member.avatar_url,
         ).add_field(
             name='Top Catch',
             value=page,
@@ -197,6 +200,11 @@ class TopCatchesSource(menus.ListPageSource):
             value=date_str,
         )
         embed.timestamp = datetime.utcnow()
+
+        if member.avatar_url:
+            embed.set_thumbnail(
+                url=member.avatar_url,
+            )
 
         return embed
 
@@ -210,11 +218,14 @@ class TopExperienceSource(menus.ListPageSource):
     async def format_page(self, menu, page):
         member = menu.ctx.guild.get_member(page[0])
 
+        if member is None:
+            member = discord.Object(page[0])
+            member.avatar_url = None
+            member.mention = f'<@{page[0]}>'
+
         embed = discord.Embed(
             title=f'#{menu.current_page + 1} Experience of the Server',
             color=EMBED_COLOR,
-        ).set_thumbnail(
-            url=member.avatar_url,
         ).add_field(
             name='Member',
             value=member.mention,
@@ -226,6 +237,11 @@ class TopExperienceSource(menus.ListPageSource):
             value=page[1].best_catch,
         )
         embed.timestamp = datetime.utcnow()
+
+        if member.avatar_url:
+            embed.set_thumbnail(
+                url=member.avatar_url,
+            )
 
         return embed
 
