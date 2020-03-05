@@ -767,11 +767,11 @@ class Fishing(FunCog):
     def _get_sorted_best_catches(self):
         """Return the list of catches, sorted by weight."""
 
-        entries = list(self.data.values())
+        entries = list(self.data.items())
         best_catches = [
-            e.best_catch for e in entries if e.best_catch is not None]
+            e for e in entries if e[1].best_catch is not None]
 
-        return sorted(best_catches)
+        return sorted(best_catches, key=lambda e: e[1].best_catch)
 
     def _get_sorted_experience(self):
         """Return the list of member entries, sorted by experience."""

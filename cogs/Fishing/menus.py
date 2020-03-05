@@ -178,8 +178,9 @@ class TopCatchesSource(menus.ListPageSource):
         super().__init__(entries, per_page=1)
 
     async def format_page(self, menu, page):
-        member = menu.ctx.guild.get_member(page.caught_by_id)
-        date_str = page.caught_on.strftime('%b %d %Y')
+        member = menu.ctx.guild.get_member(page[0])
+        
+        date_str = page[1].best_catch.caught_on.strftime('%b %d %Y')
 
         if member is None:
             member = discord.Object(page[0])
@@ -191,7 +192,7 @@ class TopCatchesSource(menus.ListPageSource):
             color=EMBED_COLOR,
         ).add_field(
             name='Top Catch',
-            value=page,
+            value=page[1].best_catch,
         ).add_field(
             name='Caught by',
             value=member.mention,
