@@ -442,11 +442,12 @@ class Fishing(FunCog):
             for size in FISH_SPECIES.keys()
             )
 
-        most_caught = {key: value.most_common(1)[0][0]
+        most_caught = {key: value.most_common(1)[0]
                        for key, value in entry.journal.items()
                        if len(value) > 0}
-        most_caught_str = '\n'.join(
-            f'{size.title()} **{most_caught[size]}**'
+        most_caught_str = '\n'.join((
+            f'{size.title()} **{most_caught[size][0]} '
+            f'({most_caught[size][1]})**')
             for size in most_caught.keys()
             )
 
