@@ -304,7 +304,9 @@ class Fishing(FunCog):
         time is left.
         """
         if isinstance(error, commands.CommandOnCooldown):
-            await menus.CooldownMenu(ctx.message, error).start(ctx)
+            await menus.CooldownMenu(
+                ctx.message, error,
+                'You have already tried to fish recently').start(ctx)
 
         elif isinstance(error, (IsStunnedError, OpenedInventoryError)):
             await ctx.send(error)
@@ -515,7 +517,9 @@ class Fishing(FunCog):
         """Error handling for the fish_slap command."""
 
         if isinstance(error, commands.CommandOnCooldown):
-            await menus.CooldownMenu(ctx.message, error).start(ctx)
+            await menus.CooldownMenu(
+                ctx.message, error,
+                'You have already tried to slap recently').start(ctx)
 
         elif isinstance(error, commands.MissingRequiredArgument):
             await ctx.send('You need to specify someone to slap.')

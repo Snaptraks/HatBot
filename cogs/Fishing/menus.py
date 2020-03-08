@@ -37,10 +37,11 @@ class _MenuUtils:
 class CooldownMenu(menus.Menu):
     """Menu to check the remaining cooldown time."""
 
-    def __init__(self, message, error):
+    def __init__(self, message, error, error_message):
         super().__init__(timeout=10 * 60, delete_message_after=True,
                          message=message)
         self.error = error
+        self.error_message = error_message
 
     @menus.button(HOURGLASS_EMOJI)
     async def on_hourglass(self, payload):
@@ -48,7 +49,7 @@ class CooldownMenu(menus.Menu):
 
         retry_after = timedelta(seconds=self.error.retry_after)
         await self.ctx.author.send(
-            f'You have already tried to fish recently, '
+            f'{self.error_message}, '
             f'wait for {pretty_print_timedelta(retry_after)}.'
             )
 
@@ -179,7 +180,6 @@ class TopCatchesSource(menus.ListPageSource):
 
     async def format_page(self, menu, page):
         member = menu.ctx.guild.get_member(page[0])
-        
         date_str = page[1].best_catch.caught_on.strftime('%b %d %Y')
 
         if member is None:
