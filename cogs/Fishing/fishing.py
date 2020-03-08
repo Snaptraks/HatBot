@@ -513,7 +513,10 @@ class Fishing(FunCog):
     async def fish_slap_error(self, ctx, error):
         """Error handling for the fish_slap command."""
 
-        if isinstance(error, commands.MissingRequiredArgument):
+        if isinstance(error, commands.CommandOnCooldown):
+            await menus.CooldownMenu(ctx.message, error).start(ctx)
+
+        elif isinstance(error, commands.MissingRequiredArgument):
             await ctx.send('You need to specify someone to slap.')
 
         elif isinstance(error, (
