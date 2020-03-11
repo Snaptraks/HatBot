@@ -268,7 +268,7 @@ class Fishing(FunCog):
         await discord.utils.sleep_until(next)  # wait until then
 
     @commands.group(aliases=['feesh', '<:feesh:427018890137174016>'],
-                   invoke_without_command=True, cooldown_after_parsing=True)
+                    invoke_without_command=True, cooldown_after_parsing=True)
     # 1 every 20 mins
     @commands.cooldown(1, 20 * 60, commands.BucketType.member)
     @is_not_stunned()
