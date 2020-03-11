@@ -204,17 +204,25 @@ class Fishing(FunCog):
         # start tasks loops
         self.change_weather.start()
         self.interest_experience.start()
+        self.save_data_task.start()
 
     def cog_unload(self):
         super().cog_unload()
         self.change_weather.cancel()
         self.interest_experience.cancel()
+        self.save_data_task.cancel()
         self._save_data()
 
     def cog_check(self, ctx):
         """Check if is in a guild, and if in appropriate channel."""
 
         return ctx.guild is not None and super().cog_check(ctx)
+
+    @tasks.loop(minutes=5)
+    async def save_data_task(self):
+        """Save the data to disk regularly."""
+
+        self._save_data()
 
     @tasks.loop(hours=24)
     async def change_weather(self):
@@ -725,8 +733,6 @@ class Fishing(FunCog):
         entry.total_caught += 1
         entry.journal[catch.size][catch.species] += 1
 
-        self._save_data()
-
     def _give_experience(self, member: discord.Member, amount: float):
         """Helper function to give experience, and handle KeyErrors."""
 
@@ -735,8 +741,6 @@ class Fishing(FunCog):
 
         except KeyError:
             self.data[member.id] = self._init_member_entry(exp=amount)
-
-        self._save_data()
 
     def _set_best_catch(self, member: discord.Member, catch: Fish):
         """Helper function to save the best catch of a member."""
@@ -749,8 +753,6 @@ class Fishing(FunCog):
         except TypeError:
             entry.best_catch = catch
 
-        self._save_data()
-
     def _add_to_inventory(self, member: discord.Member, catch: Fish):
         """Helper function to add a catch to a member's inventory."""
 
@@ -758,15 +760,11 @@ class Fishing(FunCog):
         entry.inventory.append(catch)
         entry.inventory.sort()
 
-        self._save_data()
-
     def _remove_from_inventory(self, member: discord.Member, catch: Fish):
         """Helper function to remove a catch from a member's inventory."""
 
         entry = self._get_member_entry(member)
         entry.inventory.remove(catch)
-
-        self._save_data()
 
     def _sell_from_inventory(self, member: discord.Member, catch: Fish):
         """Helper function to sell a catch from a member's inventory."""
