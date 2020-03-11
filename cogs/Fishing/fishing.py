@@ -193,8 +193,6 @@ class Fishing(FunCog):
         super().__init__(bot)
         self.stunned_until = defaultdict(lambda: datetime.min)
         self.opened_inventory = set()
-        self.change_weather.start()
-        self.interest_experience.start()
 
         try:
             with open(os.path.join(self._cog_path, 'fish_data.pkl'), 'rb') as f:
@@ -202,6 +200,10 @@ class Fishing(FunCog):
 
         except FileNotFoundError:
             self.data = AttrDict()
+
+        # start tasks loops
+        self.change_weather.start()
+        self.interest_experience.start()
 
     def cog_unload(self):
         super().cog_unload()
