@@ -87,7 +87,7 @@ class Admin(BasicCog):
     async def cogs_after_invoke(self, ctx):
         module = ctx.args[2]
         if not ctx.command_failed:
-            print(f'Successfully {ctx.invoked_with}ed extension {module}.')
+            print(f'Successfully {ctx.command.name}ed extension {module}.')
             await ctx.message.add_reaction('\N{WHITE HEAVY CHECK MARK}')
 
     @cogs_reload_all.after_invoke
@@ -102,7 +102,7 @@ class Admin(BasicCog):
     async def cogs_error(self, ctx, error):
         module = ctx.args[2]
         exc = f'{type(error).__name__}: {error}'
-        print(f'Failed to {ctx.invoked_with} extension {module}.\n{exc}')
+        print(f'Failed to {ctx.command.name} extension {module}.\n{exc}')
         await ctx.message.add_reaction('\N{CROSS MARK}')
         raise error
 
