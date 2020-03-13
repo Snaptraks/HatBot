@@ -30,6 +30,29 @@ class Admin(BasicCog):
 
         await self.bot.logout()
 
+    @commands.command(name='eip')
+    @commands.dm_only()
+    async def external_ip(self, ctx):
+        """Return the external IP and SSH port.
+        This works only if the bot is running on a Linux based machine.
+        """
+        async with self.bot.http_session.get('https://ifconfig.me/ip') as resp:
+            if resp.status == 200:
+                ip_address = await resp.text()
+
+            else:
+                ip_address = 'Could not get external IP'
+
+        await ctx.send(f'`{ip_address}`')
+
+    @external_ip.error
+    async def ip_error(self, ctx, error):
+        if isinstance(error, commands.PrivateMessageOnly):
+            await ctx.send(error)
+
+        else:
+            raise error
+
     @commands.group(aliases=['cog', 'c'], invoke_without_command=True)
     async def cogs(self, ctx):
         """List current active cogs."""
