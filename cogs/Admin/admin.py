@@ -142,7 +142,7 @@ class Admin(BasicCog):
         """Display the uptime in days, and the boot time."""
 
         # message = 'I have been online for {}! (Since {:%Y-%m-%d %H:%M:%S})'
-        uptime_ = datetime.now() - self.bot.boot_time
+        uptime_ = datetime.utcnow() - self.bot.boot_time
         out_str = (f'I have been online for {uptime_.days} days! '
                    f'(Since {self.bot.boot_time:%c})')
         await ctx.send(out_str)

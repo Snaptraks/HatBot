@@ -78,7 +78,7 @@ class Responses(BasicCog):
                 and not self.bot.user.mention in message.content \
                 and message.channel.name != 'general':
 
-            dt = datetime.now() - self.hello_there_params['last_time']
+            dt = datetime.utcnow() - self.hello_there_params['last_time']
 
             if dt > self.hello_there_params['cooldown']:
                 pics = glob('cogs/Responses/hellothere/*.*')
@@ -86,7 +86,7 @@ class Responses(BasicCog):
                 await self.send_typing_delay(message.channel)
                 # await self.channel_msg.send(file=meme)
                 await message.channel.send(file=meme)
-                self.hello_there_params['last_time'] = datetime.now()
+                self.hello_there_params['last_time'] = datetime.utcnow()
 
     @commands.Cog.listener(name='on_message')
     async def they_said(self, message):
@@ -99,12 +99,12 @@ class Responses(BasicCog):
 
             author = message.author
             channel = message.channel
-            dt = datetime.now() - self.they_said_params['last_time']
+            dt = datetime.utcnow() - self.they_said_params['last_time']
 
             if author == self.they_said_params['last_author'] \
                     and dt < self.they_said_params['cooldown']:
 
-                self.they_said_params['last_time'] = datetime.now()
+                self.they_said_params['last_time'] = datetime.utcnow()
                 return  # don't let people spam wat in succession
 
             i = 0
@@ -150,7 +150,7 @@ class Responses(BasicCog):
                 if is_valid:
                     self.they_said_params['last_author'] = author
                     self.they_said_params['last_message'] = m
-                    self.they_said_params['last_time'] = datetime.now()
+                    self.they_said_params['last_time'] = datetime.utcnow()
                     out_content = m.content.upper()
 
                     if message.content == message.content.upper():

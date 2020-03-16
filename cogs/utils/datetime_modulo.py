@@ -46,7 +46,7 @@ class datetime(dt.datetime):
 if __name__ == '__main__':
     period = 1
 
-    t = datetime.now()
+    t = datetime.utcnow()
     rt = t % dt.timedelta(hours=period)
     wait = dt.timedelta(hours=period) - rt
 

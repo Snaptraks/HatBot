@@ -142,7 +142,7 @@ class Feesh(FunCog):
 
         while not self.bot.is_closed():
 
-            t = datetime.now()
+            t = datetime.utcnow()
             wait = period - (t % period)
             await asyncio.sleep(wait.total_seconds())
 

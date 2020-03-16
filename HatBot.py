@@ -27,7 +27,7 @@ class MyBot(Bot):
         self.http_session = self.loop.run_until_complete(
             create_http_session(self.loop))
 
-        self.boot_time = datetime.now()
+        self.boot_time = datetime.utcnow()
 
     async def close(self):
         """Subclass the close() method to close the HTTP Session."""
@@ -41,7 +41,7 @@ class MyBot(Bot):
             f'| Connected to {len(self.guilds)} guilds '
             f'| Connected to {len(set(self.get_all_members()))} users\n'
             '--------\n'
-            f'Startup Time: {datetime.now()}\n'
+            f'Startup Time: {self.boot_time.strftime("%c")} UTC\n'
             '--------\n'
             f'Current Discord.py Version: {discord.__version__} '
             f'| Current Python Version: {platform.python_version()}\n'

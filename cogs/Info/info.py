@@ -87,7 +87,8 @@ class Info(BasicCog):
             )
         embed.add_field(
             name='Uptime',
-            value=pretty_print_timedelta(datetime.now() - self.bot.boot_time),
+            value=pretty_print_timedelta(datetime.utcnow()
+                                         - self.bot.boot_time),
             )
 
         embed.set_footer(
