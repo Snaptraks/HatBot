@@ -164,6 +164,29 @@ class Info(BasicCog):
         await ctx.send(embed=embed)
 
     @commands.command()
+    async def ttt(self, ctx):
+        """Get Capgun's TTT server information."""
+
+        embed = discord.Embed(
+            title='TTT Server',
+            description=(
+                'Provided and managed by <@136971401566355456>'
+                ),
+            colour=0x1394F0,
+            )
+        embed.add_field(
+            name='IP',
+            value=config.capgun_ttt['ip'],
+            )
+        embed.add_field(
+            name='Password',
+            value=config.capgun_ttt['password'],
+            )
+
+        link = 'steam://connect/{ip}/{password}'.format(**config.capgun_ttt)
+        await ctx.send(content=link, embed=embed)
+
+    @commands.command()
     async def time(self, ctx, tz_abr='UTC'):
         """Get the current time in the requested timezone."""
 
