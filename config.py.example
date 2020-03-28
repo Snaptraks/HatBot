@@ -4,7 +4,7 @@ hatbot_token = 'token'
 # HVC Minecraft server
 hvc_mc = {
     'ip': 'real ip',
-    'ip_name': text ip',
+    'ip_name': 'text ip',
     'dynmap': 'dynmap link',
     'icon': 'icon url',
     }
