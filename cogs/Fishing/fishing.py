@@ -34,15 +34,15 @@ SMELLS = [
     ]
 
 WEATHERS = [
-    '\u2600\ufe0f',
-    '\U0001f324\ufe0f',
-    '\u26c5',
-    '\U0001f325\ufe0f',
-    '\u2601\ufe0f',
-    '\U0001f326\ufe0f',
-    '\U0001f327\ufe0f',
-    '\u26c8\ufe0f',
-    '\U0001f328\ufe0f',
+    ('completely sunny', '\u2600\ufe0f'),
+    ('not very cloudy', '\U0001f324\ufe0f'),
+    ('partially cloudy', '\u26c5'),
+    ('cloudy', '\U0001f325\ufe0f'),
+    ('completely cloudy', '\u2601\ufe0f'),
+    ('somewhat rainy', '\U0001f326\ufe0f'),
+    ('rainy', '\U0001f327\ufe0f'),
+    ('stormy', '\u26c8\ufe0f'),
+    ('snowy', '\U0001f328\ufe0f'),
     ]
 
 EMBED_COLOR = discord.Color.blurple()
@@ -183,7 +183,7 @@ class Weather:
         return cls(state)
 
     def __repr__(self):
-        return WEATHERS[self.state]
+        return '{0} {1}'.format(*WEATHERS[self.state])
 
 
 class Fishing(FunCog):
