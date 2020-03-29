@@ -407,7 +407,10 @@ class Fishing(FunCog):
                 description='No fish in inventory.',
                 color=EMBED_COLOR,
                 )
-            await ctx.send(embed=embed, delete_after=3 * 60)
+            delay = 3 * 60
+            inv_msg = await ctx.send(embed=embed)
+            await asyncio.sleep(delay)
+            await ctx.channel.delete_messages([ctx.message, inv_msg])
             return
 
         inventory = menus.InventoryMenu(
