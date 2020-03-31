@@ -324,6 +324,18 @@ class Fishing(FunCog):
         else:
             raise error
 
+    @fish.command(name='bomb', enabled=False, hidden=True)
+    async def fish_bomb(self, ctx, *, member: discord.Member):
+        """Slap another member with up to 10 of your fish.
+        Slapping someone prevents them from fishing for a given amount
+        of time. The fish used to slap the member are destroyed upon
+        use, so think wisely.
+        """
+        entry = self._get_member_entry(ctx.author)
+
+        if len(entry.inventory) == 0:
+            raise NoFishError('You do not have any fish to slap with.')
+
     @fish.command(name='card')
     async def fish_card(self, ctx, *, member: discord.Member = None):
         """Show some statistics about a member's fishing experience."""
@@ -701,6 +713,10 @@ class Fishing(FunCog):
 
         self.weather = Weather(state)
         await ctx.send(f'Weather set to {self.weather}')
+
+    def _execute_slap(self, member: discord.Member, weight):
+        """Helper function to slap someone with the given fish weight."""
+        pass
 
     def _init_member_entry(self, *, best_catch=None, exp=0, inventory=None):
         """Return an empty entry for member data."""
