@@ -88,32 +88,55 @@ class Fun(BasicCog):
     @commands.command(aliases=['hugs'])
     async def hug(self, ctx, *, huggie: Union[discord.Member, str] = None):
         """Send a hug to someone or get one yourself!"""
-        
-        gif_url = await random_gif(self.bot.http_session, 'hug')
-        if huggie is None:
-            description = (
-                f'{self.bot.user.display_name} hugs '
-                f'{ctx.author.display_name}! :heart:'
+
+        embed = await self._hug_slap_embed('hug', ctx.author, huggie)
+
+        await ctx.send(embed=embed)
+
+    async def _hug_slap_embed(self, action: str, author: discord.Member,
+                              destination: Union[discord.Member, str]):
+        """Helper function to create the embed for the hug and slap
+        commands.
+        """
+        gif_url = await random_gif(self.bot.http_session, action)
+        description = '{1} {0}s {2}!'
+        if destination is None:
+            description = description.format(
+                action,
+                self.bot.user.mention,
+                author.mention,
                 )
-        elif isinstance(huggie, discord.Member):
-            description = (
-                f'{ctx.author.display_name} hugs '
-                f'{huggie.display_name}! :heart:'
+        elif isinstance(destination, discord.Member):
+            description = description.format(
+                action,
+                author.mention,
+                destination.mention,
                 )
         else:  # is str
-            description = (
-                f'{ctx.author.display_name} hugs '
-                f'{huggie}! :heart:'
+            description = description.format(
+                action,
+                author.mention,
+                destination,
                 )
 
+        color = {
+            'hug': 0xFF4CD5,
+            'slap': 0xFFCC4D,
+            }
+
+        emoji = {
+            'hug': ':heart:',
+            'slap': ':hand_splayed:',
+            }
+
         embed = discord.Embed(
-            title='Have a hug!',
-            description=description,
-            color=0xFF4CD5,
+            title=f'Have a {action}!',
+            description=f'{description} {emoji[action]}',
+            color=color[action],
             )
         embed.set_image(url=gif_url)
 
-        await ctx.send(embed=embed)
+        return embed
 
     @commands.command(name='frenchwalrus', aliases=['fw'])
     async def french_walrus(self, ctx):
