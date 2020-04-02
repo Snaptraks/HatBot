@@ -7,11 +7,11 @@ from discord.ext import commands
 import numpy as np
 from PIL import Image
 
-from ..utils.cogs import FunCog
+from ..utils.cogs import BasicCog
 from ..utils.gifs import random_gif
 
 
-class Fun(FunCog):
+class Fun(BasicCog):
     """Collection of useless but fun commands."""
 
     def __init__(self, bot):
