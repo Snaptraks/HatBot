@@ -87,6 +87,8 @@ class Fun(BasicCog):
 
     @commands.command(aliases=['hugs'])
     async def hug(self, ctx, *, huggie: Union[discord.Member, str] = None):
+        """Send a hug to someone or get one yourself!"""
+        
         gif_url = await random_gif(self.bot.http_session, 'hug')
         if huggie is None:
             description = (
