@@ -93,6 +93,14 @@ class Fun(BasicCog):
 
         await ctx.send(embed=embed)
 
+    @commands.command()
+    async def slap(self, ctx, *, slappie: Union[discord.Member, str] = None):
+        """Slap someone! Or get slapped yourself!"""
+
+        embed = await self._hug_slap_embed('slap', ctx.author, slappie)
+
+        await ctx.send(embed=embed)
+
     async def _hug_slap_embed(self, action: str, author: discord.Member,
                               destination: Union[discord.Member, str]):
         """Helper function to create the embed for the hug and slap
