@@ -115,6 +115,13 @@ class Fun(BasicCog):
 
         await ctx.send(embed=embed)
 
+    @commands.command(name='frenchwalrus', aliases=['fw'])
+    async def french_walrus(self, ctx):
+        """Send the French Walrus emoji from 2020's April Fools."""
+
+        emoji = self.bot.get_emoji(694918585486671962)
+        await ctx.send(emoji)
+
     def _make_8ball_figure(self):
         # needed files
         avatar = Image.open('cogs/Fun/8ball/avatar.png')
