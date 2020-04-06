@@ -45,6 +45,7 @@ class MyBot(Bot):
             f'| Connected to {len(set(self.get_all_members()))} users\n'
             '--------\n'
             f'Startup Time: {self.boot_time.strftime("%c")} UTC\n'
+            f'Current Time: {datetime.utcnow().strftime("%c")} UTC\n'
             '--------\n'
             f'Current Discord.py Version: {discord.__version__} '
             f'| Current Python Version: {platform.python_version()}\n'
