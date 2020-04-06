@@ -149,8 +149,13 @@ class InventorySource(menus.ListPageSource):
         self._to_sell = set()
         super().__init__(data, per_page=1)
 
-    async def format_page(self, menu, entries):
-        embed = entries.to_embed()
+    async def format_page(self, menu, page):
+        embed = page.to_embed()
+        date_str = page.caught_on.strftime('%b %d %Y')
+        embed.add_field(
+            name='Caught on',
+            value=date_str,
+        )
         embed.title = \
             f'Fish Inventory ({menu.current_page + 1}/{self.get_max_pages()})'
 
@@ -298,8 +303,13 @@ class TradeSource(menus.ListPageSource):
         self._to_trade = None
         super().__init__(data, per_page=1)
 
-    async def format_page(self, menu, entries):
-        embed = entries.to_embed()
+    async def format_page(self, menu, page):
+        embed = page.to_embed()
+        date_str = page.caught_on.strftime('%b %d %Y')
+        embed.add_field(
+            name='Caught on',
+            value=date_str,
+        )
         embed.title = \
             f'Trade Menu ({menu.current_page + 1}/{self.get_max_pages()})'
         embed.set_author(
