@@ -19,7 +19,7 @@ class ACNH(BasicCog):
         with open(os.path.join(self._cog_path, 'quotes.json'), 'r') as f:
             self.quotes = json.load(f)
 
-    @tasks.loop(count=1)
+    @tasks.loop(hours=1)
     async def presence_task(self):
         """Change the presence of the bot once fully loaded."""
 
