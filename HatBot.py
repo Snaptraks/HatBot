@@ -105,6 +105,7 @@ if __name__ == '__main__':
         'cogs.Fun',
         'cogs.Git',
         'cogs.Help',
+        'cogs.HVC',
         'cogs.Info',
         'cogs.Levels',
         'cogs.Minigames',
