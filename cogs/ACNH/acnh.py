@@ -9,12 +9,15 @@ import typing
 
 import discord
 from discord.ext import commands, tasks
+import matplotlib
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 
 from ..utils.cogs import BasicCog
 
+
+matplotlib.use('Agg')
 
 EMBED_COLOR = 0xF3F5E8
 
