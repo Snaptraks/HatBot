@@ -523,23 +523,19 @@ class Fishing(FunCog):
         of time. The fish used to slap the member is destroyed upon
         use, so think wisely.
         """
-        entry = self._get_member_entry(ctx.author)
+        slapper = ctx.author
+        entry = self._get_member_entry(slapper)
 
         if len(entry.inventory) == 0:
             raise NoFishError('You do not have any fish to slap with.')
 
         slapping_fish = np.random.choice(entry.inventory)
-        self._remove_from_inventory(ctx.author, slapping_fish)
-
-        # get stunned for the sqrt of the weight of the fish, in hours
-        stunned_time = timedelta(hours=np.sqrt(slapping_fish.weight))
-        beginning = max(datetime.utcnow(), self.stunned_until[member.id])
-        self.stunned_until[member.id] = until = beginning + stunned_time
-        stunned_time = until - datetime.utcnow()
+        # slap with a single Fish
+        stunned_time = self._execute_slap(slapper, member, slapping_fish)
 
         out_str = (
             f'{escape_markdown(member.display_name)} got slapped by '
-            f'{escape_markdown(ctx.author.display_name)} with a '
+            f'{escape_markdown(slapper.display_name)} with a '
             f'{slapping_fish}!\n'
             f'They are stunned for {pretty_print_timedelta(stunned_time)} '
             'and cannot go fishing!'
@@ -724,9 +720,28 @@ class Fishing(FunCog):
         self.weather = Weather(state)
         await ctx.send(f'Weather set to {self.weather}')
 
-    def _execute_slap(self, member: discord.Member, weight):
-        """Helper function to slap someone with the given fish weight."""
-        pass
+    def _execute_slap(self, slapper: discord.Member, member: discord.Member,
+                      fish):
+        """Helper function to slap someone with the given fish.
+        fish is either a Fish or a list of Fish.
+        """
+        if isinstance(fish, Fish):
+            weight = fish.weight
+            self._remove_from_inventory(slapper, fish)
+
+        elif isinstance(fish, list):
+            weight = 0
+            for f in fish:
+                weight += f.weight
+                self._remove_from_inventory(slapper, f)
+
+        # get stunned for the sqrt of the weight of the fish, in hours
+        stunned_time = timedelta(hours=np.sqrt(weight))
+        beginning = max(datetime.utcnow(), self.stunned_until[member.id])
+        self.stunned_until[member.id] = until = beginning + stunned_time
+        stunned_time = until - datetime.utcnow()
+
+        return stunned_time
 
     def _init_member_entry(self, *, best_catch=None, exp=0, inventory=None):
         """Return an empty entry for member data."""
