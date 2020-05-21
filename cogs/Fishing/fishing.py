@@ -324,17 +324,36 @@ class Fishing(FunCog):
         else:
             raise error
 
-    @fish.command(name='bomb', enabled=False, hidden=True)
+    @fish.command(name='bomb', cooldown_after_parsing=True)
+    @commands.cooldown(1, 30, commands.BucketType.member)
+    @no_opened_inventory()
     async def fish_bomb(self, ctx, *, member: discord.Member):
-        """Slap another member with up to 10 of your fish.
+        """Slap another member with up to 10 of your biggest fish.
         Slapping someone prevents them from fishing for a given amount
         of time. The fish used to slap the member are destroyed upon
         use, so think wisely.
         """
-        entry = self._get_member_entry(ctx.author)
+        slapper = ctx.author
+        entry = self._get_member_entry(slapper)
 
         if len(entry.inventory) == 0:
             raise NoFishError('You do not have any fish to slap with.')
+
+        slapping_fish = entry.inventory[-10:]  # will always work if len < 10
+        n_fish_slap = len(slapping_fish)
+
+        # slap with a list of Fish
+        stunned_time = self._execute_slap(slapper, member, slapping_fish)
+
+        out_str = (
+            f'{escape_markdown(member.display_name)} got **bombed** by '
+            f'{escape_markdown(slapper.display_name)} with '
+            f'**{n_fish_slap} fish**!\n'
+            f'They are stunned for {pretty_print_timedelta(stunned_time)} '
+            'and cannot go fishing!'
+            )
+
+        await ctx.send(out_str)
 
     @fish.command(name='card')
     async def fish_card(self, ctx, *, member: discord.Member = None):
@@ -543,17 +562,21 @@ class Fishing(FunCog):
 
         await ctx.send(out_str)
 
+    @fish_bomb.error
     @fish_slap.error
     async def fish_slap_error(self, ctx, error):
-        """Error handling for the fish_slap command."""
+        """Error handling for the fish_bomb and fish_slap command."""
 
         if isinstance(error, commands.CommandOnCooldown):
             await menus.CooldownMenu(
-                ctx.message, error,
-                'You have already tried to slap recently').start(ctx)
+                ctx.message,
+                error,
+                f'You have already tried to {ctx.command.name} recently',
+                ).start(ctx)
 
         elif isinstance(error, commands.MissingRequiredArgument):
-            await ctx.send('You need to specify someone to slap.')
+            await ctx.send(
+                f'You need to specify someone to {ctx.command.name}.')
 
         elif isinstance(error, (
                 commands.BadArgument,
