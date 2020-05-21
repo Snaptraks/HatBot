@@ -128,11 +128,11 @@ class Announcements(BasicCog):
             self.guild.roles,
             name='Birthday Hat',
             )
-        # ----temp fix until 1.3.0 comes out----
-        t = datetime.datetime.utcnow().replace(hour=0, minute=0)
-        t += datetime.timedelta(days=1)
-        dt = t - datetime.datetime.utcnow()
-        await asyncio.sleep(dt.total_seconds())  # wait until midnight
+        # ----temp fix until tasks rework comes out----
+        t = datetime.datetime.utcnow().replace(hour=12, minute=0)
+        if t < datetime.datetime.utcnow():
+            t += datetime.timedelta(days=1)
+        await discord.utils.sleep_until(t)
         # --------------------------------------
 
     @commands.group(aliases=['bday'])
