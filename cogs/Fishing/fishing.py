@@ -504,6 +504,16 @@ class Fishing(FunCog):
 
         await ctx.send(embed=embed)
 
+    @fish_journal.error
+    async def fish_journal_error(self, ctx, error):
+        """Error handling for the fish_journal command."""
+
+        if isinstance(error, commands.BadArgument):
+            await ctx.send(error)
+
+        else:
+            raise error
+
     @fish.command(name='slap', cooldown_after_parsing=True)
     @commands.cooldown(1, 30, commands.BucketType.member)
     @no_opened_inventory()
