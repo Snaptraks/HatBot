@@ -432,16 +432,7 @@ class Fishing(FunCog):
         """
         entry = self._get_member_entry(ctx.author)
         if len(entry.inventory) == 0:
-            embed = discord.Embed(
-                title='Fish Inventory',
-                description='No fish in inventory.',
-                color=EMBED_COLOR,
-                )
-            delay = 3 * 60
-            inv_msg = await ctx.send(embed=embed)
-            await asyncio.sleep(delay)
-            await ctx.channel.delete_messages([ctx.message, inv_msg])
-            return
+            raise NoFishError('No fish in inventory.')
 
         inventory = menus.InventoryMenu(
             source=menus.InventorySource(entry.inventory),
@@ -468,6 +459,24 @@ class Fishing(FunCog):
         """Remove the member from being currently with an opened inventory."""
 
         self.opened_inventory.remove(ctx.author.id)
+
+    @fish_inventory.error
+    async def fish_inventory_error(self, ctx, error):
+        """Error handler for the fish_inventory command."""
+
+        if isinstance(error, NoFishError):
+            embed = discord.Embed(
+                title='Fish Inventory',
+                description='No fish in inventory.',
+                color=EMBED_COLOR,
+                )
+            delay = 3 * 60
+            inv_msg = await ctx.send(embed=embed)
+            await asyncio.sleep(delay)
+            await ctx.channel.delete_messages([ctx.message, inv_msg])
+
+        else:
+            raise error
 
     @fish.command(name='journal', aliases=['log', 'stats'])
     async def fish_journal(self, ctx, member: discord.Member = None):
