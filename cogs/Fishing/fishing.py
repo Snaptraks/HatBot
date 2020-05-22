@@ -56,9 +56,8 @@ class FishTopNoEntriesError(commands.CommandError):
 
 
 class NoFishError(commands.CommandError):
-    """Exception raised when one member in a trade has no Fish in
-    their inventory.
-    """
+    """Exception raised when the member has no Fish in their inventory."""
+
     pass
 
 
