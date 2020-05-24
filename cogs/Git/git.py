@@ -10,7 +10,11 @@ class Git(BasicCog):
 
     def __init__(self, bot):
         super().__init__(bot)
-        self.repo_url = 'https://github.com/Snaptraks/HatBot'
+
+        with open('.git/config') as f:
+            while not 'remote "origin"' in f.readline():
+                pass
+            self.repo_url = f.readline().split()[-1]
 
     @commands.group(aliases=['git'])
     async def github(self, ctx):
@@ -22,5 +26,5 @@ class Git(BasicCog):
     @github.command(name='issues')
     async def github_issues(self, ctx):
         """Print the link to the Issues page of the repository."""
-        
+
         await ctx.send(self.repo_url+'/issues')
