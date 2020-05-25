@@ -9,6 +9,7 @@ HOURGLASS_EMOJI = '\U0000231B'  # :hourglass:
 INVENTORY_EMOJI = '\U0001f9f0'  # :toolbox:
 EXPERIENCE_EMOJI = '\U0001f4b5'  # :dollar:
 SELL_ALL_EMOJI = '\U0001f4b0'  # :moneybag:
+CANCEL_EMOJI = '\u274c'  # :x:
 TRADE_EMOJI = '\U0001f501'  # :repeat:
 
 EMBED_COLOR = discord.Color.blurple()
@@ -170,6 +171,24 @@ class InventorySource(menus.ListPageSource):
 
         embed.set_footer(text=footer_text)
         return embed
+
+
+class JournalMenu(_MenuUtils, menus.Menu):
+    """Menu to check the statistics about fishing."""
+
+    def __init__(self, embed):
+        super().__init__(timeout=10 * 60, clear_reactions_after=True)
+        self.embed = embed
+
+    async def send_initial_message(self, ctx, channel):
+        return await channel.send(embed=self.embed)
+
+    @menus.button(CANCEL_EMOJI)
+    async def on_cancel(self, payload):
+        """Cancel the menu and delete the command and embed messages."""
+
+        await self._delete_message(0)
+        self.stop()
 
 
 class TopMenu(_MenuUtils, menus.MenuPages):

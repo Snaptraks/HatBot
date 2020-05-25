@@ -529,7 +529,8 @@ class Fishing(FunCog):
             value=totals_str,
         )
 
-        await ctx.send(embed=embed)
+        journal = menus.JournalMenu(embed)
+        await journal.start(ctx)
 
     @fish_journal.error
     async def fish_journal_error(self, ctx, error):
