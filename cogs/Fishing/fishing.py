@@ -758,19 +758,19 @@ class Fishing(FunCog):
         fish is either a Fish or a list of Fish.
         """
         if isinstance(fish, Fish):
-            weight = fish.weight
+            # get stunned for the sqrt of the weight of the fish, in hours
+            slap_time = timedelta(hours=np.sqrt(fish.weight))
             self._remove_from_inventory(slapper, fish)
 
         elif isinstance(fish, list):
-            weight = 0
+            slap_time = timedelta(0)
             for f in fish:
-                weight += f.weight
+                # get stunned for the sqrt of the weight of the fish, in hours
+                slap_time += timedelta(hours=np.sqrt(f.weight))
                 self._remove_from_inventory(slapper, f)
 
-        # get stunned for the sqrt of the weight of the fish, in hours
-        stunned_time = timedelta(hours=np.sqrt(weight))
         beginning = max(datetime.utcnow(), self.stunned_until[member.id])
-        self.stunned_until[member.id] = until = beginning + stunned_time
+        self.stunned_until[member.id] = until = beginning + slap_time
         stunned_time = until - datetime.utcnow()
 
         return stunned_time
