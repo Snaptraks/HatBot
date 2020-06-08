@@ -19,21 +19,20 @@ def fix_DT(t):
     return datetime.datetime.fromisoformat(t.isoformat())
 
 
-def insert_fish(db, fish_dict):
-    with db:
-        db.execute(
-            """
-            INSERT INTO fishing_fish
-            VALUES (:catch_time,
-                    :size,
-                    :smell,
-                    :species,
-                    :state,
-                    :user_id,
-                    :weight)
-            """,
-            fish_dict
-            )
+def insert_fish(c, fish_dict):
+    c.execute(
+        """
+        INSERT INTO fishing_fish
+        VALUES (:catch_time,
+                :size,
+                :smell,
+                :species,
+                :state,
+                :user_id,
+                :weight)
+        """,
+        fish_dict
+        )
 
 
 with open('cogs/Fishing/fish.json') as f:
@@ -89,9 +88,10 @@ with db:
         """
         )
 
+c = db.cursor()
 all_fish = []
 for id, entry in fish_data.items():
-    # print(id)
+    print(id)
     if entry['total_caught'] == 0:
         # ignore empty entries...
         continue
@@ -110,7 +110,7 @@ for id, entry in fish_data.items():
         smell = SMELLS.index(best_catch.smell)
     except ValueError:
         # smell = int(input(f'{fish.smell} index = '))
-        smell = 0
+        smell = 3
 
     best_catch_dict = dict(
         catch_time=fix_DT(best_catch.caught_on),
@@ -125,7 +125,7 @@ for id, entry in fish_data.items():
     if best_catch not in entry['inventory']:
         temp_exp -= best_catch.weight
 
-    insert_fish(db, best_catch_dict)
+    insert_fish(c, best_catch_dict)
 
     # remove fish in inventory from journal
     for fish in entry['inventory']:
@@ -134,7 +134,7 @@ for id, entry in fish_data.items():
             smell = SMELLS.index(fish.smell)
         except ValueError:
             # smell = int(input(f'{fish.smell} index = '))
-            smell = 0
+            smell = 3
 
         fish_dict = dict(
             catch_time=fix_DT(fish.caught_on),
@@ -146,7 +146,7 @@ for id, entry in fish_data.items():
             weight=fish.weight,
             )
         entry['journal'][fish.size][fish.species] -= 1
-        insert_fish(db, fish_dict)
+        insert_fish(c, fish_dict)
 
     for journal in entry['journal'].values():
         for species in journal:
@@ -201,5 +201,8 @@ for id, entry in fish_data.items():
                 weight=weight[size],
                 )
             for _ in range(amount):
-                insert_fish(db, fish_dict)
+                insert_fish(c, fish_dict)
 
+db.commit()
+c.close()
+db.close()
