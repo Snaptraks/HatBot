@@ -79,12 +79,24 @@ with db:
 
     db.execute(
         """
+        DELETE FROM fishing_fish
+        """
+        )
+
+    db.execute(
+        """
         CREATE TABLE IF NOT EXISTS fishing_interest(
             amount        REAL      NOT NULL,
             interest_time TIMESTAMP NOT NULL,
             jump_url      TEXT      NOT NULL,
             user_id       INTEGER   NOT NULL
         )
+        """
+        )
+
+    db.execute(
+        """
+        DELETE FROM fishing_interest
         """
         )
 
