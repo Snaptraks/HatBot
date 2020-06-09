@@ -146,6 +146,30 @@ def get_fish_inventory():
 
     c = db.execute('SELECT * FROM fishing_fish GROUP BY user_id')
     print(f'{len(c.fetchall())} total users in DB')
+def get_fish_journal():
+    print('** FISH JOURNAL **')
+    with db:
+        c = db.execute(
+            """
+            SELECT size, species, COUNT(species) AS number_catch
+              FROM fishing_fish
+             WHERE user_id = :user_id
+             GROUP BY size, species
+             ORDER BY weight ASC
+            """,
+            {'user_id': USER_ID}
+            )
+
+    rows = c.fetchall()
+    journal = defaultdict(Counter)
+    for row in rows:
+        journal[row['size']][row['species']] += row['number_catch']
+        # print(Fish(**dict(row)), row['number_catch'])
+    pprint(journal)
+
+    print()
+
+
 
     for size in FISH_SPECIES.keys():
         c = db.execute('SELECT * FROM fishing_fish WHERE size = ?', (size,))
@@ -159,3 +183,4 @@ if __name__ == '__main__':
     get_fish_card()
     get_fish_exptop()
     get_fish_inventory()
+    get_fish_journal()
