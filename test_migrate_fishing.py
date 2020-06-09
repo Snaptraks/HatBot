@@ -191,6 +191,26 @@ def get_fish_slap():
     print()
 
 
+def get_fish_top():
+    print('** FISH TOP **')
+    with db:
+        c = db.execute(
+            """
+            SELECT size, species, MAX(weight) AS weight, user_id, catch_time
+              FROM fishing_fish
+             GROUP BY user_id
+             ORDER BY weight DESC
+            """
+            )
+
+    rows = c.fetchall()
+    print(f'{len(rows)} entries in Top')
+    for row in rows:
+        print(Fish(**dict(row)), row['user_id'])
+
+    print()
+
+
 
     for size in FISH_SPECIES.keys():
         c = db.execute('SELECT * FROM fishing_fish WHERE size = ?', (size,))
@@ -206,3 +226,4 @@ if __name__ == '__main__':
     get_fish_inventory()
     get_fish_journal()
     get_fish_slap()
+    get_fish_top()
