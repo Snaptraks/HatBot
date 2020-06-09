@@ -122,6 +122,27 @@ def get_fish_exptop():
     print()
 
 
+def get_fish_inventory():
+    print('** FISH INVENTORY **')
+    with db:
+        c = db.execute(
+            """
+            SELECT *
+              FROM fishing_fish
+             WHERE user_id = :user_id
+               AND state = 0
+             ORDER BY weight ASC
+            """,
+            {'user_id': USER_ID}
+            )
+
+    rows = c.fetchall()
+    print(f'{len(rows)} in inventory')
+    for row in rows:
+        print(Fish(**dict(row)))
+
+    print()
+
 
     c = db.execute('SELECT * FROM fishing_fish GROUP BY user_id')
     print(f'{len(c.fetchall())} total users in DB')
@@ -137,3 +158,4 @@ if __name__ == '__main__':
     get_fish_bomb()
     get_fish_card()
     get_fish_exptop()
+    get_fish_inventory()
