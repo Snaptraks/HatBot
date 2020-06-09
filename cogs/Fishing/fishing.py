@@ -27,6 +27,7 @@ SMELLS = [
     'It smells delightful!',
     'It smells alright.',
     'It does not smell that bad.',
+    'It does not smell anything.',
     'It does not smell good.',
     'It smells bad.',
     'It smells horrible!',
