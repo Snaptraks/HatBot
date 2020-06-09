@@ -201,6 +201,33 @@ class Fishing(FunCog):
         except FileNotFoundError:
             self.data = AttrDict()
 
+        # Create the necessary table
+        with self.bot.db as db:
+            db.execute(
+                """
+                CREATE TABLE IF NOT EXISTS fishing_fish(
+                    catch_time TIMESTAMP NOT NULL,
+                    size       TEXT      NOT NULL,
+                    smell      INTEGER   NOT NULL,
+                    species    INTEGER   NOT NULL,
+                    state      INTEGER   NOT NULL,
+                    user_id    INTEGER   NOT NULL,
+                    weight     REAL      NOT NULL
+                )
+                """
+                )
+
+            db.execute(
+                """
+                CREATE TABLE IF NOT EXISTS fishing_interest(
+                    amount       REAL      NOT NULL,
+                    message_time TIMESTAMP NOT NULL,
+                    jump_url     TEXT      NOT NULL,
+                    user_id      INTEGER   NOT NULL
+                )
+                """
+                )
+
         # start tasks loops
         self.change_weather.start()
         self.interest_experience.start()
