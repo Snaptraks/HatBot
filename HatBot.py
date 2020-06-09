@@ -1,6 +1,7 @@
 import asyncio
 import logging
 import platform
+import sqlite3
 import sys
 
 import aiohttp
@@ -27,12 +28,18 @@ class MyBot(Bot):
         self.http_session = self.loop.run_until_complete(
             create_http_session(self.loop))
 
+        # Make DB connection
+        self.db = sqlite3.connect(kwargs.get('db_name', ':memory:'))
+        # allow for name-based access of data columns
+        self.db.row_factory = sqlite3.Row
+
         self.boot_time = datetime.utcnow()
 
     async def close(self):
         """Subclass the close() method to close the HTTP Session."""
 
         await self.http_session.close()
+        self.db.close()
         await super().close()
 
     async def on_ready(self):
@@ -94,6 +101,7 @@ if __name__ == '__main__':
         command_prefix='!',
         help_command=commands.DefaultHelpCommand(dm_help=True),
         loop=loop,
+        db_name='HatBot.db',
         )
 
     # This specifies what extensions to load when the bot starts up
