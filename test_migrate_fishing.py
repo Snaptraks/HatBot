@@ -170,6 +170,27 @@ def get_fish_journal():
     print()
 
 
+def get_fish_slap():
+    print('** FISH SLAP **')
+    with db:
+        c = db.execute(
+            """
+            SELECT *
+              FROM fishing_fish
+             WHERE user_id = :user_id
+               AND state = 0
+             ORDER BY RANDOM()
+             LIMIT 1
+            """,
+            {'user_id': USER_ID}
+            )
+
+    row = c.fetchone()
+    print(dict(row))
+
+    print()
+
+
 
     for size in FISH_SPECIES.keys():
         c = db.execute('SELECT * FROM fishing_fish WHERE size = ?', (size,))
@@ -184,3 +205,4 @@ if __name__ == '__main__':
     get_fish_exptop()
     get_fish_inventory()
     get_fish_journal()
+    get_fish_slap()
