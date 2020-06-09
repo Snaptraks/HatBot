@@ -33,9 +33,6 @@ db.row_factory = sqlite3.Row
 USER_ID = 337266376941240320
 
 
-with db:
-    c = db.execute('SELECT * FROM fishing_fish')
-    print(f'{len(c.fetchall())} total fish in DB')
 def get_fish_bomb():
     print('** FISH BOMB **')
     with db:
@@ -144,8 +141,6 @@ def get_fish_inventory():
     print()
 
 
-    c = db.execute('SELECT * FROM fishing_fish GROUP BY user_id')
-    print(f'{len(c.fetchall())} total users in DB')
 def get_fish_journal():
     print('** FISH JOURNAL **')
     with db:
@@ -211,14 +206,22 @@ def get_fish_top():
     print()
 
 
+def get_misc_stats():
+    print('** MISC STATS **')
+    with db:
+        c = db.execute('SELECT * FROM fishing_fish')
+        print(f'{len(c.fetchall())} total fish in DB')
 
-    for size in FISH_SPECIES.keys():
-        c = db.execute('SELECT * FROM fishing_fish WHERE size = ?', (size,))
-        print(f'{len(c.fetchall())} {size} fish')
+        c = db.execute('SELECT * FROM fishing_fish GROUP BY user_id')
+        print(f'{len(c.fetchall())} total users in DB')
 
-    c = db.execute('SELECT * FROM fishing_fish WHERE user_id = 337266376941240320')
-    print(len(c.fetchall()))
-    print(fish_data[337266376941240320]['total_caught'])
+        for size in FISH_SPECIES.keys():
+            c = db.execute('SELECT * FROM fishing_fish WHERE size = ?', (size,))
+            print(f'{len(c.fetchall())} {size} fish')
+
+        print()
+
+
 if __name__ == '__main__':
     get_fish_bomb()
     get_fish_card()
@@ -227,3 +230,4 @@ if __name__ == '__main__':
     get_fish_journal()
     get_fish_slap()
     get_fish_top()
+    get_misc_stats()
