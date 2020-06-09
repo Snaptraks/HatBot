@@ -1,10 +1,36 @@
+from collections import defaultdict, Counter
 import sqlite3
 import json
 import pickle
+from pprint import pprint
+
+
+with open('cogs/Fishing/fish.json') as f:
+    FISH_SPECIES = json.load(f)
+
+
+class Fish:
+    """Temp class to better print the fish."""
+    def __init__(self, **kwargs):
+        self.size = kwargs.get('size')
+        species_index = kwargs.get('species')
+        self.smell = kwargs.get('smell')
+        self.weight = kwargs.get('weight', 0)
+        self.user_id = kwargs.get('user_id')
+        self.catch_time = kwargs.get('catch_time')
+
+        self.species = FISH_SPECIES[self.size]['species'][species_index]
+
+    def __repr__(self):
+        return (
+            f'{self.size.title()} {self.species} ({self.weight:.3f} kg)\n'
+            f'[{self.catch_time}]'
+            )
 
 
 db = sqlite3.connect('HatBot.db')
 db.row_factory = sqlite3.Row
+USER_ID = 337266376941240320
 
 
 with db:
