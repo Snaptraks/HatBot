@@ -58,6 +58,43 @@ def get_fish_bomb():
     print()
 
 
+def get_fish_card():
+    print('** FISH CARD **')
+    with db:
+        # get the best catch of the user
+        c = db.execute(
+            """
+            SELECT size, species, catch_time, MAX(weight) as weight
+              FROM fishing_fish
+             WHERE user_id = :user_id
+            """,
+            {'user_id': USER_ID}
+            )
+        best_catch = c.fetchone()
+
+        # get the total experience from fish and interests
+        c = db.execute(
+            """
+            SELECT SUM(amount) AS exp
+              FROM (SELECT SUM(weight) AS amount
+                      FROM fishing_fish
+                     WHERE user_id = :user_id
+
+                     UNION
+
+                    SELECT SUM(amount) AS amount
+                      FROM fishing_interest
+                     WHERE user_id = :user_id)
+            """,
+            {'user_id': USER_ID}
+            )
+        exp = c.fetchone()
+
+        print(Fish(**dict(best_catch)))
+        print(dict(exp))
+        print()
+
+
 
     c = db.execute('SELECT * FROM fishing_fish GROUP BY user_id')
     print(f'{len(c.fetchall())} total users in DB')
@@ -71,3 +108,4 @@ def get_fish_bomb():
     print(fish_data[337266376941240320]['total_caught'])
 if __name__ == '__main__':
     get_fish_bomb()
+    get_fish_card()
