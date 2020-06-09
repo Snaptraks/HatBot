@@ -216,5 +216,8 @@ for id, entry in fish_data.items():
                 insert_fish(c, fish_dict)
 
 db.commit()
+with db:
+    c = db.execute('SELECT * FROM fishing_fish')
+    print(f'Inserted {len(c.fetchall())} fish in DB')
 c.close()
 db.close()
