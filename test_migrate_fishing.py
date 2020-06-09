@@ -95,6 +95,33 @@ def get_fish_card():
         print()
 
 
+def get_fish_exptop():
+    print('** FISH EXPTOP **')
+    with db:
+        c = db.execute(
+            """
+            SELECT user_id, SUM(amount) AS exp
+              FROM (SELECT user_id, SUM(weight) AS amount
+                      FROM fishing_fish
+                     GROUP BY user_id
+
+                     UNION
+
+                    SELECT user_id, SUM(amount) AS amount
+                      FROM fishing_interest
+                     GROUP BY user_id)
+             GROUP BY user_id
+             ORDER BY exp DESC
+            """
+            )
+
+    rows = c.fetchall()
+    for row in rows:
+        print(dict(row))
+
+    print()
+
+
 
     c = db.execute('SELECT * FROM fishing_fish GROUP BY user_id')
     print(f'{len(c.fetchall())} total users in DB')
@@ -109,3 +136,4 @@ def get_fish_card():
 if __name__ == '__main__':
     get_fish_bomb()
     get_fish_card()
+    get_fish_exptop()
