@@ -36,6 +36,28 @@ USER_ID = 337266376941240320
 with db:
     c = db.execute('SELECT * FROM fishing_fish')
     print(f'{len(c.fetchall())} total fish in DB')
+def get_fish_bomb():
+    print('** FISH BOMB **')
+    with db:
+        c = db.execute(
+            """
+            SELECT *
+              FROM fishing_fish
+             WHERE user_id = :user_id
+               AND state = 0
+             ORDER BY weight DESC
+             LIMIT 10
+            """,
+            {'user_id': USER_ID}
+            )
+    rows = c.fetchall()
+    print(f'Bombed with {len(rows)} fish')
+    for row in rows:
+        print(Fish(**dict(row)))
+
+    print()
+
+
 
     c = db.execute('SELECT * FROM fishing_fish GROUP BY user_id')
     print(f'{len(c.fetchall())} total users in DB')
@@ -47,3 +69,5 @@ with db:
     c = db.execute('SELECT * FROM fishing_fish WHERE user_id = 337266376941240320')
     print(len(c.fetchall()))
     print(fish_data[337266376941240320]['total_caught'])
+if __name__ == '__main__':
+    get_fish_bomb()
