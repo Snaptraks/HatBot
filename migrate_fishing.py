@@ -11,7 +11,7 @@ import datetime
 import numpy as np
 from scipy.optimize import Bounds, differential_evolution
 
-from cogs.Fishing.fishing import SMELLS
+from cogs.Fishing.objects import SMELLS
 
 
 def fix_DT(t):
