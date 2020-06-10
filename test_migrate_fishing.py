@@ -206,6 +206,31 @@ def get_fish_top():
     print()
 
 
+def get_experience():
+    print('** USER EXPERIENCE **')
+    with db:
+        c = db.execute(
+            """
+            SELECT SUM(amount) AS exp
+              FROM (SELECT SUM(weight) AS amount
+                      FROM fishing_fish
+                     WHERE user_id = :user_id
+                       AND state = 1
+
+                     UNION
+
+                    SELECT SUM(amount) AS amount
+                      FROM fishing_interest
+                     WHERE user_id = :user_id)
+            """,
+            {'user_id': USER_ID}
+            )
+
+    row = c.fetchone()
+    print(f'User has {row["exp"]} exp')
+    print()
+
+
 def get_misc_stats():
     print('** MISC STATS **')
     with db:
@@ -231,3 +256,5 @@ if __name__ == '__main__':
     get_fish_slap()
     get_fish_top()
     get_misc_stats()
+
+    get_experience()
