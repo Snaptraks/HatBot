@@ -50,7 +50,7 @@ def get_fish_bomb():
     rows = c.fetchall()
     print(f'Bombed with {len(rows)} fish')
     for row in rows:
-        print(Fish(**dict(row)))
+        print(Fish(**row))
 
     print()
 
@@ -87,7 +87,7 @@ def get_fish_card():
             )
         exp = c.fetchone()
 
-        print(Fish(**dict(best_catch)))
+        print(Fish(**best_catch))
         print(dict(exp))
         print()
 
@@ -136,7 +136,7 @@ def get_fish_inventory():
     rows = c.fetchall()
     print(f'{len(rows)} in inventory')
     for row in rows:
-        print(Fish(**dict(row)))
+        print(Fish(**row))
 
     print()
 
@@ -159,7 +159,7 @@ def get_fish_journal():
     journal = defaultdict(Counter)
     for row in rows:
         journal[row['size']][row['species']] += row['number_catch']
-        # print(Fish(**dict(row)), row['number_catch'])
+        # print(Fish(**row), row['number_catch'])
     pprint(journal)
 
     print()
@@ -201,7 +201,7 @@ def get_fish_top():
     rows = c.fetchall()
     print(f'{len(rows)} entries in Top')
     for row in rows:
-        print(Fish(**dict(row)), row['user_id'])
+        print(Fish(**row), row['user_id'])
 
     print()
 
@@ -234,11 +234,11 @@ def get_experience():
 def get_misc_stats():
     print('** MISC STATS **')
     with db:
-        c = db.execute('SELECT * FROM fishing_fish')
-        print(f'{len(c.fetchall())} total fish in DB')
-
         c = db.execute('SELECT * FROM fishing_fish GROUP BY user_id')
         print(f'{len(c.fetchall())} total users in DB')
+
+        c = db.execute('SELECT * FROM fishing_fish')
+        print(f'{len(c.fetchall())} total fish in DB')
 
         for size in FISH_SPECIES.keys():
             c = db.execute('SELECT * FROM fishing_fish WHERE size = ?', (size,))
