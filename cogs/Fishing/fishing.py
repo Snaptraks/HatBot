@@ -16,35 +16,8 @@ from datetime import timedelta
 from ..utils.dicts import AttrDict
 from ..utils.formats import pretty_print_timedelta
 from . import menus
+from .objects import Fish, Weather, get_fish_species_str, FISH_SPECIES
 
-
-COG_PATH = os.path.dirname(__file__)
-
-with open(os.path.join(COG_PATH, 'fish.json')) as f:
-    FISH_SPECIES = AttrDict.from_nested_dict(json.load(f))
-
-SMELLS = [
-    'It smells delightful!',
-    'It smells alright.',
-    'It does not smell that bad.',
-    'It does not smell anything.',
-    'It does not smell good.',
-    'It smells bad.',
-    'It smells horrible!',
-    'Oh no! What is that ungodly smell?!',
-    ]
-
-WEATHERS = [
-    ('completely sunny', '\u2600\ufe0f'),
-    ('not very cloudy', '\U0001f324\ufe0f'),
-    ('partially cloudy', '\u26c5'),
-    ('cloudy', '\U0001f325\ufe0f'),
-    ('completely cloudy', '\u2601\ufe0f'),
-    ('somewhat rainy', '\U0001f326\ufe0f'),
-    ('rainy', '\U0001f327\ufe0f'),
-    ('stormy', '\u26c8\ufe0f'),
-    ('snowy', '\U0001f328\ufe0f'),
-    ]
 
 EMBED_COLOR = discord.Color.blurple()
 
@@ -102,88 +75,6 @@ def no_opened_inventory():
         return True
 
     return commands.check(predicate)
-
-
-class Fish:
-    """One fish instance."""
-
-    def __init__(self, size, species, smell, weight, caught_by_id):
-        self.size = size
-        self.species = species
-        self.smell = smell
-        self.weight = weight
-        self.caught_by_id = caught_by_id
-        self.caught_on = datetime.utcnow()
-        self.color = getattr(discord.Color, FISH_SPECIES[size].color,
-                             discord.Color.default)()
-
-    @classmethod
-    def from_random(cls, exp, weather, caught_by_id):
-        """Create a fish randomly based on the weather."""
-
-        rates = [cls._catch_rate(exp, weather, *size.rates)
-                 for size in FISH_SPECIES.values()]
-        p = np.asarray(rates) / sum(rates)
-
-        size = np.random.choice(list(FISH_SPECIES.keys()), p=p)
-        species = np.random.choice(FISH_SPECIES[size].species)
-        smell = np.random.choice(SMELLS)
-        weight = np.random.uniform(*FISH_SPECIES[size].weight)
-
-        return cls(size, species, smell, weight, caught_by_id)
-
-    @staticmethod
-    def _catch_rate(exp, weather, r_min, r_max):
-        """Defines the rate of catching a fish with.
-        exp: The member's experience. Higher exp means better rate.
-        weather: The current weather. The higher the value, the
-                 higher the rates.
-        r_min: The minimal catch rate. Is the value returned if exp = 0.
-        r_max: The maximal catch rate. Is the value returned if exp -> infinity.
-        """
-        return r_min + (r_max - r_min) * (1 - np.exp(- weather * exp / 5e4))
-
-    def to_embed(self):
-        """Return a discord.Embed object to send in a discord.Message."""
-        embed = discord.Embed(
-            color=self.color,
-            description=self.smell,
-        ).add_field(
-            name='Fish',
-            value=f'{self.size.title()} {self.species}',
-        ).add_field(
-            name='Weight',
-            value=f'{self.weight:.3f} kg',
-        ).add_field(
-            name='Caught By',
-            value=f'<@{self.caught_by_id}>',
-        )
-
-        return embed
-
-    def __repr__(self):
-        return f'{self.size.title()} {self.species} ({self.weight:.3f} kg)'
-
-    def __lt__(self, other):
-        """Less than operator. Compare instances on the weight attribute."""
-        return self.weight < other.weight
-
-
-class Weather:
-    """Define the weather for the day."""
-
-    def __init__(self, state):
-        state = min(state, len(WEATHERS) - 1)  # not above the limit
-        state = max(state, 0)  # is above 0
-        self.state = state
-
-    @classmethod
-    def from_random(cls):
-        state = np.random.randint(len(WEATHERS))
-        return cls(state)
-
-    def __repr__(self):
-        return '{0} {1}'.format(*WEATHERS[self.state])
 
 
 class Fishing(FunCog):
