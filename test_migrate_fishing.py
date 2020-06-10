@@ -16,8 +16,9 @@ class Fish:
         species_index = kwargs.get('species')
         self.smell = kwargs.get('smell')
         self.weight = kwargs.get('weight', 0)
-        self.user_id = kwargs.get('user_id')
+        self.owner_id = kwargs.get('owner_id')
         self.catch_time = kwargs.get('catch_time')
+        self.caught_by = kwargs.get('caught_by')
 
         self.species = FISH_SPECIES[self.size]['species'][species_index]
 
@@ -40,12 +41,12 @@ def get_fish_bomb():
             """
             SELECT *
               FROM fishing_fish
-             WHERE user_id = :user_id
+             WHERE owner_id = :owner_id
                AND state = 0
              ORDER BY weight DESC
              LIMIT 10
             """,
-            {'user_id': USER_ID}
+            {'owner_id': USER_ID}
             )
     rows = c.fetchall()
     print(f'Bombed with {len(rows)} fish')
@@ -63,11 +64,12 @@ def get_fish_card():
             """
             SELECT size, species, catch_time, MAX(weight) as weight
               FROM fishing_fish
-             WHERE user_id = :user_id
+             WHERE caught_by = :caught_by
             """,
-            {'user_id': USER_ID}
+            {'caught_by': USER_ID}
             )
         best_catch = c.fetchone()
+        print(dict(best_catch))
 
         # get the total experience from fish and interests
         c = db.execute(
@@ -75,15 +77,15 @@ def get_fish_card():
             SELECT SUM(amount) AS exp
               FROM (SELECT SUM(weight) AS amount
                       FROM fishing_fish
-                     WHERE user_id = :user_id
+                     WHERE owner_id = :member_id
 
                      UNION
 
                     SELECT SUM(amount) AS amount
                       FROM fishing_interest
-                     WHERE user_id = :user_id)
+                     WHERE user_id = :member_id)
             """,
-            {'user_id': USER_ID}
+            {'member_id': USER_ID}
             )
         exp = c.fetchone()
 
@@ -97,17 +99,18 @@ def get_fish_exptop():
     with db:
         c = db.execute(
             """
-            SELECT user_id, SUM(amount) AS exp
-              FROM (SELECT user_id, SUM(weight) AS amount
+            SELECT id, SUM(amount) AS exp
+              FROM (SELECT owner_id AS id, SUM(weight) AS amount
                       FROM fishing_fish
-                     GROUP BY user_id
+                     WHERE state = 1
+                     GROUP BY id
 
                      UNION
 
-                    SELECT user_id, SUM(amount) AS amount
+                    SELECT user_id AS id, SUM(amount) AS amount
                       FROM fishing_interest
-                     GROUP BY user_id)
-             GROUP BY user_id
+                     GROUP BY id)
+             GROUP BY id
              ORDER BY exp DESC
             """
             )
@@ -126,11 +129,11 @@ def get_fish_inventory():
             """
             SELECT *
               FROM fishing_fish
-             WHERE user_id = :user_id
+             WHERE owner_id = :owner_id
                AND state = 0
              ORDER BY weight ASC
             """,
-            {'user_id': USER_ID}
+            {'owner_id': USER_ID}
             )
 
     rows = c.fetchall()
@@ -148,11 +151,11 @@ def get_fish_journal():
             """
             SELECT size, species, COUNT(species) AS number_catch
               FROM fishing_fish
-             WHERE user_id = :user_id
+             WHERE caught_by = :caught_by
              GROUP BY size, species
              ORDER BY weight ASC
             """,
-            {'user_id': USER_ID}
+            {'caught_by': USER_ID}
             )
 
     rows = c.fetchall()
@@ -172,12 +175,12 @@ def get_fish_slap():
             """
             SELECT *
               FROM fishing_fish
-             WHERE user_id = :user_id
+             WHERE owner_id = :owner_id
                AND state = 0
              ORDER BY RANDOM()
              LIMIT 1
             """,
-            {'user_id': USER_ID}
+            {'owner_id': USER_ID}
             )
 
     row = c.fetchone()
@@ -191,9 +194,9 @@ def get_fish_top():
     with db:
         c = db.execute(
             """
-            SELECT size, species, MAX(weight) AS weight, user_id, catch_time
+            SELECT size, species, MAX(weight) AS weight, caught_by, catch_time
               FROM fishing_fish
-             GROUP BY user_id
+             GROUP BY caught_by
              ORDER BY weight DESC
             """
             )
@@ -201,7 +204,7 @@ def get_fish_top():
     rows = c.fetchall()
     print(f'{len(rows)} entries in Top')
     for row in rows:
-        print(Fish(**row), row['user_id'])
+        print(Fish(**row), row['caught_by'])
 
     print()
 
@@ -214,7 +217,7 @@ def get_experience():
             SELECT SUM(amount) AS exp
               FROM (SELECT SUM(weight) AS amount
                       FROM fishing_fish
-                     WHERE user_id = :user_id
+                     WHERE owner_id = :owner_id
                        AND state = 1
 
                      UNION
@@ -223,7 +226,7 @@ def get_experience():
                       FROM fishing_interest
                      WHERE user_id = :user_id)
             """,
-            {'user_id': USER_ID}
+            {'user_id': USER_ID, 'owner_id': USER_ID}
             )
 
     row = c.fetchone()
@@ -234,7 +237,7 @@ def get_experience():
 def get_misc_stats():
     print('** MISC STATS **')
     with db:
-        c = db.execute('SELECT * FROM fishing_fish GROUP BY user_id')
+        c = db.execute('SELECT * FROM fishing_fish GROUP BY owner_id')
         print(f'{len(c.fetchall())} total users in DB')
 
         c = db.execute('SELECT * FROM fishing_fish')

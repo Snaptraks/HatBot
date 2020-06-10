@@ -24,11 +24,12 @@ def insert_fish(c, fish_dict):
         """
         INSERT INTO fishing_fish
         VALUES (:catch_time,
+                :caught_by,
+                :owner_id,
                 :size,
                 :smell,
                 :species,
                 :state,
-                :user_id,
                 :weight)
         """,
         fish_dict
@@ -67,11 +68,12 @@ with db:
         """
         CREATE TABLE IF NOT EXISTS fishing_fish(
             catch_time TIMESTAMP NOT NULL,
+            caught_by  INTEGER   NOT NULL,
+            owner_id   INTEGER   NOT NULL,
             size       TEXT      NOT NULL,
             smell      INTEGER   NOT NULL,
             species    INTEGER   NOT NULL,
             state      INTEGER   NOT NULL,
-            user_id    INTEGER   NOT NULL,
             weight     REAL      NOT NULL
         )
         """
@@ -89,7 +91,7 @@ with db:
             amount        REAL      NOT NULL,
             interest_time TIMESTAMP NOT NULL,
             jump_url      TEXT      NOT NULL,
-            user_id       INTEGER   NOT NULL
+            user_id      INTEGER   NOT NULL
         )
         """
         )
@@ -126,11 +128,12 @@ for id, entry in fish_data.items():
 
     best_catch_dict = dict(
         catch_time=fix_DT(best_catch.caught_on),
+        caught_by=best_catch.caught_by_id,
         size=best_catch.size,
         smell=smell,
         species=FISH_SPECIES[best_catch.size]['species'].index(best_catch.species),
         state=0 if best_catch in entry['inventory'] else 1,
-        user_id=id,
+        owner_id=id,
         weight=best_catch.weight,
         )
     entry['journal'][best_catch.size][best_catch.species] -= 1
@@ -150,11 +153,12 @@ for id, entry in fish_data.items():
 
         fish_dict = dict(
             catch_time=fix_DT(fish.caught_on),
+            caught_by=fish.caught_by_id,
             size=fish.size,
             smell=smell,
             species=FISH_SPECIES[fish.size]['species'].index(fish.species),
             state=0,
-            user_id=id,
+            owner_id=id,
             weight=fish.weight,
             )
         entry['journal'][fish.size][fish.species] -= 1
@@ -205,11 +209,12 @@ for id, entry in fish_data.items():
         for species, amount in journal.items():
             fish_dict = dict(
                 catch_time=datetime.datetime.min,
+                caught_by=id,
                 size=size,
                 smell=3,  # doesn't smell anything
                 species=FISH_SPECIES[size]['species'].index(species),
                 state=1,
-                user_id=id,
+                owner_id=id,
                 weight=weight[size],
                 )
             for _ in range(amount):
