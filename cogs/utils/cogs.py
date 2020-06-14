@@ -29,24 +29,36 @@ class BasicCog(commands.Cog):
         for command in set(self.walk_commands()):
             try:
                 cld_map = buckets[command.name]
-                original_cd = cld_map._cooldown
-
-                # Restore BucketType Enum
-                if original_cd is not None:
-                    cld_map._cooldown = restore_cooldown(original_cd)
-
-                # Restore the _cache
-                for key in cld_map._cache.keys():
-                    cld_map._cache[key] = \
-                        restore_cooldown(cld_map._cache[key])
-
-                # Restore to command
-                command._buckets = cld_map
 
             except KeyError:
                 # If the command does not have a cooldown,
                 # ie. it was added and has not been backed up yet
-                pass
+                continue
+
+            original_cd = cld_map._cooldown
+
+            current = command._buckets.copy()
+
+            if current._cooldown is None:
+                # do no restore if current command has no cooldown
+                continue
+
+            elif original_cd != extract_cooldown(current._cooldown):
+                # use the new cooldown / BucketType if it is different
+                # than the one saved
+                continue
+
+            # Restore BucketType Enum
+            if original_cd is not None:
+                cld_map._cooldown = restore_cooldown(original_cd)
+
+            # Restore the _cache
+            for key in cld_map._cache.keys():
+                cld_map._cache[key] = \
+                    restore_cooldown(cld_map._cache[key])
+
+            # Restore to command
+            command._buckets = cld_map
 
     def cog_unload(self):
         # Save cooldowns to disk
