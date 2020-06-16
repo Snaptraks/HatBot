@@ -122,7 +122,7 @@ class Fish:
 
     @classmethod
     def from_dict(cls, fish_dict):
-        """Convert a dict form the DB to a class instance."""
+        """Convert a dict (or Row) form the DB to a class instance."""
 
         instance = cls(**fish_dict)
         instance.catch_time = datetime.fromisoformat(

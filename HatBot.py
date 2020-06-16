@@ -1,7 +1,7 @@
 import asyncio
 import logging
 import platform
-import sqlite3
+import aiosqlite
 import sys
 
 import aiohttp
@@ -19,6 +19,11 @@ async def create_http_session(loop):
     """
     return aiohttp.ClientSession(loop=loop)
 
+async def create_db_connection(db_name):
+    """Create the connection to the database."""
+
+    return await aiosqlite.connect(db_name)
+
 
 class MyBot(Bot):
     def __init__(self, *args, **kwargs):
@@ -29,9 +34,10 @@ class MyBot(Bot):
             create_http_session(self.loop))
 
         # Make DB connection
-        self.db = sqlite3.connect(kwargs.get('db_name', ':memory:'))
+        self.db = self.loop.run_until_complete(
+            create_db_connection(kwargs.get('db_name', ':memory:')))
         # allow for name-based access of data columns
-        self.db.row_factory = sqlite3.Row
+        self.db.row_factory = aiosqlite.Row
 
         self.boot_time = datetime.utcnow()
 
@@ -39,7 +45,9 @@ class MyBot(Bot):
         """Subclass the close() method to close the HTTP Session."""
 
         await self.http_session.close()
-        self.db.close()
+        # because .close is called twice for some reason
+        if self.db._connection:
+            await self.db.close()
         await super().close()
 
     async def on_ready(self):

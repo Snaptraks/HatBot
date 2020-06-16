@@ -258,7 +258,7 @@ class TopExperienceSource(menus.ListPageSource):
             member.mention = f'<@{id}>'
 
         # U G L Y
-        best_catch = menu.ctx.cog._get_best_catch(member)
+        best_catch = await menu.ctx.cog._get_best_catch(member)
         best_catch = Fish.from_dict(best_catch)
 
         embed = discord.Embed(
