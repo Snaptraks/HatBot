@@ -112,15 +112,15 @@ class Fishing(FunCog):
     async def interest_experience(self):
         """Give some experience to a random active member."""
 
-        active_members = []
-        for m in self.guild.members:
-            if self._get_total_catch(m) > 0:
-                active_members.append(m)
+        limit = datetime.utcnow() - timedelta(days=7)
+        rows = await self._get_last_catches(limit)
+        active_members = [row['caught_by'] for row in rows]
 
         if len(active_members) == 0:
             return
 
-        winner = np.random.choice(active_members)
+        winner_id = np.random.choice(active_members)
+        winner = self.bot.get_user(winner_id)
         bonus_experience = np.random.triangular(3, 5, 15)
         out_str = (
             f':moneybag: {escape_markdown(winner.display_name)} got a little '
