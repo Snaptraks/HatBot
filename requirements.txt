@@ -1,4 +1,5 @@
 discord.py>=1.3
+discord-ext-menus
 matplotlib>=3.0.0
 mcstatus
 numpy
