@@ -1,8 +1,37 @@
 from datetime import timedelta
 
 from discord.ext import commands
+from fuzzywuzzy import fuzz, process
 
 from ..utils.formats import pretty_print_timedelta
+
+
+async def fuzzy_command_search(ctx, min_score=75):
+    """Search for commands which are similar in name to the one invoked.
+    Returns a maximum of 5 commands which must all be at least matched
+    greater than ``min_score``.
+    Inspired by https://github.com/Cog-Creators/Red-DiscordBot/redbot/core/utils/_internal_utils.py
+    """
+    term = ctx.invoked_with
+    choices = ctx.bot.commands
+
+    extracted = process.extract(term, choices, limit=5)
+
+    matched_commands = []
+    for cmd, score in extracted:
+        if score < min_score:
+            # exit early if we are lower than min_score
+            break
+
+        try:
+            if await cmd.can_run(ctx):
+                matched_commands.append(cmd)
+
+        except commands.DisabledCommand:
+            pass
+
+    return matched_commands
+
 
 class CustomHelpCommand(commands.DefaultHelpCommand):
     def add_command_formatting(self, command):
@@ -51,3 +80,21 @@ class Help(commands.Cog):
 
     def cog_unload(self):
         self.bot.help_command = self._original_help_command
+
+    @commands.Cog.listener()
+    async def on_command_error(self, ctx, error):
+        """Error handler for general exceptions."""
+
+        if isinstance(error, commands.CommandNotFound):
+            maybe_cmds = await fuzzy_command_search(ctx)
+            if maybe_cmds:
+                maybe_cmd = maybe_cmds[0]
+                await ctx.send(
+                    f'Did you mean ``{ctx.prefix}{maybe_cmd.name}``?')
+
+            else:
+                await ctx.send('I do not know of a command like that...')
+
+        elif (ctx.command is not None
+                and not hasattr(ctx.command, 'on_error')):
+            raise error
