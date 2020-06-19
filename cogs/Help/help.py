@@ -1,8 +1,10 @@
+import copy
 from datetime import timedelta
 
 from discord.ext import commands
 from fuzzywuzzy import fuzz, process
 
+from .menus import DidYouMeanMenu
 from ..utils.formats import pretty_print_timedelta
 
 
@@ -89,8 +91,9 @@ class Help(commands.Cog):
             maybe_cmds = await fuzzy_command_search(ctx)
             if maybe_cmds:
                 maybe_cmd = maybe_cmds[0]
-                await ctx.send(
-                    f'Did you mean ``{ctx.prefix}{maybe_cmd.name}``?')
+                menu = DidYouMeanMenu(maybe_cmd=maybe_cmd,
+                                      clear_reactions_after=True)
+                await menu.start(ctx)
 
             else:
                 await ctx.send('I do not know of a command like that...')
