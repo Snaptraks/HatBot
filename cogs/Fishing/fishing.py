@@ -1,6 +1,7 @@
 import asyncio
 from collections import Counter, defaultdict
 import copy
+from datetime import datetime, timedelta
 import json
 import os
 import pickle
@@ -11,39 +12,12 @@ from discord.utils import escape_markdown
 import numpy as np
 
 from ..utils.cogs import FunCog
-from ..utils.datetime_modulo import datetime
-from datetime import timedelta
+from ..utils.datetime_modulo import datetime as datetime_modulo
 from ..utils.dicts import AttrDict
 from ..utils.formats import pretty_print_timedelta
 from . import menus
+from .objects import Fish, Weather, get_fish_species_str, FISH_SPECIES
 
-
-COG_PATH = os.path.dirname(__file__)
-
-with open(os.path.join(COG_PATH, 'fish.json')) as f:
-    FISH_SPECIES = AttrDict.from_nested_dict(json.load(f))
-
-SMELLS = [
-    'It smells delightful!',
-    'It smells alright.',
-    'It does not smell that bad.',
-    'It does not smell good.',
-    'It smells bad.',
-    'It smells horrible!',
-    'Oh no! What is that ungodly smell?!',
-    ]
-
-WEATHERS = [
-    ('completely sunny', '\u2600\ufe0f'),
-    ('not very cloudy', '\U0001f324\ufe0f'),
-    ('partially cloudy', '\u26c5'),
-    ('cloudy', '\U0001f325\ufe0f'),
-    ('completely cloudy', '\u2601\ufe0f'),
-    ('somewhat rainy', '\U0001f326\ufe0f'),
-    ('rainy', '\U0001f327\ufe0f'),
-    ('stormy', '\u26c8\ufe0f'),
-    ('snowy', '\U0001f328\ufe0f'),
-    ]
 
 EMBED_COLOR = discord.Color.blurple()
 
@@ -103,88 +77,6 @@ def no_opened_inventory():
     return commands.check(predicate)
 
 
-class Fish:
-    """One fish instance."""
-
-    def __init__(self, size, species, smell, weight, caught_by_id):
-        self.size = size
-        self.species = species
-        self.smell = smell
-        self.weight = weight
-        self.caught_by_id = caught_by_id
-        self.caught_on = datetime.utcnow()
-        self.color = getattr(discord.Color, FISH_SPECIES[size].color,
-                             discord.Color.default)()
-
-    @classmethod
-    def from_random(cls, exp, weather, caught_by_id):
-        """Create a fish randomly based on the weather."""
-
-        rates = [cls._catch_rate(exp, weather, *size.rates)
-                 for size in FISH_SPECIES.values()]
-        p = np.asarray(rates) / sum(rates)
-
-        size = np.random.choice(list(FISH_SPECIES.keys()), p=p)
-        species = np.random.choice(FISH_SPECIES[size].species)
-        smell = np.random.choice(SMELLS)
-        weight = np.random.uniform(*FISH_SPECIES[size].weight)
-
-        return cls(size, species, smell, weight, caught_by_id)
-
-    @staticmethod
-    def _catch_rate(exp, weather, r_min, r_max):
-        """Defines the rate of catching a fish with.
-        exp: The member's experience. Higher exp means better rate.
-        weather: The current weather. The higher the value, the
-                 higher the rates.
-        r_min: The minimal catch rate. Is the value returned if exp = 0.
-        r_max: The maximal catch rate. Is the value returned if exp -> infinity.
-        """
-        return r_min + (r_max - r_min) * (1 - np.exp(- weather * exp / 5e4))
-
-    def to_embed(self):
-        """Return a discord.Embed object to send in a discord.Message."""
-        embed = discord.Embed(
-            color=self.color,
-            description=self.smell,
-        ).add_field(
-            name='Fish',
-            value=f'{self.size.title()} {self.species}',
-        ).add_field(
-            name='Weight',
-            value=f'{self.weight:.3f} kg',
-        ).add_field(
-            name='Caught By',
-            value=f'<@{self.caught_by_id}>',
-        )
-
-        return embed
-
-    def __repr__(self):
-        return f'{self.size.title()} {self.species} ({self.weight:.3f} kg)'
-
-    def __lt__(self, other):
-        """Less than operator. Compare instances on the weight attribute."""
-        return self.weight < other.weight
-
-
-class Weather:
-    """Define the weather for the day."""
-
-    def __init__(self, state):
-        state = min(state, len(WEATHERS) - 1)  # not above the limit
-        state = max(state, 0)  # is above 0
-        self.state = state
-
-    @classmethod
-    def from_random(cls):
-        state = np.random.randint(len(WEATHERS))
-        return cls(state)
-
-    def __repr__(self):
-        return '{0} {1}'.format(*WEATHERS[self.state])
-
-
 class Fishing(FunCog):
     """Collection of fish-related commands."""
 
@@ -193,35 +85,22 @@ class Fishing(FunCog):
         self.stunned_until = defaultdict(lambda: datetime.min)
         self.opened_inventory = set()
 
-        try:
-            with open(os.path.join(self._cog_path, 'fish_data.pkl'), 'rb') as f:
-                self.data = pickle.load(f)
-
-        except FileNotFoundError:
-            self.data = AttrDict()
+        # Make sure the necessary tables exist
+        self._create_tables.start()
 
         # start tasks loops
         self.change_weather.start()
         self.interest_experience.start()
-        self.save_data_task.start()
 
     def cog_unload(self):
         super().cog_unload()
         self.change_weather.cancel()
         self.interest_experience.cancel()
-        self.save_data_task.cancel()
-        self._save_data()
 
     def cog_check(self, ctx):
         """Check if is in a guild, and if in appropriate channel."""
 
         return ctx.guild is not None and super().cog_check(ctx)
-
-    @tasks.loop(minutes=5)
-    async def save_data_task(self):
-        """Save the data to disk regularly."""
-
-        self._save_data()
 
     @tasks.loop(hours=24)
     async def change_weather(self):
@@ -233,25 +112,24 @@ class Fishing(FunCog):
     async def interest_experience(self):
         """Give some experience to a random active member."""
 
-        active_members = []
-        for m in self.guild.members:
-            try:
-                if self.data[m.id].total_caught > 0:
-                    active_members.append(m)
-            except KeyError:
-                pass
+        limit = datetime.utcnow() - timedelta(days=7)
+        rows = await self._get_last_catches(limit)
+        active_members = [row['caught_by'] for row in rows]
 
-        winner = np.random.choice(active_members)
-        # bonus_experience = np.random.normal(10, 3)  # can be negative
+        if len(active_members) == 0:
+            return
+
+        winner_id = np.random.choice(active_members)
+        winner = self.bot.get_user(winner_id)
         bonus_experience = np.random.triangular(3, 5, 15)
         out_str = (
             f':moneybag: {escape_markdown(winner.display_name)} got a little '
-            f'bit of experience! ({bonus_experience:.3f} xp)'
+            f'bit of experience! ({bonus_experience:.3f} exp)'
             )
 
-        self._give_experience(winner, bonus_experience)
+        msg = await self.channel_msg.send(out_str)
 
-        await self.channel_msg.send(out_str)
+        await self._save_interest_experience(winner, msg, bonus_experience)
 
     @interest_experience.before_loop
     async def interest_experience_before(self):
@@ -271,7 +149,7 @@ class Fishing(FunCog):
 
         self.guild = self.channel_msg.guild
 
-        now = datetime.utcnow()
+        now = datetime_modulo.utcnow()
         _12h = timedelta(hours=12)
         next = now // _12h + _12h  # get next 00 or 12
         await discord.utils.sleep_until(next)  # wait until then
@@ -286,25 +164,17 @@ class Fishing(FunCog):
         """Command group for the fishing commands.
         If invoked without subcommand, catches a random fish.
         """
-        entry = self._get_member_entry(ctx.author)
+        user_exp = await self._get_experience(ctx.author)
 
-        catch = Fish.from_random(entry.exp, self.weather.state, ctx.author.id)
-
-        # add to journal
-        self._add_to_journal(ctx.author, catch)
-
-        # save best catch
-        self._set_best_catch(ctx.author, catch)
+        catch = Fish.from_random(user_exp, self.weather.state, ctx.author.id)
 
         embed = catch.to_embed()
 
         keep = await menus.FishingConfirm(embed).prompt(ctx)
 
-        if keep:
-            self._add_to_inventory(ctx.author, catch)
+        state = 0 if keep else 1
 
-        else:
-            self._give_experience(ctx.author, catch.weight)
+        await self._save_fish(catch, state)
 
     @fish.error
     async def fish_error(self, ctx, error):
@@ -333,21 +203,18 @@ class Fishing(FunCog):
         use, so think wisely.
         """
         slapper = ctx.author
-        entry = self._get_member_entry(slapper)
+        bomb_fish = await self._get_bomb_fish(slapper)
 
-        if len(entry.inventory) == 0:
+        if len(bomb_fish) == 0:
             raise NoFishError('You do not have any fish to slap with.')
 
-        slapping_fish = entry.inventory[-10:]  # will always work if len < 10
-        n_fish_slap = len(slapping_fish)
-
         # slap with a list of Fish
-        stunned_time = self._execute_slap(slapper, member, slapping_fish)
+        stunned_time = await self._execute_slap_bomb(member, bomb_fish)
 
         out_str = (
             f'{escape_markdown(member.display_name)} got **bombed** by '
             f'{escape_markdown(slapper.display_name)} with '
-            f'**{n_fish_slap} fish**!\n'
+            f'**{len(bomb_fish)} fish**!\n'
             f'They are stunned for {pretty_print_timedelta(stunned_time)} '
             'and cannot go fishing!'
             )
@@ -361,6 +228,9 @@ class Fishing(FunCog):
         if member is None:
             member = ctx.author
 
+        best_catch = Fish.from_dict(await self._get_best_catch(member))
+        exp = await self._get_experience(member)
+
         embed = discord.Embed(
             title=f'Fishing Card of {escape_markdown(member.display_name)}',
             color=EMBED_COLOR,
@@ -368,42 +238,30 @@ class Fishing(FunCog):
             url=member.avatar_url,
         )
 
-        entry = self._get_member_entry(member)
-        try:
-            date_str = entry.best_catch.caught_on.strftime('%b %d %Y')
+        if best_catch is not None:
+            date_str = best_catch.catch_time.strftime('%b %d %Y')
 
-        except AttributeError:
+        else:
             date_str = None
 
         embed.add_field(
             name='Best Catch',
-            value=entry.best_catch,
+            value=best_catch,
         ).add_field(
             name='Caught on',
             value=date_str,
         ).add_field(
             name='Experience',
-            value=f'{entry.exp:.3f} xp',
+            value=f'{exp:.3f} exp',
         )
 
         await ctx.send(embed=embed)
-
-    @fish.command(name='create')
-    @commands.is_owner()
-    async def fish_create(self, ctx, size: str, species: str, weight: float):
-        """Create a Fish and display it.
-        For testing purposes only.
-        """
-        fish = Fish(size, species, 'It smells cheated...', weight,
-                    ctx.author.id)
-        await ctx.send(embed=fish.to_embed())
 
     @fish.command(name='exptop')
     async def fish_exptop(self, ctx):
         """Display the users who have the most experience."""
 
-        sorted_experience = self._get_sorted_experience()
-        sorted_experience.reverse()
+        sorted_experience = await self._get_exptop()
 
         if len(sorted_experience) == 0:
             raise FishTopNoEntriesError('No one with experience yet.')
@@ -430,23 +288,22 @@ class Fishing(FunCog):
         """Look at your fishing inventory.
         Also allows you to sell the fish you previously saved.
         """
-        entry = self._get_member_entry(ctx.author)
-        if len(entry.inventory) == 0:
+        inventory = await self._get_inventory(ctx.author)
+        if len(inventory) == 0:
             raise NoFishError('No fish in inventory.')
 
-        inventory = menus.InventoryMenu(
-            source=menus.InventorySource(entry.inventory),
+        inventory_menu = menus.InventoryMenu(
+            source=menus.InventorySource(inventory),
             clear_reactions_after=True,
             )
-        to_sell = await inventory.prompt(ctx)
+        to_sell = await inventory_menu.prompt(ctx)
 
-        if len(to_sell) != 0:
-            catches = []
-            for i in to_sell:
-                catches.append(entry.inventory[i])
+        # not pretty but I need to strip some keys
+        rows = []
+        for i in to_sell:
+            rows.append({'rowid': inventory[i]['rowid']})
 
-            for catch in catches:
-                self._sell_from_inventory(ctx.author, catch)
+        await self._sell_fish(rows)
 
     @fish_inventory.before_invoke
     async def fish_inventory_before(self, ctx):
@@ -485,22 +342,27 @@ class Fishing(FunCog):
         if member is None:
             member = ctx.author
 
-        entry = self._get_member_entry(member)
+        journal = await self._get_journal(member)
+        total_catch = await self._get_total_catch(member)
 
         total_species = {key: len(value['species'])
                          for key, value in FISH_SPECIES.items()}
-        species_caught = {key: len(value)
-                          for key, value in entry.journal.items()}
+
+        species_caught = defaultdict(lambda: 0)
+        for key, value in journal.items():
+            species_caught[key] = len(value)
+
         species_caught_str = '\n'.join(
             f'{size.title()}: **{species_caught[size]}/{total_species[size]}**'
             for size in FISH_SPECIES.keys()
             )
 
         most_caught = {key: value.most_common(1)[0]
-                       for key, value in entry.journal.items()
+                       for key, value in journal.items()
                        if len(value) > 0}
         most_caught_str = '\n'.join((
-            f'{size.title()} **{most_caught[size][0]} '
+            f'{size.title()} '
+            f'**{get_fish_species_str(size, most_caught[size][0])} '
             f'({most_caught[size][1]})**')
             for size in most_caught.keys()
             )
@@ -509,7 +371,7 @@ class Fishing(FunCog):
             'Species Caught: '
             f'**{sum(species_caught.values())}'
             f'/{sum(total_species.values())}**\n'
-            f'Catches: **{entry.total_caught}**'
+            f'Catches: **{total_catch}**'
             )
 
         embed = discord.Embed(
@@ -552,19 +414,17 @@ class Fishing(FunCog):
         use, so think wisely.
         """
         slapper = ctx.author
-        entry = self._get_member_entry(slapper)
+        slap_fish = await self._get_slap_fish(slapper)
 
-        if len(entry.inventory) == 0:
+        if len(slap_fish) == 0:
             raise NoFishError('You do not have any fish to slap with.')
 
-        slapping_fish = np.random.choice(entry.inventory)
-        # slap with a single Fish
-        stunned_time = self._execute_slap(slapper, member, slapping_fish)
+        stunned_time = await self._execute_slap_bomb(member, slap_fish)
 
         out_str = (
             f'{escape_markdown(member.display_name)} got slapped by '
             f'{escape_markdown(slapper.display_name)} with a '
-            f'{slapping_fish}!\n'
+            f'{Fish.from_dict(slap_fish[0])}!\n'
             f'They are stunned for {pretty_print_timedelta(stunned_time)} '
             'and cannot go fishing!'
             )
@@ -601,8 +461,7 @@ class Fishing(FunCog):
     async def fish_top(self, ctx):
         """Display the best catches server-wide."""
 
-        sorted_best_catches = self._get_sorted_best_catches()
-        sorted_best_catches.reverse()
+        sorted_best_catches = await self._get_top()
 
         if len(sorted_best_catches) == 0:
             raise FishTopNoEntriesError('No best catches yet.')
@@ -632,14 +491,14 @@ class Fishing(FunCog):
         if other_member == ctx.author:
             raise commands.BadArgument('You cannot trade with yourself!')
 
-        author_entry = self._get_member_entry(ctx.author)
-        other_entry = self._get_member_entry(other_member)
+        author_inventory = await self._get_inventory(ctx.author)
+        other_inventory = await self._get_inventory(other_member)
         other_str = escape_markdown(other_member.display_name)
 
-        if len(author_entry.inventory) == 0:
+        if len(author_inventory) == 0:
             raise NoFishError('You have no fish to trade!')
 
-        elif len(other_entry.inventory) == 0:
+        elif len(other_inventory) == 0:
             raise NoFishError(f'{other_str} has no fish to trade!')
 
         if not other_member.mentioned_in(ctx.message):
@@ -662,13 +521,13 @@ class Fishing(FunCog):
             # start both menus and then transfer the fish
             author_menu = menus.TradeMenu(
                 source=menus.TradeSource(
-                    author_entry.inventory,
+                    author_inventory,
                     ),
                 clear_reactions_after=True,
                 )
             other_menu = menus.TradeMenu(
                 source=menus.TradeSource(
-                    other_entry.inventory,
+                    other_inventory,
                     ),
                 clear_reactions_after=True,
                 )
@@ -690,14 +549,9 @@ class Fishing(FunCog):
                 return
 
             # proceed to trade
-            author_trade = author_entry.inventory[to_trade[ctx.author.id]]
-            other_trade = other_entry.inventory[to_trade[other_member.id]]
-
-            self._remove_from_inventory(ctx.author, author_trade)
-            self._remove_from_inventory(other_member, other_trade)
-
-            self._add_to_inventory(ctx.author, other_trade)
-            self._add_to_inventory(other_member, author_trade)
+            author_trade = author_inventory[to_trade[ctx.author.id]]
+            other_trade = other_inventory[to_trade[other_member.id]]
+            await self._trade_fish(author_trade, other_trade)
 
             await ctx.send('Trade successful!', delete_after=5 * 60)
 
@@ -752,22 +606,55 @@ class Fishing(FunCog):
         self.weather = Weather(state)
         await ctx.send(f'Weather set to {self.weather}')
 
-    def _execute_slap(self, slapper: discord.Member, member: discord.Member,
-                      fish):
-        """Helper function to slap someone with the given fish.
-        fish is either a Fish or a list of Fish.
-        """
-        if isinstance(fish, Fish):
-            # get stunned for the sqrt of the weight of the fish, in hours
-            slap_time = timedelta(hours=np.sqrt(fish.weight))
-            self._remove_from_inventory(slapper, fish)
+    @tasks.loop(count=1)
+    async def _create_tables(self):
+        """Create the necessary DB tables if they do not exist."""
 
-        elif isinstance(fish, list):
-            slap_time = timedelta(0)
-            for f in fish:
-                # get stunned for the sqrt of the weight of the fish, in hours
-                slap_time += timedelta(hours=np.sqrt(f.weight))
-                self._remove_from_inventory(slapper, f)
+        await self.bot.db.execute(
+            """
+            CREATE TABLE IF NOT EXISTS fishing_fish(
+                catch_time TIMESTAMP NOT NULL,
+                caught_by  INTEGER   NOT NULL,
+                owner_id   INTEGER   NOT NULL,
+                size       TEXT      NOT NULL,
+                smell      INTEGER   NOT NULL,
+                species    INTEGER   NOT NULL,
+                state      INTEGER   NOT NULL,
+                weight     REAL      NOT NULL
+            )
+            """
+            )
+
+        await self.bot.db.execute(
+            """
+            CREATE TABLE IF NOT EXISTS fishing_interest(
+                amount       REAL      NOT NULL,
+                message_time TIMESTAMP NOT NULL,
+                jump_url     TEXT      NOT NULL,
+                user_id      INTEGER   NOT NULL
+            )
+            """
+            )
+
+        await self.bot.db.commit()
+
+    async def _execute_slap_bomb(self, member, fish_list):
+        """Helper function to set the stunned time, and set the fish as
+        used for a slap.
+        """
+        slap_time = timedelta(0)
+        for fish in fish_list:
+            slap_time += timedelta(hours=np.sqrt(fish['weight']))
+
+        await self.bot.db.executemany(
+                """
+                UPDATE fishing_fish
+                   SET state = 2
+                 WHERE rowid = :rowid
+                """,
+                [{'rowid': fish['rowid']} for fish in fish_list]
+                )
+        await self.bot.db.commit()
 
         beginning = max(datetime.utcnow(), self.stunned_until[member.id])
         self.stunned_until[member.id] = until = beginning + slap_time
@@ -775,98 +662,265 @@ class Fishing(FunCog):
 
         return stunned_time
 
-    def _init_member_entry(self, *, best_catch=None, exp=0, inventory=None):
-        """Return an empty entry for member data."""
+    async def _get_best_catch(self, member):
+        """Get the best catch of a member."""
 
-        if inventory is None:
-            inventory = []
+        async with self.bot.db.execute(
+                """
+                SELECT size, species, catch_time, MAX(weight) AS weight
+                  FROM fishing_fish
+                 WHERE caught_by = :caught_by
+                """,
+                {'caught_by': member.id}
+                ) as c:
+            row = await c.fetchone()
 
-        return AttrDict.from_nested_dict(dict(
-            best_catch=best_catch,
-            exp=exp,
-            inventory=inventory,
-            journal={size: Counter() for size in FISH_SPECIES.keys()},
-            total_caught=0,
-            ))
+        return row
 
-    def _get_member_entry(self, member: discord.Member):
-        """Return the member entry, or create one if it does not exist yet."""
+    async def _get_bomb_fish(self, member):
+        """Get the fish to be used in a bomb (not slap)."""
 
-        try:
-            entry = self.data[member.id]
+        async with self.bot.db.execute(
+                """
+                SELECT rowid, weight
+                  FROM fishing_fish
+                 WHERE owner_id = :owner_id
+                   AND state = 0
+                 ORDER BY weight DESC
+                 LIMIT 10
+                """,
+                {'owner_id': member.id}
+                ) as c:
+            rows = await c.fetchall()
 
-        except KeyError:
-            entry = self._init_member_entry()
-            self.data[member.id] = entry
+        return rows
 
-        return entry
+    async def _get_experience(self, member):
+        """Return the total experience of a member."""
 
-    def _add_to_journal(self, member: discord.Member, catch: Fish):
-        """Helper function to add a catch to a member's fishing journal."""
+        async with self.bot.db.execute(
+                """
+                SELECT SUM(amount) AS exp
+                  FROM (SELECT SUM(weight) AS amount
+                          FROM fishing_fish
+                         WHERE owner_id = :member_id
+                           AND state = 1
 
-        entry = self._get_member_entry(member)
+                         UNION
 
-        entry.total_caught += 1
-        entry.journal[catch.size][catch.species] += 1
+                        SELECT SUM(amount) AS amount
+                          FROM fishing_interest
+                         WHERE user_id = :member_id)
+                """,
+                {'member_id': member.id}
+                ) as c:
+            row = await c.fetchone()
 
-    def _give_experience(self, member: discord.Member, amount: float):
-        """Helper function to give experience, and handle KeyErrors."""
+        exp = row['exp']
+        return exp if exp is not None else 0
 
-        try:
-            self.data[member.id].exp += amount
+    async def _get_exptop(self):
+        """Return the list of users sorted by total experience."""
 
-        except KeyError:
-            self.data[member.id] = self._init_member_entry(exp=amount)
+        async with self.bot.db.execute(
+                """
+                SELECT id, SUM(amount) AS exp
+                  FROM (SELECT owner_id AS id, SUM(weight) AS amount
+                          FROM fishing_fish
+                         WHERE state = 1
+                         GROUP BY id
 
-    def _set_best_catch(self, member: discord.Member, catch: Fish):
-        """Helper function to save the best catch of a member."""
+                         UNION
 
-        entry = self._get_member_entry(member)
+                        SELECT user_id AS id, SUM(amount) AS amount
+                          FROM fishing_interest
+                         GROUP BY id)
+                 GROUP BY id
+                 ORDER BY exp DESC
+                """
+                ) as c:
+            rows = await c.fetchall()
 
-        try:
-            entry.best_catch = max(entry.best_catch, catch)
+        return rows
 
-        except TypeError:
-            entry.best_catch = catch
+    async def _get_inventory(self, member):
+        """Return the list of fish in a member's inventory."""
 
-    def _add_to_inventory(self, member: discord.Member, catch: Fish):
-        """Helper function to add a catch to a member's inventory."""
+        async with self.bot.db.execute(
+                """
+                SELECT rowid, *
+                  FROM fishing_fish
+                 WHERE owner_id = :owner_id
+                   AND state = 0
+                 ORDER BY weight ASC
+                """,
+                {'owner_id': member.id}
+                ) as c:
+            rows = await c.fetchall()
 
-        entry = self._get_member_entry(member)
-        entry.inventory.append(catch)
-        entry.inventory.sort()
+        return rows
 
-    def _remove_from_inventory(self, member: discord.Member, catch: Fish):
-        """Helper function to remove a catch from a member's inventory."""
+    async def _get_journal(self, member):
+        """Return the number of times each species was caught,
+        sorted by size.
+        """
+        async with self.bot.db.execute(
+                """
+                SELECT size, species, COUNT(species) AS number_catch
+                  FROM fishing_fish
+                 WHERE caught_by = :owner_id
+                 GROUP BY size, species
+                 ORDER BY weight ASC
+                """,
+                {'owner_id': member.id}
+                ) as c:
+            rows = await c.fetchall()
 
-        entry = self._get_member_entry(member)
-        entry.inventory.remove(catch)
+        journal = defaultdict(Counter)
+        for row in rows:
+            journal[row['size']][row['species']] += row['number_catch']
 
-    def _sell_from_inventory(self, member: discord.Member, catch: Fish):
-        """Helper function to sell a catch from a member's inventory."""
+        return journal
 
-        self._remove_from_inventory(member, catch)
-        self._give_experience(member, catch.weight)  # saves data here
+    async def _get_last_catches(self, limit):
+        """Get the last fish caught by every member."""
 
-    def _get_sorted_best_catches(self):
-        """Return the list of catches, sorted by weight."""
+        async with self.bot.db.execute(
+                """
+                SELECT caught_by, MAX(catch_time) as catch_time
+                  FROM fishing_fish
+                 WHERE catch_time > :limit
+                 GROUP BY caught_by
+                """,
+                {'limit': limit.isoformat()}
+                ) as c:
 
-        entries = list(self.data.items())
-        best_catches = [
-            e for e in entries if e[1].best_catch is not None]
+            rows = await c.fetchall()
 
-        return sorted(best_catches, key=lambda e: e[1].best_catch)
+        return rows
 
-    def _get_sorted_experience(self):
-        """Return the list of member entries, sorted by experience."""
+    async def _get_slap_fish(self, member):
+        """Get the fish to be used in a slap (not bomb)."""
 
-        entries = list(self.data.items())
-        entries = [e for e in entries if e[1].exp > 0]
+        async with self.bot.db.execute(
+                """
+                SELECT rowid, *
+                  FROM fishing_fish
+                 WHERE owner_id = :owner_id
+                   AND state = 0
+                 ORDER BY RANDOM()
+                 LIMIT 1
+                """,
+                {'owner_id': member.id}
+                ) as c:
+            rows = await c.fetchall()
 
-        return sorted(entries, key=lambda e: e[1].exp)
+        return rows
 
-    def _save_data(self):
-        """Save the data to disk (keep it in memory also)."""
+    async def _get_top(self):
+        """Return the list of best catches for each member, sorted by weight."""
 
-        with open(os.path.join(self._cog_path, 'fish_data.pkl'), 'wb') as f:
-            pickle.dump(self.data, f)
+        async with self.bot.db.execute(
+                """
+                SELECT size, species, MAX(weight) AS weight,
+                       caught_by, catch_time
+                  FROM fishing_fish
+                 GROUP BY caught_by
+                 ORDER BY weight DESC
+                """
+                ) as c:
+            rows = await c.fetchall()
+
+        return rows
+
+    async def _get_total_catch(self, member):
+        """Return the amount of fish caught for the given member."""
+
+        async with self.bot.db.execute(
+                """
+                SELECT COUNT(*) as total_catch
+                  FROM fishing_fish
+                 WHERE caught_by = :caught_by
+                """,
+                {'caught_by': member.id}
+                ) as c:
+            row = await c.fetchone()
+
+        return row['total_catch']
+
+    async def _save_interest_experience(self, member, message, amount):
+        """Add the amount of bi-daily interest to the given member."""
+
+        await self.bot.db.execute(
+            """
+            INSERT INTO fishing_interest
+            VALUES (:amount,
+                    :interest_time,
+                    :jump_url,
+                    :user_id)
+            """,
+            {
+                'amount': amount,
+                'interest_time': message.created_at,
+                'jump_url': message.jump_url,
+                'user_id': member.id,
+                }
+            )
+        await self.bot.db.commit()
+
+    async def _save_fish(self, fish, state):
+        """Save the fish to the database.
+        state = 0: in inventory
+        state = 1: sold
+        """
+        fish_dict = fish.to_dict()
+        fish_dict['state'] = state
+        await self.bot.db.execute_insert(
+            """
+            INSERT INTO fishing_fish
+            VALUES (:catch_time,
+                    :caught_by,
+                    :owner_id,
+                    :size,
+                    :smell,
+                    :species,
+                    :state,
+                    :weight)
+            """,
+            fish_dict
+            )
+        await self.bot.db.commit()
+
+    async def _sell_fish(self, rows):
+        """Set the fish as sold."""
+
+        await self.bot.db.executemany(
+            """
+            UPDATE fishing_fish
+               SET state = 1
+             WHERE rowid = :rowid
+            """,
+            rows
+            )
+        await self.bot.db.commit()
+
+    async def _trade_fish(self, author_fish, other_fish):
+        """Trade the fish from the author of the command to the other
+        member (the one that was asked to trade). We need to change the
+        owner_id of both, NOT the caught_by attribute.
+        """
+        new_ids = [
+            {'rowid': author_fish['rowid'],
+             'new_owner_id': other_fish['owner_id']},
+            {'rowid': other_fish['rowid'],
+             'new_owner_id': author_fish['owner_id']},
+            ]
+        await self.bot.db.executemany(
+            """
+            UPDATE fishing_fish
+               SET owner_id = :new_owner_id
+             WHERE rowid = :rowid
+            """,
+            new_ids
+            )
+        await self.bot.db.commit()

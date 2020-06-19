@@ -3,6 +3,8 @@ import discord
 from discord.ext import menus
 from datetime import datetime, timedelta
 
+from .objects import Fish
+
 from ..utils.formats import pretty_print_timedelta
 
 HOURGLASS_EMOJI = '\U0000231B'  # :hourglass:
@@ -31,7 +33,11 @@ class _MenuUtils:
 
     async def _delete_message(self, delay):
         await asyncio.sleep(delay)
-        await self.ctx.message.delete()
+        try:
+            await self.ctx.message.delete()
+        except discord.NotFound:
+            # sometimes the command message is already deleted
+            pass
         await self.message.delete()
 
 
@@ -146,13 +152,14 @@ class InventoryMenu(_MenuUtils, menus.MenuPages):
 class InventorySource(menus.ListPageSource):
     """Page source to format the inventory menu."""
 
-    def __init__(self, data):
+    def __init__(self, entries):
         self._to_sell = set()
-        super().__init__(data, per_page=1)
+        super().__init__(entries, per_page=1)
 
     async def format_page(self, menu, page):
-        embed = page.to_embed()
-        date_str = page.caught_on.strftime('%b %d %Y')
+        fish = Fish.from_dict(page)
+        embed = fish.to_embed()
+        date_str = fish.catch_time.strftime('%b %d %Y')
         embed.add_field(
             name='Caught on',
             value=date_str,
@@ -203,20 +210,21 @@ class TopCatchesSource(menus.ListPageSource):
         super().__init__(entries, per_page=1)
 
     async def format_page(self, menu, page):
-        member = menu.ctx.guild.get_member(page[0])
-        date_str = page[1].best_catch.caught_on.strftime('%b %d %Y')
+        fish = Fish.from_dict(page)
+        member = menu.ctx.guild.get_member(fish.caught_by)
+        date_str = fish.catch_time.strftime('%b %d %Y')
 
         if member is None:
-            member = discord.Object(page[0])
+            member = discord.Object(fish.caught_by)
             member.avatar_url = None
-            member.mention = f'<@{page[0]}>'
+            member.mention = f'<@{fish.caught_by}>'
 
         embed = discord.Embed(
             title=f'#{menu.current_page + 1} Top Catch of the Server',
             color=EMBED_COLOR,
         ).add_field(
             name='Top Catch',
-            value=page[1].best_catch,
+            value=fish,
         ).add_field(
             name='Caught by',
             value=member.mention,
@@ -241,12 +249,17 @@ class TopExperienceSource(menus.ListPageSource):
         super().__init__(entries, per_page=1)
 
     async def format_page(self, menu, page):
-        member = menu.ctx.guild.get_member(page[0])
+        id = page['id']
+        member = menu.ctx.guild.get_member(id)
 
         if member is None:
-            member = discord.Object(page[0])
+            member = discord.Object(id)
             member.avatar_url = None
-            member.mention = f'<@{page[0]}>'
+            member.mention = f'<@{id}>'
+
+        # U G L Y
+        best_catch = await menu.ctx.cog._get_best_catch(member)
+        best_catch = Fish.from_dict(best_catch)
 
         embed = discord.Embed(
             title=f'#{menu.current_page + 1} Experience of the Server',
@@ -256,10 +269,10 @@ class TopExperienceSource(menus.ListPageSource):
             value=member.mention,
         ).add_field(
             name='Experience',
-            value=f'{page[1].exp:.3f} xp',
+            value=f'{page["exp"]:.3f} exp',
         ).add_field(
             name='Best Catch',
-            value=page[1].best_catch,
+            value=best_catch,
         )
         embed.timestamp = datetime.utcnow()
 
@@ -323,8 +336,9 @@ class TradeSource(menus.ListPageSource):
         super().__init__(data, per_page=1)
 
     async def format_page(self, menu, page):
-        embed = page.to_embed()
-        date_str = page.caught_on.strftime('%b %d %Y')
+        fish = Fish.from_dict(page)
+        embed = fish.to_embed()
+        date_str = fish.catch_time.strftime('%b %d %Y')
         embed.add_field(
             name='Caught on',
             value=date_str,
@@ -341,7 +355,6 @@ class TradeSource(menus.ListPageSource):
 
         else:
             footer_text = discord.Embed.Empty
-
 
         embed.set_footer(text=footer_text)
 

@@ -1,6 +1,7 @@
 import asyncio
 import logging
 import platform
+import aiosqlite
 import sys
 
 import aiohttp
@@ -18,6 +19,11 @@ async def create_http_session(loop):
     """
     return aiohttp.ClientSession(loop=loop)
 
+async def create_db_connection(db_name):
+    """Create the connection to the database."""
+
+    return await aiosqlite.connect(db_name)
+
 
 class MyBot(Bot):
     def __init__(self, *args, **kwargs):
@@ -27,12 +33,21 @@ class MyBot(Bot):
         self.http_session = self.loop.run_until_complete(
             create_http_session(self.loop))
 
+        # Make DB connection
+        self.db = self.loop.run_until_complete(
+            create_db_connection(kwargs.get('db_name', ':memory:')))
+        # allow for name-based access of data columns
+        self.db.row_factory = aiosqlite.Row
+
         self.boot_time = datetime.utcnow()
 
     async def close(self):
         """Subclass the close() method to close the HTTP Session."""
 
         await self.http_session.close()
+        # because .close is called twice for some reason
+        if self.db._connection:
+            await self.db.close()
         await super().close()
 
     async def on_ready(self):
@@ -91,6 +106,7 @@ if __name__ == '__main__':
         command_prefix='!',
         help_command=commands.DefaultHelpCommand(dm_help=True),
         loop=loop,
+        db_name='HatBot.db',
         )
 
     # This specifies what extensions to load when the bot starts up
