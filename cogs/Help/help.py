@@ -16,6 +16,10 @@ async def fuzzy_command_search(ctx, min_score=75):
     """
     term = ctx.invoked_with
     choices = ctx.bot.commands
+    aliases = set()
+    for cmd in choices:
+        aliases |= set(cmd.aliases)
+    choices |= aliases
 
     extracted = process.extract(term, choices, limit=5)
 
@@ -24,6 +28,9 @@ async def fuzzy_command_search(ctx, min_score=75):
         if score < min_score:
             # exit early if we are lower than min_score
             break
+
+        if isinstance(cmd, str):
+            cmd = ctx.bot.get_command(cmd)
 
         try:
             if await cmd.can_run(ctx):
