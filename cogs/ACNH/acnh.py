@@ -84,6 +84,8 @@ class ACNH(BasicCog):
         except FileNotFoundError:
             self.data = defaultdict(empty_series)
 
+        self._create_tables.start()
+
     def cog_unload(self):
         super().cog_unload()
         self.presence_task.cancel()
@@ -248,3 +250,28 @@ class ACNH(BasicCog):
         t = 1.5 * r + 0.5  # [0.5, 2)
         await channel.trigger_typing()
         await asyncio.sleep(t)
+
+    @tasks.loop(count=1)
+    async def _create_tables(self):
+        """Create the necessary DB tables if they do not exist."""
+
+        await self.bot.db.execute(
+            """
+            CREATE TABLE IF NOT EXISTS acnh_turnip(
+                user_id      INTEGER PRIMARY KEY,
+                sunday       INTEGER,
+                monday_am    INTEGER,
+                monday_pm    INTEGER,
+                tuesday_am   INTEGER,
+                tuesday_pm   INTEGER,
+                wednesday_am INTEGER,
+                wednesday_pm INTEGER,
+                thursday_am  INTEGER,
+                thursday_pm  INTEGER,
+                friday_am    INTEGER,
+                friday_pm    INTEGER
+            )
+            """
+            )
+
+        await self.bot.db.commit()
