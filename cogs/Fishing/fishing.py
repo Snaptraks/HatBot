@@ -144,6 +144,7 @@ class Fishing(FunCog):
         # hatbot-meta
         # self.channel_msg = self.bot.get_channel(680866127546679307)
         if self.channel_msg is None:
+            # will not work until dpy v1.4
             self.interest_experience.cancel()
             return
 
