@@ -762,7 +762,7 @@ class Fishing(FunCog):
 
     async def _get_journal(self, member):
         """Return the number of times each species was caught,
-        sorted by size.
+        sorted by weight.
         """
         async with self.bot.db.execute(
                 """
