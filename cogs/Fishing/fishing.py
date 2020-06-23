@@ -819,8 +819,9 @@ class Fishing(FunCog):
         return rows
 
     async def _get_top(self):
-        """Return the list of best catches for each member, sorted by weight."""
-
+        """Return the list of best catches for each member,
+        sorted by weight.
+        """
         async with self.bot.db.execute(
                 """
                 SELECT size, species, MAX(weight) AS weight,
