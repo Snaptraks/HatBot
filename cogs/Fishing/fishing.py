@@ -344,7 +344,7 @@ class Fishing(FunCog):
             member = ctx.author
 
         journal = await self._get_journal(member)
-        total_catch = await self._get_total_catch(member)
+        total_caught = await self._get_total_caught(member)
 
         total_species = {key: len(value['species'])
                          for key, value in FISH_SPECIES.items()}
@@ -372,7 +372,7 @@ class Fishing(FunCog):
             'Species Caught: '
             f'**{sum(species_caught.values())}'
             f'/{sum(total_species.values())}**\n'
-            f'Catches: **{total_catch}**'
+            f'Catches: **{total_caught}**'
             )
 
         embed = discord.Embed(
@@ -405,6 +405,18 @@ class Fishing(FunCog):
         else:
             raise error
 
+    @fish_journal.command(name='global')
+    async def fish_journal_global(self, ctx):
+        """Global fishing log."""
+
+        # total number of sizes
+        n_size = await self._get_journal_global_n_size()
+        print(n_size)
+
+        fig, ax = plt.subplots(figsize=(6, 6))
+        # explode = [0, 0, 0, 0, 0.2, 0.5, 0.7]
+        ax.pie(n_size.values(), labels=n_size.keys(), explode=explode)
+        buffer = io.BytesIO()
     @fish.command(name='slap', cooldown_after_parsing=True)
     @commands.cooldown(1, 30, commands.BucketType.member)
     @no_opened_inventory()
@@ -835,12 +847,12 @@ class Fishing(FunCog):
 
         return rows
 
-    async def _get_total_catch(self, member):
+    async def _get_total_caught(self, member):
         """Return the amount of fish caught for the given member."""
 
         async with self.bot.db.execute(
                 """
-                SELECT COUNT(*) as total_catch
+                SELECT COUNT(*) as total_caught
                   FROM fishing_fish
                  WHERE caught_by = :caught_by
                 """,
@@ -848,7 +860,7 @@ class Fishing(FunCog):
                 ) as c:
             row = await c.fetchone()
 
-        return row['total_catch']
+        return row['total_caught']
 
     async def _save_interest_experience(self, member, message, amount):
         """Add the amount of bi-daily interest to the given member."""
