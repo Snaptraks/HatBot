@@ -685,7 +685,10 @@ class Fishing(FunCog):
             colors = []
             for s in SIZES[i]:
                 x.append(sum(journal[s].values()))
-                labels.append(f'{s.title()} ({x[-1]})')
+                if x[-1] > 0:
+                    labels.append(f'{s.title()} ({x[-1]})')
+                else:
+                    labels.append('')
                 colors.append(
                     to_mpl_rbg(
                         get_fish_size_color(s).to_rgb()
@@ -694,7 +697,10 @@ class Fishing(FunCog):
 
             if i == 0:
                 x.append(sum([sum(journal[s].values()) for s in SIZES[1]]))
-                labels.append(f'Bigger Fish')
+                if x[-1] > 0:
+                    labels.append(f'Bigger Fish')
+                else:
+                    labels.append('')
                 colors.append([1, 0, 0])  # red
 
             ax[i].pie(x, labels=labels, colors=colors,
