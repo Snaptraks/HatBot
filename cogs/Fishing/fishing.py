@@ -662,7 +662,7 @@ class Fishing(FunCog):
             name='Totals',
             value=totals_str,
         ).set_image(
-            url='attachment://pie.png',
+            url=f'attachment://{file.filename}',
         )
 
         return embed, file
