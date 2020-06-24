@@ -2,6 +2,7 @@ import asyncio
 from collections import Counter, defaultdict
 import copy
 from datetime import datetime, timedelta
+import io
 import json
 import os
 import pickle
@@ -9,6 +10,7 @@ import pickle
 import discord
 from discord.ext import commands, tasks
 from discord.utils import escape_markdown
+import matplotlib.pyplot as plt
 import numpy as np
 
 from ..utils.cogs import FunCog
@@ -16,10 +18,20 @@ from ..utils.datetime_modulo import datetime as datetime_modulo
 from ..utils.dicts import AttrDict
 from ..utils.formats import pretty_print_timedelta
 from . import menus
-from .objects import Fish, Weather, get_fish_species_str, FISH_SPECIES
+from .objects import (
+    Fish,
+    Weather,
+    get_fish_species_str,
+    get_fish_size_color,
+    FISH_SPECIES,
+    )
 
 
 EMBED_COLOR = discord.Color.blurple()
+
+
+def to_mpl_rbg(rgb_tuple):
+    return [c / 255 for c in rgb_tuple]
 
 
 class FishTopNoEntriesError(commands.CommandError):
@@ -336,63 +348,18 @@ class Fishing(FunCog):
         else:
             raise error
 
-    @fish.command(name='journal', aliases=['log', 'stats'])
+    @fish.group(name='journal', aliases=['log', 'stats'],
+                invoke_without_command=True)
     async def fish_journal(self, ctx, member: discord.Member = None):
         """Fishing log of the amount of fish caught and different stats."""
 
         if member is None:
             member = ctx.author
 
-        journal = await self._get_journal(member)
-        total_caught = await self._get_total_caught(member)
+        embed, file = await self._build_journal_embed(member)
+        message = await ctx.send(embed=embed, file=file)
+        journal = menus.JournalMenu(message)
 
-        total_species = {key: len(value['species'])
-                         for key, value in FISH_SPECIES.items()}
-
-        species_caught = defaultdict(lambda: 0)
-        for key, value in journal.items():
-            species_caught[key] = len(value)
-
-        species_caught_str = '\n'.join(
-            f'{size.title()}: **{species_caught[size]}/{total_species[size]}**'
-            for size in FISH_SPECIES.keys()
-            )
-
-        most_caught = {key: value.most_common(1)[0]
-                       for key, value in journal.items()
-                       if len(value) > 0}
-        most_caught_str = '\n'.join((
-            f'{size.title()} '
-            f'**{get_fish_species_str(size, most_caught[size][0])} '
-            f'({most_caught[size][1]})**')
-            for size in most_caught.keys()
-            )
-
-        totals_str = (
-            'Species Caught: '
-            f'**{sum(species_caught.values())}'
-            f'/{sum(total_species.values())}**\n'
-            f'Catches: **{total_caught}**'
-            )
-
-        embed = discord.Embed(
-            title=('Fishing Journal of '
-                   f'{escape_markdown(member.display_name)}'),
-            color=EMBED_COLOR,
-        ).set_thumbnail(
-            url=member.avatar_url,
-        ).add_field(
-            name='Species Caught',
-            value=species_caught_str if species_caught_str else None,
-        ).add_field(
-            name='Most Caught',
-            value=most_caught_str if most_caught_str else None,
-        ).add_field(
-            name='Totals',
-            value=totals_str,
-        )
-
-        journal = menus.JournalMenu(embed)
         await journal.start(ctx)
 
     @fish_journal.error
@@ -405,18 +372,16 @@ class Fishing(FunCog):
         else:
             raise error
 
-    @fish_journal.command(name='global')
+    @fish_journal.command(name='global', aliases=['all'])
     async def fish_journal_global(self, ctx):
         """Global fishing log."""
 
-        # total number of sizes
-        n_size = await self._get_journal_global_n_size()
-        print(n_size)
+        embed, file = await self._build_journal_embed()
+        message = await ctx.send(embed=embed, file=file)
+        journal = menus.JournalMenu(message)
 
-        fig, ax = plt.subplots(figsize=(6, 6))
-        # explode = [0, 0, 0, 0, 0.2, 0.5, 0.7]
-        ax.pie(n_size.values(), labels=n_size.keys(), explode=explode)
-        buffer = io.BytesIO()
+        await journal.start(ctx)
+
     @fish.command(name='slap', cooldown_after_parsing=True)
     @commands.cooldown(1, 30, commands.BucketType.member)
     @no_opened_inventory()
@@ -619,6 +584,133 @@ class Fishing(FunCog):
         self.weather = Weather(state)
         await ctx.send(f'Weather set to {self.weather}')
 
+    def _build_journal_from_rows(self, rows):
+        """Convert a list of Rows to a defaultdict of Counters."""
+
+        journal = defaultdict(Counter)
+        for row in rows:
+            journal[row['size']][row['species']] += row['number_catch']
+
+        return journal
+
+    async def _build_journal_embed(self, member=None):
+        """Create the Embed for the fish_journal command and subcommand."""
+
+        if member is not None:
+            journal = await self._get_journal(member)
+            total_weight = await self._get_journal_total_weight(member)
+            embed_title = ('Fishing Journal of '
+                           f'{escape_markdown(member.display_name)}')
+            thumbnail = member.avatar_url
+
+        else:
+            journal = await self._get_journal_global()
+            total_weight = await self._get_journal_global_total_weight()
+            embed_title = 'Global Fishing Journal'
+            thumbnail = ''
+
+        total_caught = sum([sum(c.values()) for c in journal.values()])
+
+        total_species = {key: len(value['species'])
+                         for key, value in FISH_SPECIES.items()}
+
+        species_caught = {key: len(value)
+                          for key, value in journal.items()}
+        species_caught = {size: len(journal.get(size, []))
+                          for size in FISH_SPECIES}
+
+        species_caught_str = '\n'.join(
+            f'{size.title()}: **{species_caught[size]}/{total_species[size]}**'
+            for size in FISH_SPECIES.keys()
+            )
+
+        most_caught = {key: value.most_common(1)[0]
+                       for key, value in journal.items()
+                       if len(value) > 0}
+
+        most_caught_str = '\n'.join((
+            f'{size.title()} '
+            f'**{get_fish_species_str(size, most_caught[size][0])} '
+            f'({most_caught[size][1]})**')
+            for size in most_caught.keys()
+            )
+
+        totals_str = (
+            'Species Caught: '
+            f'**{sum(species_caught.values())}'
+            f'/{sum(total_species.values())}**\n'
+            f'Catches: **{total_caught}**\n'
+            f'Weight Fished: **{total_weight:.0f} kg**'
+            )
+
+        graph = await self.bot.loop.run_in_executor(
+            None, self._plot_journal_pie_chart, journal)
+        file = discord.File(graph, filename='pie.png')
+
+        embed = discord.Embed(
+            title=embed_title,
+            color=EMBED_COLOR,
+        ).set_thumbnail(
+            url=thumbnail,
+        ).add_field(
+            name='Species Caught',
+            value=species_caught_str if species_caught_str else None,
+        ).add_field(
+            name='Most Caught',
+            value=most_caught_str if most_caught_str else None,
+        ).add_field(
+            name='Totals',
+            value=totals_str,
+        ).set_image(
+            url='attachment://pie.png',
+        )
+
+        return embed, file
+
+    def _plot_journal_pie_chart(self, journal):
+        """Plot the pie charts of the sizes of caught fish."""
+
+        SIZES = [
+            ['tiny', 'small', 'average'],
+            ['large', 'giant', 'epic', 'legendary'],
+            ]
+
+        fig, ax = plt.subplots(ncols=2, figsize=(7, 3.5))
+        title = ['Smaller Fish', 'Bigger Fish']
+        startangle = [180, 0]
+
+        for i in range(2):
+            x = []
+            labels = []
+            colors = []
+            for s in SIZES[i]:
+                x.append(sum(journal[s].values()))
+                labels.append(f'{s.title()} ({x[-1]})')
+                colors.append(
+                    to_mpl_rbg(
+                        get_fish_size_color(s).to_rgb()
+                        )
+                    )
+
+            if i == 0:
+                x.append(sum([sum(journal[s].values()) for s in SIZES[1]]))
+                labels.append(f'Bigger Fish')
+                colors.append([1, 0, 0])  # red
+
+            ax[i].pie(x, labels=labels, colors=colors,
+                      startangle=startangle[i],
+                      wedgeprops={'width': 0.5})
+            ax[i].set_title(title[i])
+
+        plt.tight_layout()
+        fig.suptitle('Fish Size Chart')
+        buffer = io.BytesIO()
+        fig.savefig(buffer, format='png')
+        plt.close(fig=fig)
+        buffer.seek(0)
+
+        return buffer
+
     @tasks.loop(count=1)
     async def _create_tables(self):
         """Create the necessary DB tables if they do not exist."""
@@ -781,19 +873,77 @@ class Fishing(FunCog):
                 """
                 SELECT size, species, COUNT(species) AS number_catch
                   FROM fishing_fish
-                 WHERE caught_by = :owner_id
+                 WHERE caught_by = :caught_by
                  GROUP BY size, species
                  ORDER BY weight ASC
                 """,
-                {'owner_id': member.id}
+                {'caught_by': member.id}
                 ) as c:
             rows = await c.fetchall()
 
-        journal = defaultdict(Counter)
-        for row in rows:
-            journal[row['size']][row['species']] += row['number_catch']
+        journal = self._build_journal_from_rows(rows)
 
         return journal
+
+    async def _get_journal_total_caught(self, member):
+        """Return the amount of fish caught for the given member."""
+
+        async with self.bot.db.execute(
+                """
+                SELECT COUNT(*) as total_caught
+                  FROM fishing_fish
+                 WHERE caught_by = :caught_by
+                """,
+                {'caught_by': member.id}
+                ) as c:
+            row = await c.fetchone()
+
+        return row['total_caught']
+
+    async def _get_journal_total_weight(self, member):
+        """Get the total weight of all the fish caught."""
+
+        async with self.bot.db.execute(
+                """
+                SELECT SUM(weight) AS total_weight
+                  FROM fishing_fish
+                 WHERE caught_by = :caught_by
+                """,
+                {'caught_by': member.id}
+                ) as c:
+            row = await c.fetchone()
+
+        return row['total_weight']
+
+    async def _get_journal_global(self):
+        """Get the number of time each species was caught globally."""
+
+        async with self.bot.db.execute(
+                """
+                SELECT size, species, COUNT(species) AS number_catch
+                  FROM fishing_fish
+                 GROUP BY size, species
+                 ORDER BY weight ASC
+                """
+                ) as c:
+            rows = await c.fetchall()
+
+        journal = self._build_journal_from_rows(rows)
+
+        return journal
+
+    async def _get_journal_global_total_weight(self):
+        """Get the total weight of all the fish caught."""
+
+        async with self.bot.db.execute(
+                """
+                SELECT SUM(weight) AS total_weight
+                  FROM fishing_fish
+                """
+                ) as c:
+            row = await c.fetchone()
+
+        return row['total_weight']
 
     async def _get_last_catches(self, limit):
         """Get the last fish caught by every member."""
@@ -846,21 +996,6 @@ class Fishing(FunCog):
             rows = await c.fetchall()
 
         return rows
-
-    async def _get_total_caught(self, member):
-        """Return the amount of fish caught for the given member."""
-
-        async with self.bot.db.execute(
-                """
-                SELECT COUNT(*) as total_caught
-                  FROM fishing_fish
-                 WHERE caught_by = :caught_by
-                """,
-                {'caught_by': member.id}
-                ) as c:
-            row = await c.fetchone()
-
-        return row['total_caught']
 
     async def _save_interest_experience(self, member, message, amount):
         """Add the amount of bi-daily interest to the given member."""

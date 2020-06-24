@@ -183,12 +183,9 @@ class InventorySource(menus.ListPageSource):
 class JournalMenu(_MenuUtils, menus.Menu):
     """Menu to check the statistics about fishing."""
 
-    def __init__(self, embed):
+    def __init__(self, message):
         super().__init__(timeout=10 * 60, clear_reactions_after=True)
-        self.embed = embed
-
-    async def send_initial_message(self, ctx, channel):
-        return await channel.send(embed=self.embed)
+        self.message = message
 
     @menus.button(CANCEL_EMOJI)
     async def on_cancel(self, payload):
