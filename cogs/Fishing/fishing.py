@@ -1027,7 +1027,7 @@ class Fishing(FunCog):
         """
         fish_dict = fish.to_dict()
         fish_dict['state'] = state
-        await self.bot.db.execute_insert(
+        await self.bot.db.execute(
             """
             INSERT INTO fishing_fish
             VALUES (:catch_time,
