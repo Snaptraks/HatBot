@@ -130,11 +130,7 @@ class Fish:
     def from_dict(cls, fish_dict):
         """Convert a dict (or Row) form the DB to a class instance."""
 
-        instance = cls(**fish_dict)
-        instance.catch_time = datetime.fromisoformat(
-            instance.catch_time)
-
-        return instance
+        return cls(**fish_dict)
 
     def __repr__(self):
         return f'{self.size.title()} {self.species_str} ({self.weight:.3f} kg)'

@@ -22,7 +22,8 @@ async def create_http_session(loop):
 async def create_db_connection(db_name):
     """Create the connection to the database."""
 
-    return await aiosqlite.connect(db_name)
+    return await aiosqlite.connect(
+        db_name, detect_types=1)  # 1: parse declared types
 
 
 class MyBot(Bot):
