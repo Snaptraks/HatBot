@@ -4,8 +4,6 @@ import copy
 from datetime import datetime, timedelta
 import io
 import json
-import os
-import pickle
 
 import discord
 from discord.ext import commands, tasks
@@ -15,7 +13,6 @@ import numpy as np
 
 from ..utils.cogs import FunCog
 from ..utils.datetime_modulo import datetime as datetime_modulo
-from ..utils.dicts import AttrDict
 from ..utils.formats import pretty_print_timedelta
 from . import menus
 from .objects import (
