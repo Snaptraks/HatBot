@@ -122,7 +122,6 @@ if __name__ == '__main__':
         'cogs.Help',
         'cogs.HVC',
         'cogs.Info',
-        'cogs.Levels',
         'cogs.Minigames',
         'cogs.Moderation',
         'cogs.Poll',
