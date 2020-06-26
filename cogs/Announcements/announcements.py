@@ -21,6 +21,14 @@ def get_next_birthday(date):
     return bday
 
 
+def time_until_birthday(date):
+    """Return the time until the date.
+    Is always positive, if the current year's date is passed already,
+    checks for next year.
+    """
+    time_until_bday = get_next_birthday(date) - datetime.date.today()
+    return time_until_bday
+
 class AlreadyRegistered(Exception):
     """Exception raised when a user already has a birthday registered."""
 
@@ -134,8 +142,10 @@ class Announcements(BasicCog):
 
             if row is not None:
                 bday = row['birthday']
+                time_until_bday = time_until_birthday(bday)
                 out_str = (
-                    f'Your birthday is **{bday.strftime("%d of %B")}**.'
+                    f'Your birthday is **{bday.strftime("%d of %B")}**. '
+                    f'See you in {time_until_bday.days} day(s)!'
                     )
 
             else:
@@ -176,7 +186,7 @@ class Announcements(BasicCog):
         if confirm:  # yes
             await self._save_birthday(ctx.author, bday)
 
-            time_until_bday = get_next_birthday(bday) - datetime.date.today()
+            time_until_bday = time_until_birthday(bday)
             out_str = (
                 'I saved your birthday! See you in '
                 f'{time_until_bday.days} day(s)!'
