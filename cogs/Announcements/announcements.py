@@ -6,6 +6,7 @@ import discord
 from discord.ext import commands, tasks
 
 from ..utils.cogs import BasicCog
+from . import menus
 
 
 def get_next_birthday(date):
@@ -130,9 +131,9 @@ class Announcements(BasicCog):
         """
         if ctx.invoked_subcommand is None:
             row = await self._get_member_birthday(ctx.author)
-            bday = row['birthday']
 
-            if bday is not None:
+            if row is not None:
+                bday = row['birthday']
                 out_str = (
                     f'Your birthday is **{bday.strftime("%d of %B")}**.'
                     )
@@ -157,8 +158,6 @@ class Announcements(BasicCog):
             date = await self._get_member_birthday(ctx.author)
             raise AlreadyRegistered(date['birthday'])
 
-        yes_no = ('\U0001F44D', '\U0001F44E')  # thumbsup/down
-
         # will raise ValueError if there is a non-int
         date = [int(x) for x in date.split('/')]
 
@@ -171,24 +170,10 @@ class Announcements(BasicCog):
             year=date[2],
             )
 
-        msg = await ctx.send(
-            f'Is your birthday **{bday.strftime("%d of %B")}**?'
-            )
-        for emoji in yes_no:
-            await msg.add_reaction(emoji)
+        confirm = await menus.ConfirmBirthday(
+            f'Is your birthday **{bday.strftime("%d of %B")}**?').prompt(ctx)
 
-        def check(reaction, user):
-            valid = (
-                user == ctx.author
-                and reaction.emoji in yes_no
-                and reaction.message.id == msg.id
-                )
-            return valid
-
-        reaction, user = await self.bot.wait_for(
-            'reaction_add', check=check)
-
-        if reaction.emoji == yes_no[0]:  # yes
+        if confirm:  # yes
             await self._save_birthday(ctx.author, bday)
 
             time_until_bday = get_next_birthday(bday) - datetime.date.today()
@@ -197,7 +182,7 @@ class Announcements(BasicCog):
                 f'{time_until_bday.days} day(s)!'
                 )
 
-        elif reaction.emoji == yes_no[1]:  # no
+        else:  # no
             out_str = 'To enter again, just send the command again!'
 
         await ctx.send(out_str)
