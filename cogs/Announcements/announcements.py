@@ -189,9 +189,6 @@ class Announcements(BasicCog):
             'reaction_add', check=check)
 
         if reaction.emoji == yes_no[0]:  # yes
-            # self.birthday_dates[ctx.author.id] = bday
-            # with open('cogs/Announcements/birthday_dates.pkl', 'wb') as f:
-            #     pickle.dump(self.birthday_dates, f)
             await self._save_birthday(ctx.author, bday)
 
             time_until_bday = get_next_birthday(bday) - datetime.date.today()
