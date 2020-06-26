@@ -31,14 +31,7 @@ class Announcements(BasicCog):
     def __init__(self, bot):
         super().__init__(bot)
 
-        try:
-            with open('cogs/Announcements/birthday_dates.pkl', 'rb') as f:
-                self.birthday_dates = pickle.load(f)
-
-        except FileNotFoundError:
-            self.birthday_dates = {}
-
-        self.birthday_active = False
+        self._create_tables.start()
         self.birthday_announcement.start()
 
     def cog_unload(self):
@@ -80,7 +73,6 @@ class Announcements(BasicCog):
                         for word in trigger_words):
                     await message.add_reaction('\U0001F389')
 
-
     # DISCORD.PY > 1.3.0 ONLY
     # @tasks.loop(time=datetime.time(hour=0))
     @tasks.loop(hours=24)
@@ -89,18 +81,13 @@ class Announcements(BasicCog):
         Birthdays need to be registered by the member beforehand
         with the command `!birthday register <DD/MM/YYYY>`.
         """
-        birthdays = []
-        today = datetime.date.today()
-        # build birthday list
-        for k, v in self.birthday_dates.items():
-            if (v.day, v.month) == (today.day, today.month):
-                member = self.guild.get_member(k)
-                if member is not None:
-                    birthdays.append(member)
+        birthdays = await self._get_today_birthday()
 
         if len(birthdays) != 0:
             self.birthday_active = True
-            for member in birthdays:
+
+            for bday in birthdays:
+                member = self.guild.get_member(bday['user_id'])
                 asyncio.create_task(self.birthday_task(member))
 
         else:
@@ -119,10 +106,11 @@ class Announcements(BasicCog):
     @birthday_announcement.before_loop
     async def birthday_announcement_before(self):
         await self.bot.wait_until_ready()
-        self.guild = discord.utils.get(
-            self.bot.guilds,
-            name='Hatventures Community',
-            )
+        self.birthday_active = False
+        # Hatventures Community
+        self.guild = self.bot.get_guild(308049114187431936)
+        # Bot Testing Server
+        # self.guild = self.bot.get_guild(588171715960635393)
 
         self.birthday_role = discord.utils.get(
             self.guild.roles,
@@ -132,7 +120,7 @@ class Announcements(BasicCog):
         t = datetime.datetime.utcnow().replace(hour=12, minute=0)
         if t < datetime.datetime.utcnow():
             t += datetime.timedelta(days=1)
-        await discord.utils.sleep_until(t)
+        # await discord.utils.sleep_until(t)
         # --------------------------------------
 
     @commands.group(aliases=['bday'])
@@ -141,25 +129,20 @@ class Announcements(BasicCog):
         Check the current registered date, if any.
         """
         if ctx.invoked_subcommand is None:
-            try:
-                bday = self.birthday_dates[ctx.author.id]
-
-            except KeyError:
-                bday = None
+            row = await self._get_member_birthday(ctx.author)
+            bday = row['birthday']
 
             if bday is not None:
                 out_str = (
-                    f'Your birthday is **{bday.strftime("%d of %B")}**. '
-                    'If it is not correct, you can change it with '
+                    f'Your birthday is **{bday.strftime("%d of %B")}**.'
                     )
 
             else:
-                out_str = 'You can register your birthday with '
-
-            out_str += (
-                '`!birthday register <DD/MM/YYYY>` in a private '
-                'message with me.'
-                )
+                out_str = (
+                    'You can register your birthday with '
+                    '`!birthday register <DD/MM/YYYY>` in a private '
+                    'message with me.'
+                    )
 
             await ctx.send(out_str)
 
@@ -169,8 +152,10 @@ class Announcements(BasicCog):
         """Register your birthday.
         Format DD/MM/YYYY. Only works in Private Message with the bot.
         """
-        if ctx.author.id in self.birthday_dates:
-            raise AlreadyRegistered(self.birthday_dates[ctx.author.id])
+        already_registered = await self._is_already_registered(ctx.author)
+        if already_registered:
+            date = await self._get_member_birthday(ctx.author)
+            raise AlreadyRegistered(date['birthday'])
 
         yes_no = ('\U0001F44D', '\U0001F44E')  # thumbsup/down
 
@@ -204,9 +189,10 @@ class Announcements(BasicCog):
             'reaction_add', check=check)
 
         if reaction.emoji == yes_no[0]:  # yes
-            self.birthday_dates[ctx.author.id] = bday
-            with open('cogs/Announcements/birthday_dates.pkl', 'wb') as f:
-                pickle.dump(self.birthday_dates, f)
+            # self.birthday_dates[ctx.author.id] = bday
+            # with open('cogs/Announcements/birthday_dates.pkl', 'wb') as f:
+            #     pickle.dump(self.birthday_dates, f)
+            await self._save_birthday(ctx.author, bday)
 
             time_until_bday = get_next_birthday(bday) - datetime.date.today()
             out_str = (
@@ -218,45 +204,6 @@ class Announcements(BasicCog):
             out_str = 'To enter again, just send the command again!'
 
         await ctx.send(out_str)
-
-    @birthday.command(name='celebrate')
-    @commands.has_permissions(mention_everyone=True)
-    async def birthday_celebrate(self, ctx, member: discord.Member):
-        """Celebrate a member's birthday!"""
-
-        self.birthday_active = True
-        asyncio.create_task(self.birthday_task(member))
-
-        if member.id not in self.birthday_dates:
-            # send a message to member to ask if they would like to register
-            today = datetime.date.today().strftime('%d/%m/%Y')
-            out_str = (
-                'It seems it is your birthday today! Sadly I did not know '
-                'and someone just told me. If you would like me to remember '
-                'for next time please enter the command '
-                f'`!birthday register {today}`! And happy birthday!'
-                )
-            await member.send(out_str)
-
-    @birthday.command(name='delete')
-    @commands.is_owner()
-    async def birthday_delete(self, ctx, user: discord.User):
-        """Delete a registered birthday.
-        Only use it if someone entered the wrong date even after
-        the confirmation message.
-        """
-        try:
-            del self.birthday_dates[user.id]
-
-        except KeyError:
-            await ctx.send(f'User {user} ({user.id}) has not registered.')
-
-        else:
-            await ctx.send(f'Successfully removed birthday for {user}')
-
-        with open('cogs/Announcements/birthday_dates.pkl', 'wb') as f:
-            pickle.dump(self.birthday_dates, f)
-
 
     @birthday_register.error
     async def birthday_register_error(self, ctx, error):
@@ -274,12 +221,132 @@ class Announcements(BasicCog):
                 )
 
         elif isinstance(error.original, AlreadyRegistered):
-            app_info = await self.bot.application_info()
             await ctx.send(
                 'You already have a birthday registered '
                 f'(**{error.original.date.strftime("%d of %B")}**)! '
-                f'Contact {app_info.owner.mention} to change it.'
+                f'Contact {self.bot.owner.mention} to change it.'
                 )
 
         else:
             raise error
+
+    @birthday.command(name='celebrate')
+    @commands.has_permissions(mention_everyone=True)
+    async def birthday_celebrate(self, ctx, member: discord.Member):
+        """Celebrate a member's birthday!"""
+
+        self.birthday_active = True
+        asyncio.create_task(self.birthday_task(member))
+
+        already_registered = await self._is_already_registered(member)
+
+        if not already_registered:
+            # send a message to member to ask if they would like to register
+            today = datetime.date.today().strftime('%d/%m/%Y')
+            out_str = (
+                'It seems it is your birthday today! Sadly I did not know '
+                'and someone just told me. If you would like me to remember '
+                'for next time please enter the command '
+                f'`!birthday register {today}`! And happy birthday!'
+                )
+            await member.send(out_str)
+
+    @birthday.command(name='delete')
+    @commands.is_owner()
+    async def birthday_delete(self, ctx, user: discord.User):
+        """Delete a registered birthday.
+        Only use it if someone entered the wrong date even after
+        the confirmation message.
+        """
+        await self._delete_birthday(user)
+        await ctx.send(f'Successfully removed birthday for {user}')
+
+    @tasks.loop(count=1)
+    async def _create_tables(self):
+        """Create the necessary DB tables if they do not exist."""
+
+        await self.bot.db.execute(
+            """
+            CREATE TABLE IF NOT EXISTS announcements_birthday(
+                user_id  INTEGER PRIMARY KEY,
+                birthday DATE
+                )
+            """
+            )
+
+        await self.bot.db.commit()
+
+    async def _get_member_birthday(self, member):
+        """Get a member's birthday."""
+
+        async with self.bot.db.execute(
+                """
+                SELECT *
+                  FROM announcements_birthday
+                 WHERE user_id = :user_id
+                """,
+                {'user_id': member.id}
+                ) as c:
+            row = await c.fetchone()
+
+        return row
+
+    async def _get_today_birthday(self):
+        """Return a list of today's birthdays.
+        The list is empty is there is none.
+        """
+        async with self.bot.db.execute(
+                """
+                SELECT *
+                  FROM announcements_birthday
+                """
+                ) as c:
+            rows = await c.fetchall()
+
+        birthdays = []
+        today = datetime.date.today()
+        for row in rows:
+            date = row['birthday']
+            if (date.day, date.month) == (today.day, today.month):
+                birthdays.append(row)
+
+        return birthdays
+
+    async def _is_already_registered(self, member):
+        """Verify if a member has registered a birthday already."""
+
+        async with self.bot.db.execute(
+                """
+                SELECT EXISTS (SELECT 1
+                                 FROM announcements_birthday
+                                WHERE user_id = :user_id)
+                """,
+                {'user_id': member.id}
+                ) as c:
+            row = await c.fetchone()
+
+        return bool(row[0])
+
+    async def _save_birthday(self, member, birthday):
+        """Save the birthday to the database."""
+
+        await self.bot.db.execute(
+            """
+            INSERT INTO announcements_birthday
+            VALUES (:user_id, :birthday)
+            """,
+            {'user_id': member.id, 'birthday': birthday}
+            )
+        await self.bot.db.commit()
+
+    async def _delete_birthday(self, member):
+        """Remove the member's birthday from the database."""
+
+        await self.bot.db.execute(
+            """
+            DELETE FROM announcements_birthday
+             WHERE user_id = :user_id
+            """,
+            {'user_id': member.id}
+            )
+        await self.bot.db.commit()
