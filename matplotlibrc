@@ -288,7 +288,7 @@ text.color          : white
 ## default fontsizes for ticklabels, and so on.  See
 ## http://matplotlib.org/api/axes_api.html#module-matplotlib.axes
 axes.facecolor      : none   ## axes background color
-#axes.edgecolor      : black   ## axes edge color
+axes.edgecolor      : white   ## axes edge color
 #axes.linewidth      : 0.8     ## edge linewidth
 #axes.grid           : False   ## display grid or not
 #axes.grid.axis      : both    ## which axis the grid should apply to
@@ -299,7 +299,7 @@ axes.facecolor      : none   ## axes background color
 #axes.labelsize      : medium  ## fontsize of the x any y labels
 #axes.labelpad       : 4.0     ## space between label and axis
 #axes.labelweight    : normal  ## weight of the x and y labels
-# axes.labelcolor     : white
+axes.labelcolor     : white
 #axes.axisbelow      : line    ## draw axis gridlines and ticks below
                                ## patches (True); above patches but below
                                ## lines ('line'); or above all (False)
@@ -371,7 +371,7 @@ xtick.bottom         : True   ## draw ticks on the bottom side
 #xtick.minor.width    : 0.6    ## minor tick width in points
 #xtick.major.pad      : 3.5    ## distance to major tick label in points
 #xtick.minor.pad      : 3.4    ## distance to the minor tick label in points
-#xtick.color          : black  ## color of the tick labels
+xtick.color          : white  ## color of the tick labels
 #xtick.labelsize      : medium ## fontsize of the tick labels
 xtick.direction      : in    ## direction: in, out, or inout
 xtick.minor.visible  : True  ## visibility of minor ticks on x-axis
@@ -391,7 +391,7 @@ ytick.right          : True  ## draw ticks on the right side
 #ytick.minor.width    : 0.6    ## minor tick width in points
 #ytick.major.pad      : 3.5    ## distance to major tick label in points
 #ytick.minor.pad      : 3.4    ## distance to the minor tick label in points
-#ytick.color          : black  ## color of the tick labels
+ytick.color          : white  ## color of the tick labels
 #ytick.labelsize      : medium ## fontsize of the tick labels
 ytick.direction      : in    ## direction: in, out, or inout
 ytick.minor.visible  : True  ## visibility of minor ticks on y-axis
