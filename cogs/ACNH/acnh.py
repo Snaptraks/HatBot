@@ -4,8 +4,6 @@ from collections import defaultdict
 import io
 import json
 import os
-import pickle
-import typing
 
 import discord
 from discord.ext import commands, tasks
@@ -15,11 +13,11 @@ import numpy as np
 import pandas as pd
 
 from ..utils.cogs import BasicCog
+from . import menus
 
-
-matplotlib.use('Agg')
 
 EMBED_COLOR = 0xF3F5E8
+TURNIP_PROPHET_BASE = 'https://turnipprophet.io/?'
 
 
 class WeekDay(commands.Converter):
@@ -27,7 +25,6 @@ class WeekDay(commands.Converter):
     Able to convert in English or French.
     0 is Monday and 6 is Sunday, to be consistent with datetime.weekday().
     """
-
     weekdays = (
         ('monday', 'mon', 'lundi', 'lu'),
         ('tuesday', 'tue', 'mardi', 'ma'),
@@ -51,7 +48,6 @@ class AmPm(commands.Converter):
     """Convert to AM or PM.
     0 is AM and 1 is PM.
     """
-
     am_pm = ('am', 'pm')
 
     async def convert(self, ctx, argument):
@@ -61,10 +57,6 @@ class AmPm(commands.Converter):
         except ValueError:
             raise commands.BadArgument(
                 f'Argument "{argument}" not recognized as AM or PM.')
-
-
-def empty_series():
-    return pd.Series(np.nan, index=range(13))
 
 
 class ACNH(BasicCog):
@@ -77,25 +69,19 @@ class ACNH(BasicCog):
         with open(os.path.join(self._cog_path, 'quotes.json'), 'r') as f:
             self.quotes = json.load(f)
 
-        try:
-            with open(os.path.join(self._cog_path, 'data.pkl'), 'rb') as f:
-                self.data = pickle.load(f)
-
-        except FileNotFoundError:
-            self.data = defaultdict(empty_series)
-
         self._create_tables.start()
 
     def cog_unload(self):
         super().cog_unload()
         self.presence_task.cancel()
 
-        with open(os.path.join(self._cog_path, 'data.pkl'), 'wb') as f:
-            pickle.dump(self.data, f)
-
     @tasks.loop(hours=1)
     async def presence_task(self):
         """Change the presence of the bot once fully loaded."""
+
+        if self.bot.user.id != 695308113007607840:  # Mr. Resetti
+            self.presence_task.cancel()
+            return
 
         game = discord.Game(name='Animal Crossing: New Horizons')
         await self.bot.change_presence(activity=game)
@@ -107,6 +93,10 @@ class ACNH(BasicCog):
     @commands.Cog.listener(name='on_message')
     async def on_mention(self, message):
         """Send a funny reply when the bot is mentionned."""
+
+        if message.guild:
+            if message.guild.id != 489435669215707148:  # Les GrandMasters
+                return
 
         ctx = await self.bot.get_context(message)
 
@@ -124,35 +114,44 @@ class ACNH(BasicCog):
     async def turnip(self, ctx):
         """Command group to manage and check the turnip prices."""
 
-        data = self.data[ctx.author.id]
-        sell_prices = data[:12]
-        bought_price = data[12]
+        prices = await self._get_turnip_prices(ctx.author)
+        url = await self._get_turnip_url(ctx.author)
 
         turnip_emoji = self.bot.get_emoji(697120729476497489)  # turnip_badge
 
-        if not pd.isnull(bought_price):
-            bought_str = (
-                f'You bought turnips for {bought_price:.0f} bells this week.'
-                )
-
-        else:
+        if len(prices) == 0 or prices[0] is None:
             bought_str = (
                 'You did not buy turnips this week, '
                 'or did not save the price.'
                 )
 
+        else:
+            bought_str = (
+                f'You bought turnips for {prices[0]} bells this week.'
+                )
+
+        prices_array = np.array(prices[1:], dtype=np.float64)
+        if not np.isnan(prices_array).all():
+            price_max = np.nanmax(prices_array)
+            price_min = np.nanmin(prices_array)
+            min_max_str = (
+            f'The maximum sell price was {int(price_max)} bells.\n'
+            f'The lowest sell price was {int(price_min)} bells.\n'
+            )
+        else:
+            min_max_str = ''
+
         description = (
             f'{bought_str}\n'
-            f'The maximum sell price was {sell_prices.max():.0f} bells.\n'
-            f'The lowest sell price was {sell_prices.min():.0f} bells.'
+            f'{min_max_str}'
+            f'[Your prices on Turnip Prophet]({url})'
             )
 
         graph = await self.bot.loop.run_in_executor(
-            None, self._turnip_plot, ctx.author)
+            None, self._turnip_plot, prices)
         graph_file = discord.File(graph, filename='graph.png')
 
         embed = discord.Embed(
-            # title='Turnip Tracker',
             description=description,
             color=EMBED_COLOR,
         ).set_image(
@@ -166,27 +165,20 @@ class ACNH(BasicCog):
 
     @turnip.command(name='pattern', aliases=['patterns'])
     async def turnip_pattern(self, ctx):
-        """Explain the different patterns observed in the turnip market
-        in Animal Crossing: New Horizons.
-        """
+        """Explain the different turnip patterns."""
+
         await ctx.send(':warning: Work in progress')
 
     @turnip.command(name='price', aliases=['prix', 'p'])
-    async def turnip_price(self, ctx, price: int,
-                           weekday: WeekDay = None,
-                           am_pm: AmPm = None):
-        """Register the price of turnips for a given period, or the current
-        one if not specified.
-        """
-        now = datetime.now()  # don't use UTC here
-        if weekday is None:
-            weekday = now.weekday()
+    async def turnip_price(self, ctx, weekday: WeekDay, am_pm: AmPm,
+                           price: int):
+        """Register the price of turnips for a given period."""
 
-        if am_pm is None:
-            am_pm = int(now.hour >= 12)
+        weekday_str = f'{WeekDay.weekdays[weekday][1]}'
+        if weekday != 6:  # not sunday
+            weekday_str += f'_{AmPm.am_pm[am_pm]}'
 
-        turnip_index = 2 * weekday + am_pm if weekday != 6 else 12
-        self.data[ctx.author.id][turnip_index] = price
+        await self._save_turnip_price(ctx.author, weekday_str, price)
         out_str = (
             'OK! Let me set the price for '
             f'{WeekDay.weekdays[weekday][0].title()} '
@@ -199,14 +191,23 @@ class ACNH(BasicCog):
     async def turnip_price_before(self, ctx):
         """Reset the member's data if it is Sunday."""
 
-        if datetime.now().weekday() == 6:  # Sunday
-            await ctx.send(
-                'It is Sunday, let me reset your prices for the week.')
-            try:
-                del self.data[ctx.author.id]
+        if ctx.args[2] == 6:  # weekday == Sunday
+            # TODO: use menu to ask for first-time buyer and previous pattern
+            m = menus.ResetConfirm(
+                'It is Sunday, do you want to reset your prices for the week?')
+            reset = await m.prompt(ctx)
 
-            except KeyError:
-                pass
+            if reset:
+                await self._reset_week(ctx.author)
+
+                options = {}
+                m = menus.FirstTimeMenu()
+                options['first_time'] = await m.prompt(ctx)
+
+                m = menus.PreviousPatternMenu()
+                options['previous_pattern'] = await m.prompt(ctx)
+
+                await self._save_options(ctx.author, options)
 
     @turnip_price.error
     async def turnip_price_error(self, ctx, error):
@@ -221,22 +222,36 @@ class ACNH(BasicCog):
         else:
             raise error
 
-    def _turnip_plot(self, author: discord.Member):
-        """Plot the turnip price evolution for the given user."""
+    @turnip.command(name='reset', aliases=['r'])
+    async def turnip_reset(self, ctx):
+        """Reset the turnip data."""
 
-        prices = self.data[author.id].values
+        await self._reset_week(ctx.author)
 
-        with plt.xkcd():
-            fig, ax = plt.subplots(figsize=(6, 4))
-            ax.axhline(prices[-1], color='r', label='Bought At')
-            ax.plot(prices[:-1], '-o', c='C2', ms=8, label='Price Evolution')
-            ax.legend()
-            ax.set_xlabel('Day of the week')
-            ax.set_ylabel('Bells')
-            ax.set_xticks(range(0, 12, 2))
-            ax.set_xticklabels(
-                [day[1].title() for day in WeekDay.weekdays])
-            plt.tight_layout()
+    @turnip.command(name='test', aliases=['t'])
+    async def turnip_test(self, ctx):
+        m = menus.FirstTimeMenu()
+        _ = await m.prompt(ctx)
+        print(_)
+
+        m = menus.PreviousPatternMenu()
+        _ = await m.prompt(ctx)
+        print(_)
+
+    def _turnip_plot(self, prices):
+        """Plot the turnip price evolution."""
+
+        fig, ax = plt.subplots(figsize=(6, 4))
+        if prices[0]:
+            ax.axhline(prices[0], color='r', label='Bought At')
+        ax.plot(prices[1:], '-o', c='C2', ms=8, label='Price Evolution')
+        ax.legend()
+        ax.set_xlabel('Day of the week')
+        ax.set_ylabel('Bells')
+        ax.set_xticks(range(0, 12, 2))
+        ax.set_xticklabels(
+            [day[1].title() for day in WeekDay.weekdays])
+        plt.tight_layout()
 
         buffer = io.BytesIO()
         fig.savefig(buffer, format='png')
@@ -259,19 +274,109 @@ class ACNH(BasicCog):
             """
             CREATE TABLE IF NOT EXISTS acnh_turnip(
                 user_id      INTEGER PRIMARY KEY,
-                sunday       INTEGER,
-                monday_am    INTEGER,
-                monday_pm    INTEGER,
-                tuesday_am   INTEGER,
-                tuesday_pm   INTEGER,
-                wednesday_am INTEGER,
-                wednesday_pm INTEGER,
-                thursday_am  INTEGER,
-                thursday_pm  INTEGER,
-                friday_am    INTEGER,
-                friday_pm    INTEGER
+                first_time   INTEGER DEFAULT 1,
+                prev_pattern INTEGER DEFAULT NULL,
+                sun          INTEGER,
+                mon_am       INTEGER,
+                mon_pm       INTEGER,
+                tue_am       INTEGER,
+                tue_pm       INTEGER,
+                wed_am       INTEGER,
+                wed_pm       INTEGER,
+                thu_am       INTEGER,
+                thu_pm       INTEGER,
+                fri_am       INTEGER,
+                fri_pm       INTEGER,
+                sat_am       INTEGER,
+                sat_pm       INTEGER
             )
             """
             )
 
+        await self.bot.db.commit()
+
+    async def _get_member_data(self, member):
+        """Return the turnip data the user has registered."""
+
+        async with self.bot.db.execute(
+                """
+                SELECT *
+                  FROM acnh_turnip
+                 WHERE user_id = :user_id
+                """,
+                {'user_id': member.id}
+                ) as c:
+            row = await c.fetchone()
+
+        return row
+
+    async def _get_turnip_prices(self, member):
+        """Return the turnip prices the user has registered."""
+
+        data = await self._get_member_data(member)
+        if data is None:
+            return []
+        return data[3:]
+
+    async def _get_turnip_url(self, member):
+        """Generate the URL for the web turnip tracker."""
+
+        data = await self._get_member_data(member)
+        options = {}
+        options['prices'] = '.'.join(
+            [str(p) if p is not None else '' for p in data[3:]])
+        options['first'] = str(bool(data['first_time'])).lower()
+        options['pattern'] = data['prev_pattern']
+        options_str = '&'.join(
+            [f'{key}={value}' for key, value in options.items()])
+
+        url = f'{TURNIP_PROPHET_BASE}{options_str}'
+        return url
+
+    async def _save_turnip_price(self, member, day, price):
+        """Save the price of a member's turnips for a given day (AM/PM)."""
+
+        await self.bot.db.execute(
+            f"""
+            UPDATE acnh_turnip
+               SET {day} = :price
+             WHERE user_id = :user_id
+            """,
+            {'price': price, 'user_id': member.id}
+            )
+        await self.bot.db.commit()
+
+    async def _save_options(self, member, options):
+        """Save the options for this week's prices
+        (first time buy, previous pattern) of a member.
+        """
+
+        options.update({'user_id': member.id})
+        await self.bot.db.execute(
+            """
+            UPDATE acnh_turnip
+               SET first_time = :first_time,
+                   prev_pattern = :previous_pattern
+             WHERE user_id = :user_id
+            """,
+            options
+            )
+
+    async def _reset_week(self, member):
+        """Reset the prices for a member's turnips."""
+
+        await self.bot.db.execute(
+            """
+            DELETE FROM acnh_turnip
+             WHERE user_id = :user_id
+            """,
+            {'user_id': member.id}
+            )
+        await self.bot.db.execute(
+            """
+            INSERT INTO acnh_turnip(user_id)
+            VALUES (:user_id)
+            """,
+            {'user_id': member.id}
+            )
         await self.bot.db.commit()
