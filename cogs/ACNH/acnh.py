@@ -206,7 +206,6 @@ class ACNH(BasicCog):
         """Reset the member's data if it is Sunday."""
 
         if ctx.args[2] == 6:  # weekday == Sunday
-            # TODO: use menu to ask for first-time buyer and previous pattern
             m = menus.ResetConfirm(
                 'It is Sunday, do you want to reset your prices for the week?')
             reset = await m.prompt(ctx)
@@ -215,6 +214,7 @@ class ACNH(BasicCog):
                 await self._reset_week(ctx.author)
 
                 options = {}
+                # TODO: don't ask if the value is already set to False
                 m = menus.FirstTimeMenu()
                 options['first_time'] = await m.prompt(ctx)
 
