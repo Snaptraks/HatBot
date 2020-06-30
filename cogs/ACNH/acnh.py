@@ -240,8 +240,11 @@ class ACNH(BasicCog):
     async def turnip_reset(self, ctx):
         """Reset the turnip data."""
 
-        await self._reset_week(ctx.author)
+        m = menus.ResetConfirm('Reset your data?')
+        reset = await m.prompt(ctx)
 
+        if reset:
+            await self._reset_week(ctx.author)
 
     def _turnip_plot(self, prices):
         """Plot the turnip price evolution."""
