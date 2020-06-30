@@ -181,7 +181,12 @@ class ACNH(BasicCog):
     @turnip.command(name='price', aliases=['prix'])
     async def turnip_price(self, ctx, weekday: WeekDay, am_pm: AmPm,
                            price: int):
-        """Register the price of turnips for a given period."""
+        """Register the price of turnips for a given period.
+        Example syntax:
+            !turnip price Monday AM 123
+            !turnip price fri pm 90
+            !turnip price WED PM 101
+        """
 
         weekday_str = f'{WeekDay.weekdays[weekday][1]}'
         if weekday != 6:  # not sunday
