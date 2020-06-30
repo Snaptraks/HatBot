@@ -242,15 +242,6 @@ class ACNH(BasicCog):
 
         await self._reset_week(ctx.author)
 
-    @turnip.command(name='test', aliases=['t'])
-    async def turnip_test(self, ctx):
-        m = menus.FirstTimeMenu()
-        _ = await m.prompt(ctx)
-        print(_)
-
-        m = menus.PreviousPatternMenu()
-        _ = await m.prompt(ctx)
-        print(_)
 
     def _turnip_plot(self, prices):
         """Plot the turnip price evolution."""
