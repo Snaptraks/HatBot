@@ -330,6 +330,9 @@ class ACNH(BasicCog):
         """Generate the URL for the web turnip tracker."""
 
         data = await self._get_member_data(member)
+        if data is None:
+            return
+
         options = {}
         options['prices'] = '.'.join(
             [str(p) if p is not None else '' for p in data[3:]])
