@@ -109,7 +109,7 @@ class ACNH(BasicCog):
             await self.send_typing_delay(ctx.channel)
             await ctx.send(out_str)
 
-    @commands.group(aliases=['turnips', 'navet', 'navets', 't'],
+    @commands.group(aliases=['turnips', 'navet', 'navets'],
                     invoke_without_command=True)
     async def turnip(self, ctx):
         """Command group to manage and check the turnip prices."""
@@ -169,7 +169,7 @@ class ACNH(BasicCog):
 
         await ctx.send(':warning: Work in progress')
 
-    @turnip.command(name='price', aliases=['prix', 'p'])
+    @turnip.command(name='price', aliases=['prix'])
     async def turnip_price(self, ctx, weekday: WeekDay, am_pm: AmPm,
                            price: int):
         """Register the price of turnips for a given period."""
@@ -222,7 +222,7 @@ class ACNH(BasicCog):
         else:
             raise error
 
-    @turnip.command(name='reset', aliases=['r'])
+    @turnip.command(name='reset')
     async def turnip_reset(self, ctx):
         """Reset the turnip data."""
 
