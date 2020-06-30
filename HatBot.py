@@ -113,6 +113,7 @@ if __name__ == '__main__':
 
     # This specifies what extensions to load when the bot starts up
     startup_extensions = [
+        'cogs.ACNH',
         'cogs.Admin',
         'cogs.Announcements',
         'cogs.Dev',
