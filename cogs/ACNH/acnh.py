@@ -111,13 +111,22 @@ class ACNH(BasicCog):
 
     @commands.group(aliases=['turnips', 'navet', 'navets'],
                     invoke_without_command=True)
-    async def turnip(self, ctx):
+    async def turnip(self, ctx, member: discord.Member = None):
         """Command group to manage and check the turnip prices."""
 
-        prices = await self._get_turnip_prices(ctx.author)
-        url = await self._get_turnip_url(ctx.author)
+        if member is None:
+            member = ctx.author
 
+        data = await self._get_member_data(member)
         turnip_emoji = self.bot.get_emoji(697120729476497489)  # turnip_badge
+
+        if data is None:
+            # The member has no data saved
+            await ctx.send(f'No data saved for member {member.display_name}')
+            return
+
+        prices = await self._get_turnip_prices(member)
+        url = await self._get_turnip_url(member)
 
         if len(prices) == 0 or prices[0] is None:
             bought_str = (
