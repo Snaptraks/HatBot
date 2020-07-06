@@ -32,15 +32,9 @@ class Presence(BasicCog):
         activity_dict = np.random.choice(self.activities)
         type = activity_dict['activitytype']
         name = activity_dict['name']
-        if type == 1:
-            # Streaming needs an URL
-            url = activity_dict['url']
-        else:
-            url = None
         activity = discord.Activity(
             type=discord.ActivityType.try_value(type),
             name=name,
-            url=url,
             )
 
         await self.bot.change_presence(activity=activity)
