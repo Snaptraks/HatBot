@@ -32,7 +32,7 @@ class Info(BasicCog):
                 ),
             )
 
-        owner = await self.bot.owner()
+        owner = self.bot.owner
         embed.set_author(
             name=str(self.bot.user),
             icon_url=self.bot.user.avatar_url,
