@@ -1,5 +1,7 @@
-discord.py>=1.3
-discord-ext-menus
+aiosqlite
+discord.py==1.3.4
+git+git://github.com/Rapptz/discord-ext-menus.git
+fuzzywuzzy
 matplotlib>=3.0.0
 mcstatus
 numpy
