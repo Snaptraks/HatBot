@@ -238,7 +238,16 @@ class Fishing(FunCog):
         if member is None:
             member = ctx.author
 
-        best_catch = Fish.from_dict(await self._get_best_catch(member))
+        best_catch_dict = await self._get_best_catch(member)
+
+        # check if the row is empty before creating the Fish
+        if not all(_ is None for _ in dict(best_catch_dict).values()):
+            best_catch = Fish.from_dict(best_catch_dict)
+            date_str = best_catch.catch_time.strftime('%b %d %Y')
+        else:
+            best_catch = 'No catches yet'
+            date_str = None
+
         exp = await self._get_experience(member)
 
         embed = discord.Embed(
@@ -247,12 +256,6 @@ class Fishing(FunCog):
         ).set_thumbnail(
             url=member.avatar_url,
         )
-
-        if best_catch is not None:
-            date_str = best_catch.catch_time.strftime('%b %d %Y')
-
-        else:
-            date_str = None
 
         embed.add_field(
             name='Best Catch',
