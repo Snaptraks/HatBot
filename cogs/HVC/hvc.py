@@ -11,8 +11,8 @@ class HVC(BasicCog):
     def __init__(self, bot):
         super().__init__(bot)
 
-    @commands.command()
-    async def ts(self, ctx):
+    @commands.command(aliases=['ts'])
+    async def teamspeak(self, ctx):
         """Get the TeamSpeak server information."""
 
         embed = discord.Embed(
@@ -29,8 +29,8 @@ class HVC(BasicCog):
         embed.set_thumbnail(url=config.hvc_ts['icon'])
         await ctx.send(embed=embed)
 
-    @commands.command(aliases=['map', 'ip'])
-    async def mc(self, ctx):
+    @commands.command(aliases=['mc', 'map', 'ip'])
+    async def minecraft(self, ctx):
         """Get the Minecraft server information."""
 
         server = MinecraftServer.lookup(config.hvc_mc['ip'])
