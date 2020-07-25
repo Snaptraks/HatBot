@@ -609,6 +609,9 @@ class Fishing(FunCog):
             embed_title = 'Global Fishing Journal'
             thumbnail = ''
 
+        if total_weight is None:
+            total_weight = 0
+
         total_caught = sum([sum(c.values()) for c in journal.values()])
 
         total_species = {key: len(value['species'])
