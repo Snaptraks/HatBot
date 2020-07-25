@@ -4,6 +4,7 @@ from datetime import datetime, timedelta
 import logging
 import json
 import re
+import subprocess
 
 import discord
 from discord.ext import commands
@@ -23,6 +24,28 @@ class Admin(BasicCog):
 
     async def cog_check(self, ctx):
         return await self.bot.is_owner(ctx.author)
+
+    async def run_process(self, command):
+        """From https://github.com/Rapptz/RoboDanny/blob/rewrite/cogs/admin.py#L89-L97"""
+
+        try:
+            process = await asyncio.create_subprocess_shell(
+                command,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                )
+            result = await process.communicate()
+        except NotImplementedError:
+            process = subprocess.Popen(
+                command,
+                shell=True,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                )
+            result = await self.bot.loop.run_in_executor(
+                None, process.communicate)
+
+        return [output.decode() for output in result]
 
     @commands.command(aliases=['stop', 'quit', 'exit'])
     async def kill(self, ctx):
@@ -103,6 +126,16 @@ class Admin(BasicCog):
 
         # try it, and if an exception is raised, .error is called
         method(module)
+
+    @cogs_reload_all.before_invoke
+    async def cogs_reload_all_before_invoke(self, ctx):
+        """Pull modifications from the git repo before reloading the cogs."""
+
+        async with ctx.typing():
+            stdout, stderr = await self.run_process('git pull')
+
+        if stdout.startswith('Already up to date.'):
+            return await ctx.send(stdout)
 
     @cogs_load.after_invoke
     @cogs_unload.after_invoke
