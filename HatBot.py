@@ -108,7 +108,7 @@ if __name__ == '__main__':
         command_prefix='!',
         help_command=commands.DefaultHelpCommand(dm_help=True),
         loop=loop,
-        db_name='HatBot.db',
+        db_name='db/HatBot.db',
         )
 
     # This specifies what extensions to load when the bot starts up

@@ -32,3 +32,32 @@ With all this in mind, to run the bot locally and help with the development, you
  * ```!cogs load cogs.Name``` to load a new cog,
  * ```!cogs reload cogs.Name``` to reload an already loaded cog
  * ```!cogs unload cogs.Name``` to remove a cog from the bot
+
+### Running inside a docker container
+You can also run the bot inside a docker container, if you prefer. I have included the necessary files to create your image and start the container, all you need is run the commands inside the project's folder:
+
+* (Optional, if you want to move the image to another machine)
+```bash
+docker build \
+   --file .docker/hatbot/Dockerfile \
+   --tag hatbot \
+   .
+```
+* (Optional, save the image to disk)
+```bash
+docker save --output image.tar hatbot
+```
+* (Optional) Move the image to your prefered machine, as well as the ``.docker/``  subfolder.
+* (Optional, on the other machine to load the image there)
+```bash
+docker load --input image.tar
+```
+* [Build the image if not already built and] Start the bot, creating the necessary volumes for the database.
+```bash
+docker-compose \
+   --project-name hatbot \
+   --file .docker/hatbot/docker-compose.yml \
+   --env-file .docker/hatbot/.env \
+   up \
+   --detatch
+```
