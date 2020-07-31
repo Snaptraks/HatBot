@@ -347,6 +347,14 @@ class ACNH(BasicCog):
         """Save the price of a member's turnips for a given day (AM/PM)."""
 
         await self.bot.db.execute(
+            """
+            INSERT OR IGNORE INTO acnh_turnip(user_id)
+            VALUES (:user_id)
+            """,
+            {'user_id': member.id}
+            )
+
+        await self.bot.db.execute(
             f"""
             UPDATE acnh_turnip
                SET {day} = :price
