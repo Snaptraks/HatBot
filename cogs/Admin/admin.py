@@ -134,6 +134,12 @@ class Admin(BasicCog):
         if stdout.startswith('Already up to date.'):
             return await ctx.send(stdout)
 
+        else:
+            await ctx.send(
+                f'**stdout**:\n{stdout}\n'
+                f'**stderr**:\n{stderr}'
+                )
+
     @cogs_load.after_invoke
     @cogs_unload.after_invoke
     @cogs_reload.after_invoke
