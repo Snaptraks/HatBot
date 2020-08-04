@@ -14,8 +14,7 @@ import numpy as np
 from ..utils.cogs import BasicCog
 from . import menus
 
-
-EMBED_COLOR = 0xF3F5E8
+TURNIP_EMBED_COLOR = 0xF3F5E8
 TURNIP_PROPHET_BASE = 'https://turnipprophet.io/?'
 
 
@@ -116,7 +115,7 @@ class ACNH(BasicCog):
         if member is None:
             member = ctx.author
 
-        data = await self._get_member_data(member)
+        data = await self._get_turnip_member_data(member)
         turnip_emoji = self.bot.get_emoji(697120729476497489)  # turnip_badge
 
         if data is None:
@@ -161,7 +160,7 @@ class ACNH(BasicCog):
 
         embed = discord.Embed(
             description=description,
-            color=EMBED_COLOR,
+            color=TURNIP_EMBED_COLOR,
         ).set_image(
             url=f'attachment://{graph_file.filename}',
         ).set_author(
@@ -205,22 +204,22 @@ class ACNH(BasicCog):
         """Reset the member's data if it is Sunday."""
 
         if ctx.args[2] == 6:  # weekday == Sunday
-            m = menus.ResetConfirm(
+            m = menus.TurnipResetConfirm(
                 'It is Sunday, do you want to reset your prices for the week?')
             reset = await m.prompt(ctx)
 
             if reset:
-                await self._reset_week(ctx.author)
+                await self._reset_turnip_week(ctx.author)
 
                 options = {}
                 # TODO: don't ask if the value is already set to False
-                m = menus.FirstTimeMenu()
+                m = menus.TurnipFirstTimeMenu()
                 options['first_time'] = await m.prompt(ctx)
 
-                m = menus.PreviousPatternMenu()
+                m = menus.TurnipPreviousPatternMenu()
                 options['previous_pattern'] = await m.prompt(ctx)
 
-                await self._save_options(ctx.author, options)
+                await self._save_turnip_options(ctx.author, options)
 
     @turnip_price.error
     async def turnip_price_error(self, ctx, error):
@@ -239,11 +238,11 @@ class ACNH(BasicCog):
     async def turnip_reset(self, ctx):
         """Reset the turnip data."""
 
-        m = menus.ResetConfirm('Reset your data?')
+        m = menus.TurnipResetConfirm('Reset your data?')
         reset = await m.prompt(ctx)
 
         if reset:
-            await self._reset_week(ctx.author)
+            await self._reset_turnip_week(ctx.author)
 
     def _turnip_plot(self, prices):
         """Plot the turnip price evolution."""
@@ -302,7 +301,7 @@ class ACNH(BasicCog):
 
         await self.bot.db.commit()
 
-    async def _get_member_data(self, member):
+    async def _get_turnip_member_data(self, member):
         """Return the turnip data the user has registered."""
 
         async with self.bot.db.execute(
@@ -320,7 +319,7 @@ class ACNH(BasicCog):
     async def _get_turnip_prices(self, member):
         """Return the turnip prices the user has registered."""
 
-        data = await self._get_member_data(member)
+        data = await self._get_turnip_member_data(member)
         if data is None:
             return []
         return data[3:]
@@ -328,7 +327,7 @@ class ACNH(BasicCog):
     async def _get_turnip_url(self, member):
         """Generate the URL for the web turnip tracker."""
 
-        data = await self._get_member_data(member)
+        data = await self._get_turnip_member_data(member)
         if data is None:
             return
 
@@ -364,7 +363,7 @@ class ACNH(BasicCog):
             )
         await self.bot.db.commit()
 
-    async def _save_options(self, member, options):
+    async def _save_turnip_options(self, member, options):
         """Save the options for this week's prices
         (first time buy, previous pattern) of a member.
         """
@@ -380,7 +379,7 @@ class ACNH(BasicCog):
             options
             )
 
-    async def _reset_week(self, member):
+    async def _reset_turnip_week(self, member):
         """Reset the prices for a member's turnips."""
 
         await self.bot.db.execute(

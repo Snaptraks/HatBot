@@ -2,7 +2,7 @@ import discord
 from discord.ext import menus
 
 
-class FirstTimeMenu(menus.Menu):
+class TurnipFirstTimeMenu(menus.Menu):
     """Menu to ask if it is the member's first time buying turnips."""
 
     def __init__(self):
@@ -27,7 +27,7 @@ class FirstTimeMenu(menus.Menu):
         return self.first_time
 
 
-class PreviousPatternMenu(menus.Menu):
+class TurnipPreviousPatternMenu(menus.Menu):
     """Menu to ask the member about their previous turnip pattern."""
 
     choices = [
@@ -78,7 +78,7 @@ class PreviousPatternMenu(menus.Menu):
         return self.previous_pattern
 
 
-class ResetConfirm(menus.Menu):
+class TurnipResetConfirm(menus.Menu):
     """Menu to confirm the reset of prices for the current week."""
 
     def __init__(self, msg):
