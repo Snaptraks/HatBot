@@ -1,13 +1,11 @@
 import asyncio
 from datetime import datetime
-from collections import defaultdict
 import io
 import json
 import os
 
 import discord
 from discord.ext import commands, tasks
-import matplotlib
 import matplotlib.pyplot as plt
 import numpy as np
 
