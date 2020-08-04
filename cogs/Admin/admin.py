@@ -1,9 +1,6 @@
 import asyncio
 import copy
-from datetime import datetime, timedelta
 import logging
-import json
-import re
 import subprocess
 
 import discord
