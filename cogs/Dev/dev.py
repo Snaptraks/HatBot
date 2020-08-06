@@ -35,6 +35,10 @@ class Dev(BasicCog):
     async def cog_check(self, ctx):
         return await self.bot.is_owner(ctx.author)
 
+    @property
+    def cog_admin(self):
+        return self.bot.get_cog('Admin')
+
     def get_syntax_error(self, e):
         if e.text is None:
             return f'```py\n{e.__class__.__name__}: {e}\n```'
@@ -192,6 +196,21 @@ class Dev(BasicCog):
 
         else:
             raise error
+
+    @commands.command()
+    async def sh(self, ctx, *, command):
+        """Runs a shell command."""
+        # from cogs.utils.paginator import TextPages
+
+        async with ctx.typing():
+            stdout, stderr = await self.cog_admin.run_process(command)
+
+        if stderr:
+            text = f'stdout:\n{stdout}\nstderr:\n{stderr}'
+        else:
+            text = stdout
+
+        await ctx.send(text)
 
     @commands.command()
     async def charinfo(self, ctx, *, characters):
