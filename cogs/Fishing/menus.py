@@ -100,7 +100,7 @@ class FishingConfirm(_MenuUtils, menus.Menu):
         await self.start(ctx, wait=True)
         return self.keep if self.keep is not None else True
 
-    async def finalize(self):
+    async def finalize(self, timed_out):
         if self.keep is None:
             new_footer = 'You did not answer quickly enough, I kept it for you.'
 
@@ -145,7 +145,7 @@ class InventoryMenu(_MenuUtils, menus.MenuPages):
         await self.start(ctx, wait=True)
         return self.source._to_sell
 
-    async def finalize(self):
+    async def finalize(self, timed_out):
         asyncio.create_task(self._delete_message(10))
 
 
@@ -321,7 +321,7 @@ class TradeMenu(_MenuUtils, menus.MenuPages):
         await self.start(ctx, wait=True)
         return (self.ctx.author, self.source._to_trade)
 
-    async def finalize(self):
+    async def finalize(self, timed_out):
         asyncio.create_task(self._delete_message(5 * 60))
 
 
