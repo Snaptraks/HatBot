@@ -2,7 +2,7 @@ aiosqlite
 discord.py==1.3.4
 git+git://github.com/Rapptz/discord-ext-menus.git
 fuzzywuzzy
-matplotlib>=3.0.0
+matplotlib>=3.0.0,<3.3.0
 mcstatus
 numpy
 Pillow>=6.0.0
