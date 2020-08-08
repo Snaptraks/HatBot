@@ -3,6 +3,8 @@ from datetime import datetime
 import io
 import json
 import os
+import re
+from string import Template
 
 import discord
 from discord.ext import commands, tasks
@@ -12,8 +14,29 @@ import numpy as np
 from ..utils.cogs import BasicCog
 from . import menus
 
+PROFILE_EMBED_COLOR = 0x75E6A2
+PROFILE_HEMISPHERE = ('north', 'south')
+PROFILE_FRUIT = (
+    'apple',
+    'cherry',
+    'orange',
+    'peach',
+    'pear',
+)
+PROFILE_FRUIT_EMOJI = (
+    '\U0001f34e',  # :apple:
+    '\U0001f352',  # :cherries:
+    '\U0001f34a',  # :tangerine:
+    '\U0001f351',  # :peach:
+    '\U0001f350',  # :pear:
+)
 TURNIP_EMBED_COLOR = 0xF3F5E8
 TURNIP_PROPHET_BASE = 'https://turnipprophet.io/?'
+
+
+class InvalidCode(Exception):
+    """Raised when the code provided isn't a valid AC:NH code."""
+    pass
 
 
 class WeekDay(commands.Converter):
@@ -66,6 +89,7 @@ class ACNH(BasicCog):
             self.quotes = json.load(f)
 
         self._create_tables.start()
+        # self._add_dummy_profile_data.start()
 
     def cog_unload(self):
         super().cog_unload()
@@ -105,6 +129,256 @@ class ACNH(BasicCog):
             await self.send_typing_delay(ctx.channel)
             await ctx.send(out_str)
 
+    @commands.group(invoke_without_command=True, enabled=True)
+    async def acnh(self, ctx, member: discord.Member = None):
+        """Command group to check and register AC:NH information."""
+
+        if member is None:
+            member = ctx.author
+
+        profile_data = await self._get_profile_data(member)
+
+        try:
+            hemisphere = PROFILE_HEMISPHERE[profile_data['hemisphere']].title()
+        except TypeError:
+            hemisphere = None
+
+        try:
+            fruit = profile_data['native_fruit']
+            native_fruit = (
+                f'{PROFILE_FRUIT[fruit].title()} '
+                f'{PROFILE_FRUIT_EMOJI[fruit]}'
+            )
+        except TypeError:
+            native_fruit = None
+
+        profile_picture = io.BytesIO(profile_data['profile_picture'])
+        resident_picture = discord.File(
+            profile_picture, filename='resident_picture.png')
+
+        embed = discord.Embed(
+            title='Animal Crossing: New Horizons Profile Card',
+            color=PROFILE_EMBED_COLOR,
+            timestamp=datetime.utcnow(),
+        ).set_author(
+            name=member.display_name,
+            icon_url=member.avatar_url,
+        ).set_thumbnail(
+            url=f'attachment://{resident_picture.filename}',
+        )
+
+        embed.add_field(
+            name='Resident Name',
+            value=profile_data['resident_name'],
+        ).add_field(
+            name='Island Name',
+            value=profile_data['island_name'],
+        ).add_field(
+            name='Hemisphere',
+            value=hemisphere,
+        ).add_field(
+            name='Native Fruit',
+            value=native_fruit,
+        ).add_field(
+            name='Friend Code',
+            value=profile_data['friend_code'],
+        ).add_field(
+            name='Creator ID',
+            value=profile_data['creator_id'],
+        ).add_field(
+            name='Dream Address',
+            value=profile_data['dream_address'],
+        )
+
+        await ctx.send(embed=embed, file=resident_picture)
+
+    @acnh.command(name='form', hidden=True)
+    # @commands.dm_only()
+    async def acnh_form(self, ctx, *, form: str):
+        """Send the filled out form and save it."""
+
+        profile_data = [re.split(r':\s?', line) for line in form.split('\n')]
+        for data in profile_data:
+            if data[1] == '':
+                data[1] = None
+
+        profile_data = dict(profile_data)
+
+        # parse hemisphere and native_fruit
+        profile_data['hemisphere'] = self._parse_hemisphere(
+            profile_data['hemisphere'])
+
+        profile_data['native_fruit'] = self._parse_native_fruit(
+            profile_data['native_fruit'])
+
+        # parse friend_code, creator_id and dream_address
+        code_prefix = {
+            'friend_code': 'SW',
+            'creator_id': 'MA',
+            'dream_address': 'DA',
+        }
+        for c in ('friend_code', 'creator_id', 'dream_address'):
+            code = profile_data[c]
+            if code is not None:
+                parsed = self._parse_acnh_code(code)
+                profile_data[c] = f'{code_prefix[c]}-{parsed}'
+
+        await self._save_profile_data(ctx.author, profile_data)
+
+        await ctx.send('I successfully saved your information! Thank you!')
+
+    @acnh_form.error
+    async def acnh_form_error(self, ctx, error):
+        """Error handler for the form filing process."""
+
+        await ctx.send(
+            'There was an error filling out the form. '
+            'Do not forget to copy-paste the form in full before '
+            'filling it out! (You can leave sections empty though)'
+        )
+        raise error
+
+    @acnh.command(name='picture')
+    # @commands.dm_only()
+    async def acnh_picture(self, ctx):
+        """Register a picture for the AC:NH profile card.
+        Attach a picture when typing the command, so that the message you send
+        has the command and the picture file.
+        """
+
+        picture = ctx.message.attachments[0]
+
+        await self._save_profile_picture(ctx.author, picture)
+
+        await ctx.send('I successfully saved your picture! Thank you!')
+
+    @acnh.command(name='register')
+    async def acnh_register(self, ctx):
+        """Start the registration process for the AC:NH profile card."""
+
+        member = ctx.author
+        try:
+            await member.send(
+                'Let\'s begin creating your Animal Crossing: New Horizons '
+                'profile card, shall we? I will ask you a few questions.'
+            )
+        except discord.Forbidden:
+            await ctx.send(
+                'I cannot send you private messages... :('
+            )
+            return
+
+        with open(os.path.join(
+                self._cog_path, 'acnh_profile_card_template.txt')) as f:
+            template = Template(f.read())
+
+        example_data = {
+            'resident_name': 'HatBot',
+            'island_name': 'HatLand',
+            'hemisphere': 'north',
+            'native_fruit': 'orange',
+            'friend_code': 'SW-1234-1234-1234',
+            'creator_id': '',
+            'dream_address': 'DA-9012-9012-9012',
+        }
+
+        hint_data = {
+            'resident_name': '<Name Here>',
+            'island_name': '<Island Name Here>',
+            'hemisphere': '<north or south>',
+            'native_fruit': '<apple, cherry, orange, peach, or pear>',
+            'friend_code': 'SW-xxxx-xxxx-xxxx',
+            'creator_id': 'MA-xxxx-xxxx-xxxx',
+            'dream_address': 'DA-xxxx-xxxx-xxxx',
+        }
+
+        await member.send(
+            'I would like some information first. I will send you a form '
+            'that you will need to fill out. Once it is done you can send it '
+            'back with the command `!acnh form <copy filled form here>`.'
+            'Here is an example of a command with the filled form, with'
+            'possible data ommited if you do not want to provide it:\n'
+            f'```\n!acnh form\n{template.substitute(example_data)}\n```\n'
+            'You can also upload a picture of your character! '
+            'Simply send the command `!acnh picture` with the file attached '
+            'to the message, and you will be good to go!\n'
+            f'Here is the form:'
+        )
+
+        await member.send(f'```\n{template.substitute(hint_data)}```')
+
+    @acnh.command(name='update')
+    # @commands.dm_only()
+    async def acnh_update(self, ctx, *, form: str = None):
+        """Update your AC:NH profile information."""
+
+        if form is None:
+            with open(os.path.join(
+                    self._cog_path, 'acnh_profile_card_template.txt')) as f:
+                template = Template(f.read())
+
+            profile_data = dict(await self._get_profile_data(ctx.author))
+
+            # remove None from the dict
+            for key in profile_data.keys():
+                if profile_data[key] is None:
+                    profile_data[key] = ''
+
+            # change the repr of hemisphere and native_fruit
+            hem = profile_data['hemisphere']
+            try:
+                profile_data['hemisphere'] = PROFILE_HEMISPHERE[hem]
+            except TypeError:
+                profile_data['hemisphere'] = ''
+
+            fruit = profile_data['native_fruit']
+            try:
+                profile_data['native_fruit'] = PROFILE_FRUIT[fruit]
+            except TypeError:
+                profile_data['native_fruit'] = ''
+
+            await ctx.send(
+                'You requested to update your AC:NH profile information. '
+                'Here is what you have provided already, you can copy it '
+                'and edit what you want to add or remove, then send it back '
+                'with the command `!acnh update <copy filled form here>`.'
+            )
+            await ctx.send(
+                f'```\n{template.substitute(profile_data)}\n```'
+            )
+
+        else:
+            # call the acnh_form method with the form
+            await self.acnh_form(ctx=ctx, form=form)
+
+    def _parse_hemisphere(self, hem):
+        if hem is not None:
+            return ('north', 'south').index(hem.lower())
+
+    def _parse_native_fruit(self, nf):
+        if nf is not None:
+            return (
+                'apple',
+                'cherry',
+                'orange',
+                'peach',
+                'pear',
+            ).index(nf.lower())
+
+    def _parse_acnh_code(self, code):
+        code = code.strip()
+        extract_digits = re.compile('([0-9]{4})')
+        match = re.compile(
+            '^(?:(?:DA)|(?:SW)|(?:MA)|(?:da)|(?:sw)|(?:ma))?(?:-?[0-9]{4}){3}$')
+
+        if re.fullmatch(match, code):
+            digits = re.findall(extract_digits, code)
+
+        else:
+            raise InvalidCode(f'Code {code} is not valid.')
+
+        return '-'.join(digits)
+
     @commands.group(aliases=['turnips', 'navet', 'navets'],
                     invoke_without_command=True)
     async def turnip(self, ctx, member: discord.Member = None):
@@ -128,20 +402,20 @@ class ACNH(BasicCog):
             bought_str = (
                 'You did not buy turnips this week, '
                 'or did not save the price.'
-                )
+            )
 
         else:
             bought_str = (
                 f'You bought turnips for {prices[0]} bells this week.'
-                )
+            )
 
         prices_array = np.array(prices[1:], dtype=np.float64)
         if not np.isnan(prices_array).all():
             price_max = np.nanmax(prices_array)
             price_min = np.nanmin(prices_array)
             min_max_str = (
-            f'The maximum sell price was {int(price_max)} bells.\n'
-            f'The lowest sell price was {int(price_min)} bells.\n'
+                f'The maximum sell price was {int(price_max)} bells.\n'
+                f'The lowest sell price was {int(price_min)} bells.\n'
             )
         else:
             min_max_str = ''
@@ -150,7 +424,7 @@ class ACNH(BasicCog):
             f'{bought_str}\n'
             f'{min_max_str}'
             f'[Your prices on Turnip Prophet]({url})'
-            )
+        )
 
         graph = await self.bot.loop.run_in_executor(
             None, self._turnip_plot, prices)
@@ -194,7 +468,7 @@ class ACNH(BasicCog):
             f'{WeekDay.weekdays[weekday][0].title()} '
             f'{AmPm.am_pm[am_pm].upper()} '
             f'to {price} bells!'
-            )
+        )
         await ctx.send(out_str)
 
     @turnip_price.before_invoke
@@ -276,6 +550,24 @@ class ACNH(BasicCog):
 
         await self.bot.db.execute(
             """
+            CREATE TABLE IF NOT EXISTS acnh_profile(
+                user_id         INTEGER PRIMARY KEY,
+                creator_id      TEXT,
+                dream_address   TEXT,
+                friend_code     TEXT,
+                hemisphere      INTEGER,
+                island_name     TEXT,
+                native_fruit    INTEGER,
+                profile_picture BLOB,
+                resident_name   TEXT
+            )
+            """
+        )
+
+        await self.bot.db.commit()
+
+        await self.bot.db.execute(
+            """
             CREATE TABLE IF NOT EXISTS acnh_turnip(
                 user_id      INTEGER PRIMARY KEY,
                 first_time   INTEGER DEFAULT 1,
@@ -295,8 +587,107 @@ class ACNH(BasicCog):
                 sat_pm       INTEGER
             )
             """
-            )
+        )
 
+        await self.bot.db.commit()
+
+    @tasks.loop(count=1)
+    async def _add_dummy_profile_data(self):
+        """Add data to the acnh_profile table for testing purposes."""
+
+        await self.bot.db.execute(
+            """
+            INSERT OR IGNORE INTO acnh_profile
+            VALUES (:user_id,
+                    :creator_id,
+                    :dream_address,
+                    :friend_code,
+                    :hemisphere,
+                    :island_name,
+                    :native_fruit,
+                    NULL,
+                    :resident_name)
+            """,
+            {
+                'user_id': 337266376941240320,
+                'creator_id': 'MA-6259-3870-2086',
+                'dream_address': 'DA-7810-5317-1854',
+                'friend_code': 'SW-7347-2854-5887',
+                'hemisphere': 0,  # North
+                'island_name': 'Caledonia',
+                'native_fruit': 2,  # Oranges
+                'resident_name': 'Snapy',
+            }
+        )
+
+    async def _create_empty_profile_data(self, member):
+        """Create the empty entry in the database if it does not exist."""
+
+        await self.bot.db.execute(
+            """
+            INSERT OR IGNORE INTO acnh_profile(user_id)
+            VALUES (:user_id)
+            """,
+            {'user_id': member.id}
+        )
+        await self.bot.db.commit()
+
+    async def _get_profile_data(self, member):
+        """Return the profile data for the given member."""
+
+        # creates it if it does not exist
+        await self._create_empty_profile_data(member)
+
+        async with self.bot.db.execute(
+                """
+                SELECT *
+                  FROM acnh_profile
+                 WHERE user_id = :user_id
+                """,
+                {'user_id': member.id}
+                ) as c:
+            row = await c.fetchone()
+
+        return row
+
+    async def _save_profile_data(self, member, data):
+        """Save the data to the database."""
+
+        # creates it if it does not exist
+        await self._create_empty_profile_data(member)
+
+        data['user_id'] = member.id
+
+        await self.bot.db.execute(
+            """
+            UPDATE acnh_profile
+               SET creator_id    = :creator_id,
+                   dream_address = :dream_address,
+                   friend_code   = :friend_code,
+                   hemisphere    = :hemisphere,
+                   island_name   = :island_name,
+                   native_fruit  = :native_fruit,
+                   resident_name = :resident_name
+             WHERE user_id       = :user_id
+            """,
+            data
+        )
+        await self.bot.db.commit()
+
+    async def _save_profile_picture(self, member, attachment):
+        """Save the picture as a BLOB in the database."""
+
+        # creates it if it does not exist
+        await self._create_empty_profile_data(member)
+
+        await self.bot.db.execute(
+            """
+            UPDATE acnh_profile
+               SET profile_picture = :profile_picture
+             WHERE user_id = :user_id
+            """,
+            {'profile_picture': await attachment.read(), 'user_id': member.id}
+        )
         await self.bot.db.commit()
 
     async def _get_turnip_member_data(self, member):
@@ -349,7 +740,7 @@ class ACNH(BasicCog):
             VALUES (:user_id)
             """,
             {'user_id': member.id}
-            )
+        )
 
         await self.bot.db.execute(
             f"""
@@ -358,7 +749,7 @@ class ACNH(BasicCog):
              WHERE user_id = :user_id
             """,
             {'price': price, 'user_id': member.id}
-            )
+        )
         await self.bot.db.commit()
 
     async def _save_turnip_options(self, member, options):
@@ -375,7 +766,7 @@ class ACNH(BasicCog):
              WHERE user_id = :user_id
             """,
             options
-            )
+        )
 
     async def _reset_turnip_week(self, member):
         """Reset the prices for a member's turnips."""
@@ -386,12 +777,12 @@ class ACNH(BasicCog):
              WHERE user_id = :user_id
             """,
             {'user_id': member.id}
-            )
+        )
         await self.bot.db.execute(
             """
             INSERT INTO acnh_turnip(user_id)
             VALUES (:user_id)
             """,
             {'user_id': member.id}
-            )
+        )
         await self.bot.db.commit()
