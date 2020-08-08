@@ -89,7 +89,6 @@ class ACNH(BasicCog):
             self.quotes = json.load(f)
 
         self._create_tables.start()
-        # self._add_dummy_profile_data.start()
 
     def cog_unload(self):
         super().cog_unload()
@@ -590,35 +589,6 @@ class ACNH(BasicCog):
         )
 
         await self.bot.db.commit()
-
-    @tasks.loop(count=1)
-    async def _add_dummy_profile_data(self):
-        """Add data to the acnh_profile table for testing purposes."""
-
-        await self.bot.db.execute(
-            """
-            INSERT OR IGNORE INTO acnh_profile
-            VALUES (:user_id,
-                    :creator_id,
-                    :dream_address,
-                    :friend_code,
-                    :hemisphere,
-                    :island_name,
-                    :native_fruit,
-                    NULL,
-                    :resident_name)
-            """,
-            {
-                'user_id': 337266376941240320,
-                'creator_id': 'MA-6259-3870-2086',
-                'dream_address': 'DA-7810-5317-1854',
-                'friend_code': 'SW-7347-2854-5887',
-                'hemisphere': 0,  # North
-                'island_name': 'Caledonia',
-                'native_fruit': 2,  # Oranges
-                'resident_name': 'Snapy',
-            }
-        )
 
     async def _create_empty_profile_data(self, member):
         """Create the empty entry in the database if it does not exist."""
