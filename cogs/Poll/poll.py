@@ -108,10 +108,10 @@ class Poll(BasicCog):
                         self._make_poll_figure, title,
                         reactions,
                         final_options,
-                        )
+                    )
 
                     await message.channel.send('Results for a passed poll',
-                        file=img)
+                                               file=img)
                     if '+keep' not in message.content:
                         await pollMessage.delete()
 
@@ -184,8 +184,8 @@ class Poll(BasicCog):
             autopct=lambda pct: form(
                 pct,
                 reactions,
-                )
             )
+        )
         plt.title(title, fontsize=27)
         plt.axis('equal')
         plt.legend(labels=final_options, loc='lower right')

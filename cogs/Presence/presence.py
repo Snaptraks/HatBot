@@ -90,7 +90,10 @@ class Presence(BasicCog):
                 self.advertise_streams.cancel()
 
         else:
-            print('WEIRD MEMBER_UPDATE EVENT', streaming_before, streaming_after)
+            print(
+                'WEIRD MEMBER_UPDATE EVENT',
+                streaming_before,
+                streaming_after)
 
     @tasks.loop(hours=1)
     async def change_presence(self):
@@ -102,7 +105,7 @@ class Presence(BasicCog):
         activity = discord.Activity(
             type=discord.ActivityType.try_value(type),
             name=name,
-            )
+        )
 
         await self.bot.change_presence(activity=activity)
 
@@ -127,7 +130,7 @@ class Presence(BasicCog):
         streaming_activity.name = (
             f'[{str(user)}]: '
             f'{streaming_activity.name}'
-            )
+        )
         await self.bot.change_presence(activity=streaming_activity)
 
     @advertise_streams.before_loop

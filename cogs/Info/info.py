@@ -29,14 +29,14 @@ class Info(BasicCog):
             color=discord.Color.blurple(),
             description=(
                 f'Information about {str(self.bot.user)}.'
-                ),
-            )
+            ),
+        )
 
         owner = self.bot.owner
         embed.set_author(
             name=str(self.bot.user),
             icon_url=self.bot.user.avatar_url,
-            )
+        )
 
         # some statistics
         version = discord.__version__
@@ -68,30 +68,30 @@ class Info(BasicCog):
                 f'{total_members} total\n'
                 f'{total_unique} unique\n'
                 f'{total_online} online'
-                ),
-            )
+            ),
+        )
         embed.add_field(
             name='Channels',
             value=(
                 f'{text_channels + voice_channels} total\n'
                 f'{text_channels} text\n'
                 f'{voice_channels} voice'
-                ),
-            )
+            ),
+        )
         embed.add_field(
             name='Servers',
             value=guilds,
-            )
+        )
         embed.add_field(
             name='Uptime',
             value=pretty_print_timedelta(datetime.utcnow()
                                          - self.bot.boot_time),
-            )
+        )
 
         embed.set_footer(
             text=f'Made with discord.py v{version} by {str(owner)}',
             icon_url='http://i.imgur.com/5BFecvA.png',
-            )
+        )
         embed.timestamp = datetime.utcnow()
 
         await ctx.send(embed=embed)
@@ -112,7 +112,7 @@ class Info(BasicCog):
         utc_offset = timedelta(
             hours=TZ['HOURS'],
             minutes=TZ['MINUTES'],
-            )
+        )
         now_tz = now_utc + utc_offset
         now_tz = datetime.fromtimestamp(now_tz.timestamp())
 

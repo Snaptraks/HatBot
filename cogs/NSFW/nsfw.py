@@ -29,7 +29,7 @@ class NSFW(BasicCog):
         guild = discord.utils.get(
             self.bot.guilds,
             name='Hatventures Community'
-            )
+        )
         everyone = discord.utils.get(guild.roles, name='@everyone')
         channel = discord.utils.get(guild.channels, name='nsfw')
 
@@ -47,13 +47,13 @@ class NSFW(BasicCog):
         await self.channel_nsfw.set_permissions(
             self.everyone,
             overwrite=overwrite
-            )
+        )
         await self.channel_nsfw.send('@everyone We now have a NSFW channel!')
         await self.channel_nsfw.send(
             ('If you want me to post NSFW images, just type `!nsfw`, '
              'and you will get a selected gif or picture! Just for you!'
-            )
-            )
+             )
+        )
 
     async def disable_channel(self):
         await self.bot.wait_until_ready()
@@ -65,7 +65,7 @@ class NSFW(BasicCog):
         await self.channel_nsfw.set_permissions(
             self.everyone,
             overwrite=overwrite
-            )
+        )
         await self.channel_nsfw.send('The NSFW channel is now closed.')
 
     @commands.cooldown(1, 1 * 60, commands.BucketType.channel)
@@ -73,7 +73,7 @@ class NSFW(BasicCog):
     @commands.is_nsfw()
     async def _nsfw(self, ctx):
         """Send a NSFW picture or gif to the NSFW channel."""
-        
+
         channel = ctx.message.channel
         links = load_links('cogs/NSFW/links.txt')
         await channel.send(np.random.choice(links))

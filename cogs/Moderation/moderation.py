@@ -21,7 +21,7 @@ class Moderation(BasicCog):
     @commands.command()
     @commands.has_permissions(kick_members=True)
     async def mute(self, ctx, member: discord.Member, time: Duration = None,
-            *, reason=None):
+                   *, reason=None):
         """Prevent the member to send messages and add reactions.
         Syntax is '!mute <member> [time] [reason]'. time defaults to
         15 minutes ('15m'). The reason is optional and added to the Audit Log.
@@ -46,7 +46,7 @@ class Moderation(BasicCog):
             overwrite = discord.PermissionOverwrite(
                 add_reactions=False,
                 send_messages=False,
-                )
+            )
 
             log_str = (f'{ctx.author.display_name} has muted '
                        f'member {member} (<@{member.id}>) for {time}.')
@@ -60,7 +60,7 @@ class Moderation(BasicCog):
                         member,
                         overwrite=overwrite,
                         reason=reason
-                        )
+                    )
 
             await asyncio.sleep(wait_time.total_seconds())
             await ctx.invoke(self.unmute, member)

@@ -22,7 +22,7 @@ class Responses(BasicCog):
         self.hello_there_params = {
             'cooldown': timedelta(minutes=1),
             'last_time': datetime.min,
-            }
+        }
 
         # they_said parameters
         self.they_said_params = {
@@ -31,7 +31,7 @@ class Responses(BasicCog):
             'last_author': None,
             'last_message': None,
             'last_time': datetime.min,
-            }
+        }
 
     def cog_unload(self):
         super().cog_unload()
@@ -75,7 +75,7 @@ class Responses(BasicCog):
         if 'hello there' in message.content.lower() \
                 and not message.author.bot \
                 and not message.content.startswith(self.bot.command_prefix) \
-                and not self.bot.user.mention in message.content \
+                and self.bot.user.mention not in message.content \
                 and message.channel.name != 'general':
 
             dt = datetime.utcnow() - self.hello_there_params['last_time']

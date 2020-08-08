@@ -122,7 +122,7 @@ class Deck:
 
     def give_cards(self, hand, amount):
         """Give the amount of cards from the deck to the player's hand."""
-        
+
         for i in range(amount):
             hand.add_card(self.pop_card())
 

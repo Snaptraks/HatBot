@@ -113,35 +113,35 @@ class Fun(BasicCog):
                 action,
                 self.bot.user.mention,
                 author.mention,
-                )
+            )
         elif isinstance(destination, discord.Member):
             description = description.format(
                 action,
                 author.mention,
                 destination.mention,
-                )
+            )
         else:  # is str
             description = description.format(
                 action,
                 author.mention,
                 destination,
-                )
+            )
 
         color = {
             'hug': 0xFF4CD5,
             'slap': 0xFFCC4D,
-            }
+        }
 
         emoji = {
             'hug': ':heart:',
             'slap': ':hand_splayed:',
-            }
+        }
 
         embed = discord.Embed(
             title=f'Have a {action}!',
             description=f'{description} {emoji[action]}',
             color=color[action],
-            )
+        )
         embed.set_image(url=gif_url)
 
         return embed

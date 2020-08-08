@@ -32,7 +32,7 @@ class datetime(dt.datetime):
         remainder = dt.timedelta(
             seconds=seconds % delta.total_seconds(),
             microseconds=self.microsecond,
-            )
+        )
         quotient = self - remainder
         return quotient, remainder
 

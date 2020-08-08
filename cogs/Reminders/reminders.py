@@ -66,14 +66,14 @@ class Reminders(BasicCog):
 
                 task = asyncio.create_task(
                     self.remind_task(ctx, delay, to_remind)
-                    )
+                )
 
                 spam.append((future, to_remind, ctx_info, task))
 
             self.reminders[id] = spam
 
     @commands.group(aliases=['remindme', 'reminder'],
-        invoke_without_command=True)
+                    invoke_without_command=True)
     async def remind(self, ctx, future: Duration, *, to_remind: str):
         """Send a reminder in the future about something.
         Syntax: `!remind 1h30m to take out the trash`. The future argument
@@ -88,11 +88,11 @@ class Reminders(BasicCog):
         try:
             self.reminders[ctx.author.id].append(
                 (future, to_remind, ctx_info, task)
-                )
+            )
         except KeyError:
             self.reminders[ctx.author.id] = [
                 (future, to_remind, ctx_info, task)
-                ]
+            ]
 
         await ctx.send(f'Ok! I will remind you {to_remind} in {delay_str}.')
 
@@ -177,7 +177,7 @@ class Reminders(BasicCog):
             await ctx.send(
                 'I am sorry, there was an error. '
                 'Maybe try a shorter amount of time?'
-                )
+            )
         else:
             raise error
 
@@ -185,7 +185,7 @@ class Reminders(BasicCog):
         await asyncio.sleep(delay.total_seconds())
         await ctx.send(
             f'Hey {ctx.author.mention}, I needed to remind you {to_remind}'
-            )
+        )
 
     def _clean_tasks(self, id):
         try:
@@ -195,4 +195,4 @@ class Reminders(BasicCog):
 
         self.reminders[id] = [
             task for task in reminders if not task[-1].done()
-            ]
+        ]

@@ -31,7 +31,7 @@ class Admin(BasicCog):
                 command,
                 stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE,
-                )
+            )
             result = await process.communicate()
         except NotImplementedError:
             process = subprocess.Popen(
@@ -39,7 +39,7 @@ class Admin(BasicCog):
                 shell=True,
                 stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE,
-                )
+            )
             result = await self.bot.loop.run_in_executor(
                 None, process.communicate)
 
@@ -139,7 +139,7 @@ class Admin(BasicCog):
             await ctx.send(
                 f'**stdout**:\n{stdout}\n'
                 f'**stderr**:\n{stderr}'
-                )
+            )
 
     @cogs_load.after_invoke
     @cogs_unload.after_invoke

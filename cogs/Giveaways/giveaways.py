@@ -42,7 +42,6 @@ class Giveaways(BasicCog):
         except FileNotFoundError:
             self.steam_keys_given = set()
 
-
     def _save_keys_given(self, key):
         self.steam_keys_given.add(key)
         with open(os.path.join(self._cog_path, 'keys_given.txt'), 'w') as f:
@@ -97,7 +96,7 @@ class Giveaways(BasicCog):
 
         await ctx.send(
             f'{len(remaining)} remaining games.'
-            )
+        )
 
     @giveaway_remaining.command(name='list')
     async def giveaway_remaining_list(self, ctx):
@@ -109,7 +108,7 @@ class Giveaways(BasicCog):
         await ctx.send(
             f'{len(remaining)} remaining games:\n'
             f'```\n{remaining_str}\n```'
-            )
+        )
 
     def _get_remaining(self):
         """Get list of remaining games."""
@@ -150,12 +149,12 @@ class Giveaways(BasicCog):
             description=(
                 f'We are giving away [**{game_info[0]}**]({game_info[2]})!\n'
                 f'React with {GIFT_EMOJI} to enter!'
-                )
             )
+        )
         giveaway_end = datetime.now(timezone.utc) + GIVEAWAY_TIME
         embed.set_footer(
             text=f"This giveaway ends at {giveaway_end.strftime('%c %Z')}",
-            )
+        )
 
         giveaway_message = await ctx.send(embed=embed)
         await giveaway_message.add_reaction(GIFT_EMOJI)
@@ -167,7 +166,7 @@ class Giveaways(BasicCog):
         giveaway_reaction = discord.utils.get(
             giveaway_message.reactions,
             emoji=GIFT_EMOJI,
-            )
+        )
         giveaway_members = await giveaway_reaction.users().flatten()
         giveaway_members = [m for m in giveaway_members if not m.bot]
 
@@ -185,19 +184,19 @@ class Giveaways(BasicCog):
                 f'Congratulations! You won the giveaway for '
                 f'**{game_info[0]}**!\n'
                 f'Your Steam key is ||{game_info[1]}|| .'
-                )
+            )
         except discord.Forbidden as e:
             app_info = await self.bot.application_info()
             await app_info.owner.send(
                 f'Could not DM {giveaway_winner.display_name} '
                 f'({giveaway_winner.mention}). They won the giveaway for '
                 f'**{game_info[0]}** with key ||{game_info[1]}||.'
-                )
+            )
 
         embed.description = (
             f'{giveaway_winner.display_name} won the giveaway for '
             f'[**{game_info[0]}**]({game_info[2]}). Congrats to them!'
-            )
+        )
 
         await giveaway_message.edit(embed=embed)
 

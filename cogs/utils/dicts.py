@@ -5,6 +5,7 @@ class AttrDict(dict):
     """Dictionary subclass whose entries can be accessed by attributes
     (as well as normally). Most of the code is from stackoverflow.
     """
+
     def __getattr__(self, name):
         if name in self:
             return self[name]
@@ -44,4 +45,4 @@ class AttrDict(dict):
             return data
         else:
             return cls({key: cls.from_nested_dict(data[key])
-                             for key in data})
+                        for key in data})

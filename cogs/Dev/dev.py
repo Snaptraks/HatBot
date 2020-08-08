@@ -56,7 +56,7 @@ class Dev(BasicCog):
             'guild': ctx.guild,
             'message': ctx.message,
             '_': self._last_result
-            }
+        }
 
         env.update(globals())
 
@@ -110,7 +110,7 @@ class Dev(BasicCog):
             'channel': ctx.channel,
             'author': ctx.author,
             '_': None,
-            }
+        }
 
         await ctx.send(('Enter code to execute or evaluate. '
                         '`exit()` or `quit` to exit.'))
@@ -126,7 +126,7 @@ class Dev(BasicCog):
                     'message',
                     check=check,
                     timeout=10.0 * 60.0
-                    )
+                )
             except asyncio.TimeoutError:
                 await ctx.send('Exiting REPL session.')
                 break
@@ -223,9 +223,7 @@ class Dev(BasicCog):
                 title="Non-Character Detected",
                 description=(
                     "Only unicode characters can be processed, but a custom Discord emoji "
-                    "was found. Please remove it and try again."
-                )
-            )
+                    "was found. Please remove it and try again."))
             embed.colour = discord.Colour.red()
             await ctx.send(embed=embed)
             return
@@ -234,7 +232,7 @@ class Dev(BasicCog):
             embed = discord.Embed(
                 title=f"Too many characters ({len(characters)}/25)",
                 colour=discord.Colour.red(),
-                )
+            )
 
             await ctx.send(embed=embed)
             return
@@ -260,6 +258,6 @@ class Dev(BasicCog):
                 name='Raw',
                 value=f"`{''.join(rawlist)}`",
                 inline=False,
-                )
+            )
 
         await ctx.send(embed=embed)

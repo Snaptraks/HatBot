@@ -28,14 +28,14 @@ def get_latex_cmds(tempfile):
             '-output-directory',
             LATEX_TEMP_PATH,
             f'{LATEX_TEMP_PATH}{tempfile}.tex',
-            ],
+        ],
         [  # pdf to png convert
             'pdftoppm',
             '-png',
             f'{LATEX_TEMP_PATH}{tempfile}.pdf',
             f'{LATEX_TEMP_PATH}{tempfile}',
-            ],
-        ]
+        ],
+    ]
 
     return cmds
 
@@ -45,6 +45,7 @@ class TeX(BasicCog):
     Parse messages looking for equation blocks, compile them and send
     the resulting equation back.
     """
+
     def __init__(self, bot):
         super().__init__(bot)
         self.clean_temp_folder.start(expiration=24 * 3600)
@@ -68,7 +69,7 @@ class TeX(BasicCog):
                     *cmd,
                     stdout=asyncio.subprocess.PIPE,
                     stderr=asyncio.subprocess.PIPE,
-                    )
+                )
                 await process.wait()
 
             file = discord.File(f'{LATEX_TEMP_PATH}{tempfile}-1.png')

@@ -21,7 +21,7 @@ from .objects import (
     get_fish_species_str,
     get_fish_size_color,
     FISH_SPECIES,
-    )
+)
 
 
 EMBED_COLOR = discord.Color.blurple()
@@ -134,7 +134,7 @@ class Fishing(FunCog):
         out_str = (
             f':moneybag: {escape_markdown(winner.display_name)} got a little '
             f'bit of experience! ({bonus_experience:.3f} exp)'
-            )
+        )
 
         msg = await self.channel_msg.send(out_str)
 
@@ -227,7 +227,7 @@ class Fishing(FunCog):
             f'**{len(bomb_fish)} fish**!\n'
             f'They are stunned for {pretty_print_timedelta(stunned_time)} '
             'and cannot go fishing!'
-            )
+        )
 
         await ctx.send(out_str)
 
@@ -282,7 +282,7 @@ class Fishing(FunCog):
         top_menu = menus.TopMenu(
             source=menus.TopExperienceSource(sorted_experience),
             clear_reactions_after=True,
-            )
+        )
 
         await top_menu.start(ctx)
 
@@ -308,7 +308,7 @@ class Fishing(FunCog):
         inventory_menu = menus.InventoryMenu(
             source=menus.InventorySource(inventory),
             clear_reactions_after=True,
-            )
+        )
         to_sell = await inventory_menu.prompt(ctx)
 
         # not pretty but I need to strip some keys
@@ -339,7 +339,7 @@ class Fishing(FunCog):
                 title='Fish Inventory',
                 description='No fish in inventory.',
                 color=EMBED_COLOR,
-                )
+            )
             delay = 3 * 60
             inv_msg = await ctx.send(embed=embed)
             await asyncio.sleep(delay)
@@ -405,7 +405,7 @@ class Fishing(FunCog):
             f'{Fish.from_dict(slap_fish[0])}!\n'
             f'They are stunned for {pretty_print_timedelta(stunned_time)} '
             'and cannot go fishing!'
-            )
+        )
 
         await ctx.send(out_str)
 
@@ -419,7 +419,7 @@ class Fishing(FunCog):
                 ctx.message,
                 error,
                 f'You have already tried to {ctx.command.name} recently',
-                ).start(ctx)
+            ).start(ctx)
 
         elif isinstance(error, commands.MissingRequiredArgument):
             await ctx.send(
@@ -429,7 +429,7 @@ class Fishing(FunCog):
                 commands.BadArgument,
                 NoFishError,
                 OpenedInventoryError,
-                )):
+        )):
             await ctx.send(error)
 
         else:
@@ -447,7 +447,7 @@ class Fishing(FunCog):
         top_menu = menus.TopMenu(
             source=menus.TopCatchesSource(sorted_best_catches),
             clear_reactions_after=True,
-            )
+        )
 
         await top_menu.start(ctx)
 
@@ -490,7 +490,7 @@ class Fishing(FunCog):
             f'Hey {other_str}, '
             f'{escape_markdown(ctx.author.display_name)} '
             'wants to trade with you! Do you accept?'
-            )
+        )
 
         confirm = await menus.TradeConfirm(confirm_msg).prompt(other_ctx)
 
@@ -500,20 +500,20 @@ class Fishing(FunCog):
             author_menu = menus.TradeMenu(
                 source=menus.TradeSource(
                     author_inventory,
-                    ),
+                ),
                 clear_reactions_after=True,
-                )
+            )
             other_menu = menus.TradeMenu(
                 source=menus.TradeSource(
                     other_inventory,
-                    ),
+                ),
                 clear_reactions_after=True,
-                )
+            )
 
             tasks = [
                 asyncio.create_task(author_menu.prompt(ctx)),
                 asyncio.create_task(other_menu.prompt(other_ctx)),
-                ]
+            ]
 
             # done is a set of tasks, in the order they were COMPLETED
             # (not in the order of `tasks`!!!)
@@ -625,7 +625,7 @@ class Fishing(FunCog):
         species_caught_str = '\n'.join(
             f'{size.title()}: **{species_caught[size]}/{total_species[size]}**'
             for size in FISH_SPECIES.keys()
-            )
+        )
 
         most_caught = {key: value.most_common(1)[0]
                        for key, value in journal.items()
@@ -636,7 +636,7 @@ class Fishing(FunCog):
             f'**{get_fish_species_str(size, most_caught[size][0])} '
             f'({most_caught[size][1]})**')
             for size in most_caught.keys()
-            )
+        )
 
         totals_str = (
             'Species Caught: '
@@ -644,7 +644,7 @@ class Fishing(FunCog):
             f'/{sum(total_species.values())}**\n'
             f'Catches: **{total_caught}**\n'
             f'Weight Fished: **{total_weight:.0f} kg**'
-            )
+        )
 
         graph = await self.bot.loop.run_in_executor(
             None, self._plot_journal_pie_chart, journal)
@@ -676,7 +676,7 @@ class Fishing(FunCog):
         SIZES = [
             ['tiny', 'small', 'average'],
             ['large', 'giant', 'epic', 'legendary'],
-            ]
+        ]
 
         fig, ax = plt.subplots(ncols=2, figsize=(7, 3.5))
         title = ['Smaller Fish', 'Bigger Fish']
@@ -695,8 +695,8 @@ class Fishing(FunCog):
                 colors.append(
                     to_mpl_rbg(
                         get_fish_size_color(s).to_rgb()
-                        )
                     )
+                )
 
             if i == 0:
                 x.append(sum([sum(journal[s].values()) for s in SIZES[1]]))
@@ -737,7 +737,7 @@ class Fishing(FunCog):
                 weight     REAL      NOT NULL
             )
             """
-            )
+        )
 
         await self.bot.db.execute(
             """
@@ -748,7 +748,7 @@ class Fishing(FunCog):
                 user_id      INTEGER   NOT NULL
             )
             """
-            )
+        )
 
         await self.bot.db.commit()
 
@@ -761,13 +761,13 @@ class Fishing(FunCog):
             slap_time += timedelta(hours=np.sqrt(fish['weight']))
 
         await self.bot.db.executemany(
-                """
+            """
                 UPDATE fishing_fish
                    SET state = 2
                  WHERE rowid = :rowid
                 """,
-                [{'rowid': fish['rowid']} for fish in fish_list]
-                )
+            [{'rowid': fish['rowid']} for fish in fish_list]
+        )
         await self.bot.db.commit()
 
         beginning = max(datetime.utcnow(), self.stunned_until[member.id])
@@ -786,7 +786,7 @@ class Fishing(FunCog):
                  WHERE caught_by = :caught_by
                 """,
                 {'caught_by': member.id}
-                ) as c:
+        ) as c:
             row = await c.fetchone()
 
         return row
@@ -804,7 +804,7 @@ class Fishing(FunCog):
                  LIMIT 10
                 """,
                 {'owner_id': member.id}
-                ) as c:
+        ) as c:
             rows = await c.fetchall()
 
         return rows
@@ -827,7 +827,7 @@ class Fishing(FunCog):
                          WHERE user_id = :member_id)
                 """,
                 {'member_id': member.id}
-                ) as c:
+        ) as c:
             row = await c.fetchone()
 
         exp = row['exp']
@@ -852,7 +852,7 @@ class Fishing(FunCog):
                  GROUP BY id
                  ORDER BY exp DESC
                 """
-                ) as c:
+        ) as c:
             rows = await c.fetchall()
 
         return rows
@@ -869,7 +869,7 @@ class Fishing(FunCog):
                  ORDER BY weight ASC
                 """,
                 {'owner_id': member.id}
-                ) as c:
+        ) as c:
             rows = await c.fetchall()
 
         return rows
@@ -887,7 +887,7 @@ class Fishing(FunCog):
                  ORDER BY weight ASC
                 """,
                 {'caught_by': member.id}
-                ) as c:
+        ) as c:
             rows = await c.fetchall()
 
         journal = self._build_journal_from_rows(rows)
@@ -904,7 +904,7 @@ class Fishing(FunCog):
                  WHERE caught_by = :caught_by
                 """,
                 {'caught_by': member.id}
-                ) as c:
+        ) as c:
             row = await c.fetchone()
 
         return row['total_caught']
@@ -919,7 +919,7 @@ class Fishing(FunCog):
                  WHERE caught_by = :caught_by
                 """,
                 {'caught_by': member.id}
-                ) as c:
+        ) as c:
             row = await c.fetchone()
 
         return row['total_weight']
@@ -934,7 +934,7 @@ class Fishing(FunCog):
                  GROUP BY size, species
                  ORDER BY weight ASC
                 """
-                ) as c:
+        ) as c:
             rows = await c.fetchall()
 
         journal = self._build_journal_from_rows(rows)
@@ -949,7 +949,7 @@ class Fishing(FunCog):
                 SELECT SUM(weight) AS total_weight
                   FROM fishing_fish
                 """
-                ) as c:
+        ) as c:
             row = await c.fetchone()
 
         return row['total_weight']
@@ -965,7 +965,7 @@ class Fishing(FunCog):
                  GROUP BY caught_by
                 """,
                 {'limit': limit.isoformat()}
-                ) as c:
+        ) as c:
 
             rows = await c.fetchall()
 
@@ -984,7 +984,7 @@ class Fishing(FunCog):
                  LIMIT 1
                 """,
                 {'owner_id': member.id}
-                ) as c:
+        ) as c:
             rows = await c.fetchall()
 
         return rows
@@ -1001,7 +1001,7 @@ class Fishing(FunCog):
                  GROUP BY caught_by
                  ORDER BY weight DESC
                 """
-                ) as c:
+        ) as c:
             rows = await c.fetchall()
 
         return rows
@@ -1022,8 +1022,8 @@ class Fishing(FunCog):
                 'interest_time': message.created_at,
                 'jump_url': message.jump_url,
                 'user_id': member.id,
-                }
-            )
+            }
+        )
         await self.bot.db.commit()
 
     async def _save_fish(self, fish, state):
@@ -1046,7 +1046,7 @@ class Fishing(FunCog):
                     :weight)
             """,
             fish_dict
-            )
+        )
         await self.bot.db.commit()
 
     async def _sell_fish(self, rows):
@@ -1059,7 +1059,7 @@ class Fishing(FunCog):
              WHERE rowid = :rowid
             """,
             rows
-            )
+        )
         await self.bot.db.commit()
 
     async def _trade_fish(self, author_fish, other_fish):
@@ -1072,7 +1072,7 @@ class Fishing(FunCog):
              'new_owner_id': other_fish['owner_id']},
             {'rowid': other_fish['rowid'],
              'new_owner_id': author_fish['owner_id']},
-            ]
+        ]
         await self.bot.db.executemany(
             """
             UPDATE fishing_fish
@@ -1080,5 +1080,5 @@ class Fishing(FunCog):
              WHERE rowid = :rowid
             """,
             new_ids
-            )
+        )
         await self.bot.db.commit()

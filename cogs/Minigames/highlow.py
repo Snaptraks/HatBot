@@ -16,7 +16,7 @@ class HighLow:
             emoji.HighLow.HIGH.value,
             emoji.HighLow.LOW.value,
             emoji.Controls.CANCEL.value,
-            ]
+        ]
         self.deck = Deck()
         self.deck.shuffle()
         # use half a deck since it can be a long game otherwise
@@ -28,22 +28,22 @@ class HighLow:
             title=None,
             type='rich',
             color=np.random.randint(0xFFFFFF),  # Random color
-            ).set_author(
+        ).set_author(
             name=self.ctx.author.display_name,
             icon_url=self.ctx.author.avatar_url_as(static_format='png'),
-            ).add_field(
+        ).add_field(
             name='Higher or Lower?',
             value=None,  # will be filled later
             inline=False,
-            ).add_field(
+        ).add_field(
             name='Previous Card',
             value=None,  # will be filled later
             inline=True,
-            ).add_field(
+        ).add_field(
             name='Next Card',
             value=None,  # will be filled later
             inline=True,
-            )
+        )
 
     async def play(self):
         self.prev_card = self.deck.pop_card()
@@ -53,8 +53,8 @@ class HighLow:
 
         def check(reaction, user):
             valid = user == self.ctx.author \
-                    and reaction.message.id == self.message_game.id \
-                    and reaction.emoji in self.moves
+                and reaction.message.id == self.message_game.id \
+                and reaction.emoji in self.moves
 
             return valid
 
@@ -64,7 +64,7 @@ class HighLow:
         dstr = {
             emoji.HighLow.HIGH.value: 'higher',
             emoji.HighLow.LOW.value: 'lower',
-            }
+        }
 
         while len(self.deck) > 0:
             self.next_card = self.deck.pop_card()
@@ -78,7 +78,7 @@ class HighLow:
                     'reaction_add',
                     timeout=5 * 60,
                     check=check,
-                    )
+                )
             except asyncio.TimeoutError as e:
                 break
 
@@ -89,14 +89,14 @@ class HighLow:
             if self.prev_card.rank == self.next_card.rank:
                 hint_message = 'Actually, that was mean.'
 
-            elif (move == emoji.HighLow.HIGH.value \
+            elif (move == emoji.HighLow.HIGH.value
                     and prev_lower_than_next) or \
-                    (move == emoji.HighLow.LOW.value \
-                    and not prev_lower_than_next):
+                    (move == emoji.HighLow.LOW.value
+                     and not prev_lower_than_next):
                 hint_message = (
                     f'Yep! {self.next_card} is {dstr[move]} '
                     f'than {self.prev_card}.'
-                    )
+                )
                 self.player_score += 1
 
             elif move == emoji.Controls.CANCEL.value:
@@ -125,26 +125,26 @@ class HighLow:
             f'You got **{self.player_score}** guesses right, '
             f'and {self.dealer_score} wrong.\n'
             f'({len(self.deck)} cards left in the deck)'
-            )
+        )
 
         self.embed.set_field_at(
             index=0,
             name=self.embed.fields[0].name,
             value=score_str,
             inline=self.embed.fields[0].inline,
-            ).set_field_at(
+        ).set_field_at(
             index=1,  # previous card
             name=self.embed.fields[1].name,
             value=self.prev_card.emoji,
             inline=self.embed.fields[1].inline,
-            ).set_field_at(
+        ).set_field_at(
             index=2,  # next card
             name=self.embed.fields[2].name,
             value=self.next_card.emoji if not hide_next else emoji.Suits.JOKER.value,
             inline=self.embed.fields[2].inline,
-            ).set_footer(
+        ).set_footer(
             text=hint_message,
-            )
+        )
 
 
 if __name__ == '__main__':

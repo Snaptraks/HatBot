@@ -51,7 +51,7 @@ VALID_HEROES = [
     'wreckingBall',
     'zarya',
     'zenyatta',
-    ]
+]
 
 
 class Overwatch(commands.Cog):
@@ -150,7 +150,7 @@ class Overwatch(commands.Cog):
         out_str = (
             f'{vl} {member.display_name} is {_ing}, join the fight.\n'
             f'{gif_url}'
-            )
+        )
 
         await channel.send(out_str)
 
@@ -173,14 +173,14 @@ class Overwatch(commands.Cog):
             out_str = (
                 f'BattleTag {battletag} is not valid. Please enter '
                 'in the format `username#01234`.'
-                )
+            )
         else:
             # if it is valid, try to get the data
             payload = {
                 'type': 'profile',
                 'battletag': battletag.replace('#', '-'),
                 'heroes': '',
-                }
+            }
             async with self.bot.http_session.get(
                     self.api_url.format(**payload)) as resp:
                 try:
@@ -191,12 +191,12 @@ class Overwatch(commands.Cog):
                         out_str = (
                             'Could not find that BattleTag. '
                             'Make sure you entered it correctly.'
-                            )
+                        )
                     else:  # is a 5xx error code
                         out_str = (
                             'Something went wrong but the BattleTag '
                             'seemed correct. I registered it anyway.'
-                            )
+                        )
                         self.battletags[ctx.author.id] = battletag
                 else:
                     out_str = 'BattleTag registered successfully! Thank you!'
@@ -220,13 +220,13 @@ class Overwatch(commands.Cog):
             if battletag:
                 await ctx.send(
                     (f'Your current BattleTag is {battletag}. '
-                    'If you want to change it, run `!ow register Name#01234`.')
-                    )
+                     'If you want to change it, run `!ow register Name#01234`.')
+                )
             else:
                 await ctx.send(
                     ('I do not have your BattleTag. If you want to '
-                    'register it, run `!ow register Name#01234`.')
-                    )
+                     'register it, run `!ow register Name#01234`.')
+                )
         else:
             raise error
 
@@ -238,7 +238,7 @@ class Overwatch(commands.Cog):
             'quickplay': 'complete',
             'competitive': 'complete',
             'hero': 'heroes',
-            }
+        }
         type = type_dict[ctx.invoked_with]
 
         try:
@@ -246,14 +246,14 @@ class Overwatch(commands.Cog):
         except KeyError as e:
             await ctx.send(
                 f'Unknown BattleTag for member {member}. :frowning:'
-                )
+            )
             raise e
 
         payload = {
             'type': type,
             'battletag': battletag.replace('#', '-'),
             'heroes': hero,
-            }
+        }
 
         async with self.bot.http_session.get(
                 self.api_url.format(**payload)) as resp:
@@ -288,14 +288,14 @@ class Overwatch(commands.Cog):
             'quickplay': 'quickplay statistics',
             'competitive': 'competitive statistics',
             'hero': 'hero statistics',
-            }
+        }
         title = title_dict[ctx.invoked_with]
 
         e = discord.Embed(
             title=f'Overwatch {title} for {member}.',
             type='rich',
             colour=discord.Colour(0xF99E1A),
-            )
+        )
 
         if data.private:
             e.set_footer(
@@ -303,8 +303,8 @@ class Overwatch(commands.Cog):
                     'Profile is private, for more info please '
                     'make it public in Overwatch > Options > Social > '
                     'Career Profile Visibility.'
-                    )
                 )
+            )
         e.set_thumbnail(url='attachment://full.png')
         return data, e
 
@@ -322,19 +322,19 @@ class Overwatch(commands.Cog):
         e.add_field(
             name='BattleTag',
             value=data.name,
-            )
+        )
         e.add_field(
             name='Level',
             value=data.level + 100 * data.prestige,
-            )
+        )
         e.add_field(
             name='Endorsement Level',
             value=data.endorsement,
-            )
+        )
         e.add_field(
             name='Games Won',
             value=data.gamesWon,
-            )
+        )
 
         await ctx.send(embed=e, file=discord.File('cogs/Overwatch/full.png'))
 
@@ -358,15 +358,15 @@ class Overwatch(commands.Cog):
         e.add_field(
             name='Kills',
             value=qpc.combat.eliminations,
-            )
+        )
         e.add_field(
             name='Deaths',
             value=qpc.combat.deaths,
-            )
+        )
         e.add_field(
             name='Games Won',
             value=qpc.game.gamesWon,
-            )
+        )
         meds = []
         for med in ('Bronze', 'Silver', 'Gold', ''):
             try:
@@ -379,33 +379,33 @@ class Overwatch(commands.Cog):
             value=(f'{medB}:third_place: {medS}:second_place: '
                    f'{medG}:first_place: ({medT}:medal:)'),
             inline=False,
-            )
+        )
         # offence
         e.add_field(
             name='Most Damage Done',
             value=qpc.best.allDamageDoneMostInGame,
-            )
+        )
         e.add_field(
             name='Total Damage Done',
             value=qpc.combat.damageDone,
-            )
+        )
         # assists
         e.add_field(
             name='Most Healing Done',
             value=qpc.best.healingDoneMostInGame,
-            )
+        )
         e.add_field(
             name='Total Healing Done',
             value=qpc.assists.healingDone,
-            )
+        )
         e.add_field(
             name='Defensive Assists',
             value=qpc.assists.defensiveAssists,
-            )
+        )
         e.add_field(
             name='Offensive Assists',
             value=qpc.assists.offensiveAssists,
-            )
+        )
 
         await ctx.send(embed=e, file=discord.File('cogs/Overwatch/full.png'))
 
@@ -429,15 +429,15 @@ class Overwatch(commands.Cog):
         e.add_field(
             name='Kills',
             value=cc.combat.eliminations,
-            )
+        )
         e.add_field(
             name='Deaths',
             value=cc.combat.deaths,
-            )
+        )
         e.add_field(
             name='Games Won',
             value=cc.game.gamesWon,
-            )
+        )
         meds = []
         for med in ('Bronze', 'Silver', 'Gold', ''):
             try:
@@ -450,33 +450,33 @@ class Overwatch(commands.Cog):
             value=(f'{medB}:third_place: {medS}:second_place: '
                    f'{medG}:first_place: ({medT}:medal:)'),
             inline=False,
-            )
+        )
         # offence
         e.add_field(
             name='Most Damage Done',
             value=cc.best.allDamageDoneMostInGame,
-            )
+        )
         e.add_field(
             name='Total Damage Done',
             value=cc.combat.damageDone,
-            )
+        )
         # assists
         e.add_field(
             name='Most Healing Done',
             value=cc.best.healingDoneMostInGame,
-            )
+        )
         e.add_field(
             name='Total Healing Done',
             value=cc.assists.healingDone,
-            )
+        )
         e.add_field(
             name='Defensive Assists',
             value=cc.assists.defensiveAssists,
-            )
+        )
         e.add_field(
             name='Offensive Assists',
             value=cc.assists.offensiveAssists,
-            )
+        )
 
         await ctx.send(embed=e, file=discord.File('cogs/Overwatch/full.png'))
 

@@ -19,7 +19,7 @@ def get_fish_size_color(size):
         discord.Color,
         FISH_SPECIES[size]['color'],
         discord.Color.default
-        )()
+    )()
 
 
 SMELLS = [
@@ -31,7 +31,7 @@ SMELLS = [
     'It smells bad.',
     'It smells horrible!',
     'Oh no! What is that ungodly smell?!',
-    ]
+]
 
 
 WEATHERS = [
@@ -44,7 +44,7 @@ WEATHERS = [
     ('rainy', '\U0001f327\ufe0f'),
     ('stormy', '\u26c8\ufe0f'),
     ('snowy', '\U0001f328\ufe0f'),
-    ]
+]
 
 
 class Fish:
@@ -59,7 +59,6 @@ class Fish:
         self.state = kwargs.get('state')
         self.owner_id = kwargs.get('owner_id')
         self.weight = kwargs.get('weight')
-
 
         self.species_str = get_fish_species_str(self.size, self.species)
         self.color = get_fish_size_color(self.size)
@@ -124,7 +123,7 @@ class Fish:
             'species': self.species,
             'owner_id': self.owner_id,
             'weight': self.weight,
-            }
+        }
 
     @classmethod
     def from_dict(cls, fish_dict):

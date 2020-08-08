@@ -8,9 +8,9 @@ Alphabet = Enum(
         chr(char): chr(emoji) for char, emoji in zip(
             range(ord('A'), ord('Z') + 1),
             range(0x1F1E6, 0x1F200)  # :regional_indicator_#:
-            )
-        }
-    )
+        )
+    }
+)
 
 
 class Numbers(Enum):

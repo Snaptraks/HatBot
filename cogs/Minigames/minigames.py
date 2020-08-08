@@ -53,7 +53,6 @@ class Minigames(FunCog):
         game = Blackjack(ctx, self.bot)
         await game.play()
 
-
     @commands.command(hidden=True)
     async def boogle(self, ctx):
         # Proposed by Kootiepatra

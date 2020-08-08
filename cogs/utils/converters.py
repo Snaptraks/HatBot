@@ -3,6 +3,7 @@ from datetime import datetime, timedelta
 
 from discord.ext.commands import BadArgument, Context, Converter
 
+
 def build_duration(**kwargs):
     """Converts a dict with the keys defined in `Duration` to a timedelta
     object. Here we assume a month is 30 days, and a year is 365 days.
@@ -21,7 +22,7 @@ def build_duration(**kwargs):
         minutes=minutes,
         hours=hours,
         weeks=weeks,
-        )
+    )
 
 
 class Duration(Converter):
@@ -59,8 +60,10 @@ class Duration(Converter):
         if not match:
             raise BadArgument(f"`{duration}` is not a valid duration string.")
 
-        duration_dict = {unit: int(amount) \
-            for unit, amount in match.groupdict(default=0).items()}
+        duration_dict = {
+            unit: int(amount) for unit,
+            amount in match.groupdict(
+                default=0).items()}
         delta = build_duration(**duration_dict)
         now = datetime.utcnow()
 

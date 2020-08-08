@@ -7,7 +7,6 @@ from .cards import Deck, Hand
 from . import emoji
 
 
-
 class Blackjack:
     def __init__(self, ctx, bot):
         self.ctx = ctx
@@ -29,24 +28,24 @@ class Blackjack:
             title=None,
             type='rich',
             color=np.random.randint(0xFFFFFF),  # Random color
-            ).set_author(
+        ).set_author(
             name=self.ctx.author.display_name,
             icon_url=self.ctx.author.avatar_url_as(static_format='png'),
-            ).add_field(
+        ).add_field(
             name='Blackjack',
             value=None,  # will be filled later
             inline=False,
-            ).add_field(
+        ).add_field(
             name='Player\'s Hand',
             value=None,  # will be filled later
             inline=True,
-            ).add_field(
+        ).add_field(
             name='Dealer\'s Hand',
             value=None,  # will be filled after
             inline=True,
-            ).set_footer(
+        ).set_footer(
             text='Hit or Stand?',
-            )
+        )
 
     async def play(self):
         self.update_embed('Please wait, setting things up...')
@@ -54,8 +53,8 @@ class Blackjack:
 
         def check(reaction, user):
             valid = user == self.ctx.author and \
-            reaction.message.id == self.message_game.id and \
-            reaction.emoji in self.moves
+                reaction.message.id == self.message_game.id and \
+                reaction.emoji in self.moves
 
             return valid
 
@@ -77,7 +76,7 @@ class Blackjack:
                 hint_message = (
                     'Your score is '
                     f'**{self.calculate_score(self.player_hand)}**.'
-                    )
+                )
                 self.update_embed(hint_message)
                 await self.message_game.edit(embed=self.embed)
 
@@ -87,7 +86,7 @@ class Blackjack:
                         'reaction_add',
                         timeout=5 * 60,  # 5 minutes
                         check=check,
-                        )
+                    )
                 except asyncio.TimeoutError as e:
                     # should probably stand if timeout
                     self.playing = False
@@ -105,7 +104,7 @@ class Blackjack:
                         hint_message = (
                             'You busted with a score of '
                             f'**{self.calculate_score(self.player_hand)}**.'
-                            )
+                        )
 
                 # elif stand
                 elif move == emoji.Alphabet.S.value:
@@ -116,8 +115,7 @@ class Blackjack:
                             self.dealer_busted = True
                             hint_message = (
                                 'The dealer busted with a score of '
-                                f'**{self.calculate_score(self.dealer_hand)}**.'
-                                )
+                                f'**{self.calculate_score(self.dealer_hand)}**.')
 
                     if self.calculate_score(self.dealer_hand) > \
                             self.calculate_score(self.player_hand) and \
@@ -127,7 +125,7 @@ class Blackjack:
                             f'**{self.calculate_score(self.player_hand)}** '
                             'while the dealer got '
                             f'**{self.calculate_score(self.dealer_hand)}**.'
-                            )
+                        )
 
                     elif self.calculate_score(self.dealer_hand) < \
                             self.calculate_score(self.player_hand) and \
@@ -137,14 +135,14 @@ class Blackjack:
                             f'**{self.calculate_score(self.player_hand)}** '
                             'while the dealer got '
                             f'**{self.calculate_score(self.dealer_hand)}**.'
-                            )
+                        )
 
                     elif self.calculate_score(self.dealer_hand) == \
                             self.calculate_score(self.player_hand):
                         hint_message = (
                             'It is a tie! You both got '
                             f'**{self.calculate_score(self.player_hand)}**.'
-                            )
+                        )
 
                     self.playing = False
 
@@ -172,7 +170,7 @@ class Blackjack:
 
     def update_embed(self, hint_message):
         player_cards = '\n'.join(card.emoji
-            for card in self.player_hand)
+                                 for card in self.player_hand)
 
         if self.playing:  # hide last card
             dealer_cards = \
@@ -189,14 +187,14 @@ class Blackjack:
             name=self.embed.fields[0].name,
             value=hint_message,
             inline=self.embed.fields[0].inline,
-            ).set_field_at(
+        ).set_field_at(
             index=1,  # player's hand
             name=self.embed.fields[1].name,
             value=player_cards,
             inline=self.embed.fields[1].inline,
-            ).set_field_at(
+        ).set_field_at(
             index=2,  # dealer's hand
             name=self.embed.fields[2].name,
             value=dealer_cards,
             inline=self.embed.fields[2].inline
-            )
+        )

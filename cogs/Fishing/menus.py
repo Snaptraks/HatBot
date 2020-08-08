@@ -19,6 +19,7 @@ EMBED_COLOR = discord.Color.blurple()
 
 class Middle(menus.Position):
     __slots__ = ()
+
     def __init__(self, number=0):
         super().__init__(number, bucket=1)
 
@@ -58,7 +59,7 @@ class CooldownMenu(menus.Menu):
         await self.ctx.author.send(
             f'{self.error_message}, '
             f'wait for {pretty_print_timedelta(retry_after)}.'
-            )
+        )
 
         self.stop()
 
@@ -78,8 +79,8 @@ class FishingConfirm(_MenuUtils, menus.Menu):
             text=(
                 f'Do you want to keep it {INVENTORY_EMOJI} '
                 f'or sell it {EXPERIENCE_EMOJI} for experience?'
-                ),
-            )
+            ),
+        )
         return await channel.send(embed=self.embed)
 
     @menus.button(INVENTORY_EMOJI)
@@ -174,7 +175,7 @@ class InventorySource(menus.ListPageSource):
             footer_text = (
                 f'{EXPERIENCE_EMOJI} to sell current fish | '
                 f'{SELL_ALL_EMOJI} to sell all'
-                )
+            )
 
         embed.set_footer(text=footer_text)
         return embed
@@ -345,7 +346,7 @@ class TradeSource(menus.ListPageSource):
         embed.set_author(
             name=menu.ctx.author.display_name,
             icon_url=menu.ctx.author.avatar_url,
-            )
+        )
 
         if menu.current_page == self._to_trade:
             footer_text = 'Proposed for trade'

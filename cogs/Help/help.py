@@ -72,7 +72,7 @@ class CustomHelpCommand(commands.DefaultHelpCommand):
                 f'{cooldown.rate} time(s) '
                 f'per {pretty_print_timedelta(per)} '
                 f'{suffix}.'
-                )
+            )
 
         else:
             return ''
@@ -83,7 +83,7 @@ class Help(commands.Cog):
         self._original_help_command = bot.help_command
         bot.help_command = CustomHelpCommand(
             dm_help=self._original_help_command.dm_help,
-            )
+        )
         bot.help_command.cog = self
         self.bot = bot
 

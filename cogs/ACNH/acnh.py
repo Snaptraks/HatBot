@@ -52,7 +52,7 @@ class WeekDay(commands.Converter):
         ('friday', 'fri', 'vendredi', 've'),
         ('saturday', 'sat', 'samedi', 'sa'),
         ('sunday', 'sun', 'dimanche', 'di'),
-        )
+    )
 
     async def convert(self, ctx, argument):
         for d in range(len(self.weekdays)):
@@ -500,7 +500,7 @@ class ACNH(BasicCog):
         if isinstance(error, (
                 commands.MissingRequiredArgument,
                 commands.BadArgument,
-                )):
+        )):
             await ctx.send(error)
 
         else:
@@ -645,7 +645,7 @@ class ACNH(BasicCog):
                  WHERE user_id = :user_id
                 """,
                 {'user_id': member.id}
-                ) as c:
+        ) as c:
             row = await c.fetchone()
 
         return row
@@ -700,7 +700,7 @@ class ACNH(BasicCog):
                  WHERE user_id = :user_id
                 """,
                 {'user_id': member.id}
-                ) as c:
+        ) as c:
             row = await c.fetchone()
 
         return row

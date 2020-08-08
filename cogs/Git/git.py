@@ -12,7 +12,7 @@ class Git(BasicCog):
         super().__init__(bot)
 
         with open('.git/config') as f:
-            while not 'remote "origin"' in f.readline():
+            while 'remote "origin"' not in f.readline():
                 pass
             self.repo_url = f.readline().split()[-1]
 
@@ -27,4 +27,4 @@ class Git(BasicCog):
     async def github_issues(self, ctx):
         """Print the link to the Issues page of the repository."""
 
-        await ctx.send(self.repo_url+'/issues')
+        await ctx.send(self.repo_url + '/issues')

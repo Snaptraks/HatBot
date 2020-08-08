@@ -63,7 +63,7 @@ class Halloween(FunCog):
             '\U0001F36B',  # :chocolate_bar:
             '\U0001F36C',  # :candy:
             '\U0001F36D',  # :lollipop:
-            ]
+        ]
 
         with open('cogs/Halloween/halloween_names.json', 'r') as f:
             names = json.load(f)
@@ -82,7 +82,7 @@ class Halloween(FunCog):
         self.bg_tasks = [
             self.bot.loop.create_task(self.start_halloween_event()),
             self.bot.loop.create_task(self.halloweenify()),
-            ]
+        ]
 
     def cog_check(self, ctx):
         valid = super().cog_check(ctx) \
@@ -107,11 +107,11 @@ class Halloween(FunCog):
         guild = discord.utils.get(
             self.bot.guilds,
             name='Hatventures Community',
-            )
+        )
         channel = discord.utils.get(
             guild.channels,
             name='hatbot-land',
-            )
+        )
 
         self.guild = guild
         self.channel = channel
@@ -158,7 +158,7 @@ class Halloween(FunCog):
             'directly and I will cast my magic upon you!\n\n'
             'Once you have collected many candies, you can check your `!bag` '
             'to see now many you collected! Happy trick-or-treating!'
-            )
+        )
         await asyncio.sleep(delay.total_seconds())
         self.announcement_message = await self.channel.send(out_str)
 
@@ -207,15 +207,15 @@ class Halloween(FunCog):
             title=None,
             type='rich',
             color=0xEB6123,
-            ).set_author(
+        ).set_author(
             name=ctx.author.display_name,
             icon_url=ctx.author.avatar_url_as(static_format='png'),
-            ).add_field(
+        ).add_field(
             name='Content of your Halloween bag',
             value=bag,
-            ).set_footer(
+        ).set_footer(
             text='Happy Halloween!'
-            )
+        )
 
         # print(bag)
         await ctx.send(embed=embed)
@@ -238,7 +238,7 @@ class Halloween(FunCog):
                 "I will see what I have for you...\n"
                 "IT'S A TRICK! Hahaha! Poof your name is now "
                 f'**{new_nickname}**! Happy Halloween! :jack_o_lantern:'
-                )
+            )
 
             await ctx.send(out_str)
             await self.wait_and_revert(ctx.author, old_nickname)
@@ -250,7 +250,7 @@ class Halloween(FunCog):
                 "Aw, aren't you a cute one with your costume! "
                 "I will see what I have for you...\n"
                 f'I have some candy! Happy Halloween! {candy}'
-                )
+            )
 
             await ctx.send(out_str)
             self.add_to_bag(ctx.author, candy)
@@ -268,7 +268,7 @@ class Halloween(FunCog):
             'Oh, you want a trick? Well here you go!\n'
             f'Your name is now **{new_nickname}**! Happy Halloween! '
             ':jack_o_lantern:'
-            )
+        )
 
         await ctx.send(out_str)
         await self.wait_and_revert(ctx.author, old_nickname)
@@ -296,7 +296,7 @@ class Halloween(FunCog):
             await member.edit(
                 nick=old_nickname,
                 reason='Revert Halloween Trick'
-                )
+            )
 
         except discord.Forbidden:
             # we don't have permissions, just ignore it

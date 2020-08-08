@@ -52,7 +52,7 @@ class Board:
                     return True
         # diagonal down
         for c in range(self.size_x - 3):
-            for r in range(self.size_y -3):
+            for r in range(self.size_y - 3):
                 s = (np.arange(c, c + 4), np.arange(r, r + 4))
                 if (self.board[s] == player).all():
                     self.winning_move = s
@@ -86,7 +86,7 @@ class Connect4:
         self.board = Board(size_x, size_y)
         self.max_turns = size_x * size_y
         self.emoji_numbers = [emoji.Numbers[f'_{i}'].value
-            for i in range(1, size_x + 1)]
+                              for i in range(1, size_x + 1)]
         self.winner = 0
         self.turn = 0
 
@@ -94,10 +94,10 @@ class Connect4:
             title=None,
             type='rich',
             color=np.random.randint(0xFFFFFF),  # Random color
-            ).add_field(
+        ).add_field(
             name='Connect 4',
             value=None,  # will be filled later
-            )
+        )
 
     async def play(self):
         """Play a game of Connect 4!"""
@@ -114,7 +114,7 @@ class Connect4:
             hint_message = (
                 f'It is {self.players[player].display_name}\'s turn! '
                 f'{tokens[player]}'
-                )
+            )
             self.update_embed(hint_message, player)
             await self.message_game.edit(embed=self.embed)
 
@@ -129,7 +129,7 @@ class Connect4:
                     'reaction_add',
                     timeout=5 * 60,  # 5 minutes
                     check=check,
-                    )
+                )
             except asyncio.TimeoutError as e:
                 # makes the other player (not in turn) the winner if
                 # the current player times out
@@ -164,10 +164,10 @@ class Connect4:
             hint_message = (
                 f'{self.players[player].display_name} won! '
                 f'{tokens[player]}'
-                )
+            )
         else:
             hint_message = f'It is a tie!'
-            
+
         self.update_embed(hint_message, player)
         await self.message_game.edit(embed=self.embed)
         await self.message_game.clear_reactions()
@@ -179,13 +179,13 @@ class Connect4:
         self.embed.set_author(
             name=self.players[player].display_name,
             icon_url=self.players[player].avatar_url_as(static_format='png'),
-            ).set_field_at(
+        ).set_field_at(
             index=0,  # graphics
             name=self.embed.fields[0].name,
             value=self.make_graphics(),
-            ).set_footer(
+        ).set_footer(
             text=hint_message,
-            )
+        )
 
     def make_graphics(self):
         """Return a string that represents the board state."""
@@ -194,12 +194,12 @@ class Connect4:
             emoji.Connect4.BLACK.value,
             emoji.Connect4.RED.value,
             emoji.Connect4.BLUE.value,
-            ]
+        ]
         tokens_win = [
             None,
             emoji.Connect4.RED_WIN.value,
             emoji.Connect4.BLUE_WIN.value,
-            ]
+        ]
 
         int_to_emoji = np.vectorize(lambda i: tokens[i])
         graphics = int_to_emoji(self.board.board)
@@ -208,7 +208,7 @@ class Connect4:
             graphics[self.board.winning_move] = tokens_win[self.winner]
 
         graphics_str = '\n'.join(''.join(i for i in col)
-            for col in graphics.T)
+                                 for col in graphics.T)
         graphics_str += '\n' + ''.join(self.emoji_numbers)
 
         return graphics_str

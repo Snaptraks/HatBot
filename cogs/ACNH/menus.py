@@ -35,7 +35,7 @@ class TurnipPreviousPatternMenu(menus.Menu):
         ('\u0033\u20e3', 'Decreasing'),
         ('\u0034\u20e3', 'Small Spike'),
         ('\u0035\u20e3', 'I don\'t know'),
-        ]
+    ]
 
     def __init__(self):
         super().__init__(delete_message_after=True)
@@ -46,7 +46,7 @@ class TurnipPreviousPatternMenu(menus.Menu):
         return await ctx.send((
             'What was your previous price pattern?\n'
             f'{choices_str}'
-            ))
+        ))
 
     @menus.button(choices[0][0])
     async def on_fluctuating(self, payload):

@@ -23,7 +23,7 @@ HANGMAN_LIMBS = [
     [(2, 1), emoji.Hangman.POINT_RIGHT.value],
     [(0, 3), emoji.Hangman.SHOE.value],
     [(2, 3), emoji.Hangman.SHOE.value],
-    ]
+]
 
 
 class Hangman:
@@ -42,31 +42,31 @@ class Hangman:
             title=None,
             type='rich',
             color=np.random.randint(0xFFFFFF),  # Random color
-            ).set_author(
+        ).set_author(
             name=self.ctx.author.display_name,
             icon_url=self.ctx.author.avatar_url_as(static_format='png'),
-            ).add_field(
+        ).add_field(
             name='Hangman',
             value=None,  # will be filled later
             inline=True,
-            ).add_field(
+        ).add_field(
             name='Bad Guesses',
             value=None,
             inline=True,
-            ).add_field(
+        ).add_field(
             name='Guess the word!',
             value=None,  # will be filled after
             inline=False,
-            )
+        )
 
     async def play(self):
         """Play a game of Hangman!"""
 
         def check(message):
-            valid = (message.author == self.ctx.author and \
-                message.channel == self.ctx.channel) and \
-                (len(message.content) == 1 or \
-                message.content.lower() == 'cancel')
+            valid = (message.author == self.ctx.author and
+                     message.channel == self.ctx.channel) and \
+                (len(message.content) == 1 or
+                 message.content.lower() == 'cancel')
             return valid
 
         hint_message = 'Guess the word! Enter a letter to begin.'
@@ -80,7 +80,7 @@ class Hangman:
                     'message',
                     timeout=5 * 60,  # 5 minutes
                     check=check,
-                    )
+                )
             except asyncio.TimeoutError as e:
                 # we don't want games to run indefinetly
                 break
@@ -106,7 +106,6 @@ class Hangman:
                 self.good_guesses.append(guess)
                 hint_message = 'Correct! Try another letter.'
 
-
             self.won = all([x in self.good_guesses
                             for x in set(self.word_to_guess)])
 
@@ -129,7 +128,7 @@ class Hangman:
         current_progress = ' '.join(
             emoji.Alphabet[x.upper()].value if x in self.good_guesses
             else emoji.Hangman.BLANK.value for x in self.word_to_guess
-            )
+        )
 
         bad_guesses_str = ' '.join(c.upper() for c in self.bad_guesses)
         # if it is an empty string, the Embed will complain
@@ -144,19 +143,19 @@ class Hangman:
             name=self.embed.fields[0].name,
             value=graphics_str,
             inline=self.embed.fields[0].inline,
-            ).set_field_at(
+        ).set_field_at(
             index=1,  # bad guesses
             name=self.embed.fields[1].name,
             value=bad_guesses_str,
             inline=self.embed.fields[1].inline,
-            ).set_field_at(
+        ).set_field_at(
             index=2,  # word to guess
             name=self.embed.fields[2].name,
             value=current_progress,
             inline=self.embed.fields[2].inline,
-            ).set_footer(
+        ).set_footer(
             text=hint_message,
-            )
+        )
 
     def make_graphics(self, number_bad_guesses):
         """Return an array for the hangman picture with the correct limbs

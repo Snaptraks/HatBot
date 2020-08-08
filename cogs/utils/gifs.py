@@ -19,7 +19,7 @@ async def _tenor_endpoint(endpoint, http_session, query):
         search_random = (
             f'https://api.tenor.com/v1/{endpoint}?key={config.tenor_api_key}'
             f'&q={query}&limit=1&media_filter=basic&contentfilter=low'
-            )
+        )
         async with http_session.get(search_random) as resp:
             if resp.status == 200:
                 try:

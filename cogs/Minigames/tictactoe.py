@@ -67,10 +67,10 @@ class TicTacToe:
             title=None,
             type='rich',
             color=np.random.randint(0xFFFFFF),  # Random color
-            ).add_field(
+        ).add_field(
             name='Tic-Tac-Toe',
             value=None,  # will be filled later
-            )
+        )
 
     async def play(self):
         """Play a game of Tic-Tac-Toe!"""
@@ -88,7 +88,7 @@ class TicTacToe:
             hint_message = (
                 f'It is {self.players[player].display_name}\'s turn! '
                 f'{tokens[player]}'
-                )
+            )
             self.update_embed(hint_message, player)
             await self.message_game.edit(embed=self.embed)
 
@@ -103,7 +103,7 @@ class TicTacToe:
                     'reaction_add',
                     timeout=5 * 60,  # 5 minutes
                     check=check,
-                    )
+                )
             except asyncio.TimeoutError as e:
                 # makes the other player (not in turn) the winner if
                 # the current player times out
@@ -140,14 +140,13 @@ class TicTacToe:
             hint_message = (
                 f'{self.players[player].display_name} won! '
                 f'{tokens[player]}'
-                )
+            )
         else:
             hint_message = f'It is a tie!'
 
         self.update_embed(hint_message, player)
         await self.message_game.edit(embed=self.embed)
         await self.message_game.clear_reactions()
-
 
     def update_embed(self, hint_message, player):
         """Edit the Embed with the current board state, and who's
@@ -156,13 +155,13 @@ class TicTacToe:
         self.embed.set_author(
             name=self.players[player].display_name,
             icon_url=self.players[player].avatar_url_as(static_format='png'),
-            ).set_field_at(
+        ).set_field_at(
             index=0,  # graphics
             name=self.embed.fields[0].name,
             value=self.make_graphics(),
-            ).set_footer(
+        ).set_footer(
             text=hint_message,
-            )
+        )
 
     def make_graphics(self):
         """Return a string that represents the board state."""
@@ -171,12 +170,12 @@ class TicTacToe:
             emoji.TicTacToe.BLANK.value,
             emoji.TicTacToe.O.value,
             emoji.TicTacToe.X.value,
-            ]
+        ]
 
         int_to_emoji = np.vectorize(lambda i: tokens[i])
         graphics = int_to_emoji(self.board.board).reshape((3, 3))
 
         graphics_str = '\n'.join(' '.join(i for i in col)
-            for col in graphics)
+                                 for col in graphics)
 
         return graphics_str

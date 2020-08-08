@@ -39,7 +39,7 @@ class Feesh(FunCog):
         # Background tasks
         self.bg_tasks = [
             self.bot.loop.create_task(self.periodic_feesh(timedelta(hours=4))),
-            ]
+        ]
 
     @property
     def cog_levels(self):
@@ -56,13 +56,13 @@ class Feesh(FunCog):
         await self.bot.wait_until_ready()
         guild = discord.utils.get(
             self.bot.guilds, name='Hatventures Community'
-            )
+        )
 
-        if not guild is None:
+        if guild is not None:
             channel = discord.utils.find(
                 lambda c: c.name.startswith('hatbot'),
                 guild.channels
-                )
+            )
             feesh = discord.utils.get(guild.emojis, name='feesh')
 
             self.guild = guild
@@ -96,7 +96,7 @@ class Feesh(FunCog):
                     'bot_given': 0,
                     'last_nickname': member.display_name,
                     'is_member': True,
-                    }
+                }
                 self.data['members'][member.id] = ustats
 
                 pkl_dump(self.data, FEESH_DATA_FILE)
@@ -204,7 +204,7 @@ class Feesh(FunCog):
                 out_str = (
                     'No one is online, I guess I\'ll have a snack! '
                     ':sushi:'
-                    )
+                )
                 await self.channel_msg.send(out_str)
             else:
                 winner = np.random.choice(members_list, p=weights)
@@ -212,7 +212,7 @@ class Feesh(FunCog):
                 out_str = (
                     f'{escape(winner.display_name)} got a '
                     f'{self.feesh_emoji} !'
-                    )
+                )
 
                 # 1337 feesh
                 if self.data['total'] == 1337 - 1:
@@ -220,7 +220,7 @@ class Feesh(FunCog):
                         f'{leet(winner.display_name)} '
                         f'({winner.display_name}) 607 4 '
                         f'{self.feesh_emoji}'
-                        )
+                    )
 
                 await self.channel_msg.send(out_str)
 
@@ -228,7 +228,7 @@ class Feesh(FunCog):
                 self.transfer_feesh(member=winner, amount=1)
 
     @commands.group(aliases=['<:feesh:427018890137174016>'],
-        invoke_without_command=True)
+                    invoke_without_command=True)
     async def feesh(self, ctx, *, member: discord.Member = None):
         """Give statistics on the amount of feesh given."""
 
@@ -245,13 +245,13 @@ class Feesh(FunCog):
         out_str = (
             f'{total} {self.feesh_emoji} were given in total, '
             f'{escape(member.display_name)} has {amount}.'
-            )
+        )
 
         await ctx.send(out_str)
 
     @feesh.group(name='give', aliases=['kobe'], invoke_without_command=True)
     async def feesh_give(self, ctx, amount: typing.Optional[int] = 1, *,
-            member: discord.Member):
+                         member: discord.Member):
         """Give a feesh from your feesh to a member."""
 
         donor = ctx.author
@@ -277,14 +277,14 @@ class Feesh(FunCog):
                 out_str = (
                     'That\'s very nice of you, but you don\'t '
                     f'have enough {self.feesh_emoji}!'
-                    )
+                )
 
             else:
                 self.transfer_feesh(member=member, donor=donor, amount=amount)
                 out_str = (
                     f'You gave {amount} {self.feesh_emoji} to '
                     f'{escape(member.display_name)}. Yay!'
-                    )
+                )
 
         await ctx.send(out_str)
 
@@ -293,7 +293,7 @@ class Feesh(FunCog):
         """Give a feesh to a random member."""
         member = np.random.choice([
             m for m in ctx.guild.members if not m.bot and m != ctx.author
-            ])
+        ])
         await self._feesh_command_random(ctx, member)
 
     @feesh.command(name='bomb', hidden=True, aliases=['yeet'])
@@ -330,7 +330,7 @@ class Feesh(FunCog):
         def isvalid(m):
             try:
                 return (self.cog_levels.data[m.id].exp > 0
-                    and m != ctx.author)
+                        and m != ctx.author)
             except KeyError:
                 return False
 
@@ -381,20 +381,20 @@ class Feesh(FunCog):
             else:
                 top_members.append(
                     self.data['members'][u['ID']]['last_nickname']
-                    )
+                )
 
         plural = 's' if len(top_members) > 1 else ''
         out_str = (
             f'Member{plural} with the most {self.feesh_emoji} '
             f'(**{top_amount}**):\n'
-            )
+        )
         out_str += '```\n' + '\n'.join(top_members) + '\n```'
 
         await ctx.channel.send(out_str)
 
     @commands.cooldown(1, 24 * 3600, commands.BucketType.user)
     @feesh.group(name='steal', hidden=True, aliases=['yoink'],
-        invoke_without_command=True)
+                 invoke_without_command=True)
     async def feesh_steal(self, ctx, *, target: discord.Member):
         """Attempt to steal a feesh from a given member.
         This is a secret command! Shhhhhhhhh...
@@ -433,8 +433,7 @@ class Feesh(FunCog):
             if feesh_target == 0:
                 out_str = (
                     f'{escape(target.display_name)} has no {self.feesh_emoji}, '
-                    f'you can\'t {ctx.invoked_with} from them.'
-                    )
+                    f'you can\'t {ctx.invoked_with} from them.')
                 await channel.send(out_str)
                 raise ValueError('Target has no feesh')
 
@@ -453,10 +452,11 @@ class Feesh(FunCog):
                 else:
                     # y > 0
                     # 0 to 0.4ish
-                    return (np.tanh((y-(1.2*top_amount))/top_amount)/2+0.5)
+                    return (
+                        np.tanh((y - (1.2 * top_amount)) / top_amount) / 2 + 0.5)
 
-            drop = (1-odds(feesh_diff))/3
-            fail = 2*drop # success = 1. - fail - drop
+            drop = (1 - odds(feesh_diff)) / 3
+            fail = 2 * drop  # success = 1. - fail - drop
 
             if target.id == 460499306223239188:  # HatBot
                 if feesh_target > 0:
@@ -469,7 +469,7 @@ class Feesh(FunCog):
                 out_str = (
                     f'You failed at {_ing} a {self.feesh_emoji} '
                     f'from {escape(target.display_name)}.'
-                    )
+                )
                 await channel.send(out_str)
             elif r < fail + drop:
                 # drop
@@ -478,7 +478,7 @@ class Feesh(FunCog):
                         (f'In your haste, you dropped a {self.feesh_emoji} '
                          'of your own!\n'),
                         'Who will get it?'
-                        ]
+                    ]
                     msg = await channel.send(''.join(out_str))
                     # reaction
                     await msg.add_reaction(self.feesh_emoji)
@@ -504,7 +504,7 @@ class Feesh(FunCog):
                     out_str = (
                         f'You failed to {ctx.invoked_with} and '
                         'got caught! THIEF!'
-                        )
+                    )
                     await channel.send(out_str)
                     try:
                         # change nickname
@@ -512,14 +512,14 @@ class Feesh(FunCog):
                         await thief.edit(
                             nick=f'{old_display_name} the THIEF',
                             reason='Got caught trying to steal a feesh!'
-                            )
+                        )
                         # wait for 24 hours
                         await asyncio.sleep(24 * 3600)
                         # change it back
                         await thief.edit(
                             nick=old_display_name,
                             reason='Revert back after 24h.'
-                            )
+                        )
 
                     except discord.Forbidden as e:
                         # if it fails, do not raise exception
@@ -530,7 +530,7 @@ class Feesh(FunCog):
                 out_str = (
                     f'You {_ed} a {self.feesh_emoji} from '
                     f'{escape(target.display_name)}! How could you...'
-                    )
+                )
                 await channel.send(out_str)
                 # edit stats
                 self.transfer_feesh(thief, donor=target, amount=1)
@@ -574,7 +574,7 @@ class Feesh(FunCog):
         out_str = (
             f'{escape(member.display_name)} has {member_amount} '
             f'{self.feesh_emoji}.'
-            )
+        )
         await ctx.send(out_str, file=img)
 
     @feesh.command(name='whohas')
@@ -607,7 +607,7 @@ class Feesh(FunCog):
             ctx.command.full_parent_name,
             subcommand,
             'random',
-            ])
+        ])
         await ctx.send(f'Did you mean: `{ctx.prefix}{command_hint}`?')
 
     @feesh_give.error
@@ -643,8 +643,8 @@ class Feesh(FunCog):
 
             def check(reaction, member):
                 return (member == ctx.author
-                    and reaction.message.id == ctx.message.id
-                    and reaction.emoji == hourglass_emoji)
+                        and reaction.message.id == ctx.message.id
+                        and reaction.emoji == hourglass_emoji)
 
             try:
                 reaction, member = await self.bot.wait_for(
@@ -657,15 +657,17 @@ class Feesh(FunCog):
                     retry_after = '{:.0f} second(s)'.format(error.retry_after)
                 elif error.retry_after < 3600:
                     # minutes
-                    retry_after = '{:.0f} minute(s)'.format(error.retry_after / 60)
+                    retry_after = '{:.0f} minute(s)'.format(
+                        error.retry_after / 60)
                 else:
                     # hours
-                    retry_after = '{:.0f} hour(s)'.format(error.retry_after / 3600)
+                    retry_after = '{:.0f} hour(s)'.format(
+                        error.retry_after / 3600)
 
                 out_str = (
                     f'You have already tried to {ctx.invoked_with} today, '
                     f'wait for {retry_after}.'
-                    )
+                )
                 await ctx.author.send(out_str)
 
         else:
@@ -700,7 +702,7 @@ class Feesh(FunCog):
                 'bot_given': 0,
                 'last_nickname': member.display_name,
                 'is_member': True
-                }
+            }
             self.data['members'][mid] = ustats
 
         if donor is None:  # Bot gives a feesh
@@ -784,7 +786,7 @@ class Feesh(FunCog):
             f'Median: {np.median(won):>6.1f}\n'
             f'Mode: {max(set(won), key=list(won).count):>7d}\n'
             fr'$\sigma$: {np.std(won):>5.2f}'
-            )
+        )
 
         ax.annotate(annotation, xy=(0.98, 0.97), xycoords='axes fraction',
                     size=14, ha='right', va='top',

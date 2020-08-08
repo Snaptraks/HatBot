@@ -19,6 +19,7 @@ async def create_http_session(loop):
     """
     return aiohttp.ClientSession(loop=loop)
 
+
 async def create_db_connection(db_name):
     """Create the connection to the database."""
 
@@ -69,7 +70,7 @@ class MyBot(Bot):
             f'Use this link to invite {self.user.name}:\n'
             f'{oauth_url}\n'
             '--------'
-            ))
+        ))
 
         # make sure to populate self.owner_id at startup
         await self.init_owner()
@@ -93,7 +94,7 @@ if __name__ == '__main__':
         filename='HatBot.log',
         encoding='utf-8',
         mode='w',
-        )
+    )
     handler.setFormatter(logging.Formatter(
         '%(asctime)s:%(levelname)s:%(name)s: %(message)s'))
     logger.addHandler(handler)
@@ -109,7 +110,7 @@ if __name__ == '__main__':
         help_command=commands.DefaultHelpCommand(dm_help=True),
         loop=loop,
         db_name='db/HatBot.db',
-        )
+    )
 
     # This specifies what extensions to load when the bot starts up
     startup_extensions = [
@@ -130,7 +131,7 @@ if __name__ == '__main__':
         'cogs.Reminders',
         'cogs.Responses',
         'cogs.Roles',
-        ]
+    ]
 
     for extension in startup_extensions:
         try:
