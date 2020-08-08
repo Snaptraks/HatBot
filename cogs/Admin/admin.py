@@ -136,10 +136,15 @@ class Admin(BasicCog):
             return await ctx.send(stdout)
 
         else:
-            await ctx.send(
+            output = (
                 f'**stdout**:\n{stdout}\n'
                 f'**stderr**:\n{stderr}'
             )
+            try:
+                await ctx.send(output)
+            except discord.HTTPException:
+                print(output)
+                await ctx.send('Output too big, check the console.')
 
     @cogs_load.after_invoke
     @cogs_unload.after_invoke
