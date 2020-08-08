@@ -192,8 +192,8 @@ class ACNH(BasicCog):
 
         await ctx.send(embed=embed, file=resident_picture)
 
-    @acnh.command(name='form', hidden=True)
-    # @commands.dm_only()
+    @acnh.command(name='form')
+    @commands.dm_only()
     async def acnh_form(self, ctx, *, form: str):
         """Send the filled out form and save it."""
 
@@ -239,7 +239,7 @@ class ACNH(BasicCog):
         raise error
 
     @acnh.command(name='picture')
-    # @commands.dm_only()
+    @commands.dm_only()
     async def acnh_picture(self, ctx):
         """Register a picture for the AC:NH profile card.
         Attach a picture when typing the command, so that the message you send
@@ -308,7 +308,7 @@ class ACNH(BasicCog):
         await member.send(f'```\n{template.substitute(hint_data)}```')
 
     @acnh.command(name='update')
-    # @commands.dm_only()
+    @commands.dm_only()
     async def acnh_update(self, ctx, *, form: str = None):
         """Update your AC:NH profile information."""
 
