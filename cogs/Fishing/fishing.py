@@ -700,7 +700,7 @@ class Fishing(FunCog):
             if i == 0:
                 x.append(sum([sum(journal[s].values()) for s in SIZES[1]]))
                 if x[-1] > 0:
-                    labels.append(f'Bigger Fish')
+                    labels.append('Bigger Fish')
                 else:
                     labels.append('')
                 colors.append([1, 0, 0])  # red
