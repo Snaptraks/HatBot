@@ -8,30 +8,13 @@ from string import Template
 
 import discord
 from discord.ext import commands, tasks
+from discord.ext.menus import MenuPages
 import matplotlib.pyplot as plt
 import numpy as np
 
 from ..utils.cogs import BasicCog
 from . import menus
-
-PROFILE_EMBED_COLOR = 0x75E6A2
-PROFILE_HEMISPHERE = ('north', 'south')
-PROFILE_FRUIT = (
-    'apple',
-    'cherry',
-    'orange',
-    'peach',
-    'pear',
-)
-PROFILE_FRUIT_EMOJI = (
-    '\U0001f34e',  # :apple:
-    '\U0001f352',  # :cherries:
-    '\U0001f34a',  # :tangerine:
-    '\U0001f351',  # :peach:
-    '\U0001f350',  # :pear:
-)
-TURNIP_EMBED_COLOR = 0xF3F5E8
-TURNIP_PROPHET_BASE = 'https://turnipprophet.io/?'
+from . import objects
 
 
 class InvalidCode(Exception):
@@ -128,68 +111,63 @@ class ACNH(BasicCog):
             await self.send_typing_delay(ctx.channel)
             await ctx.send(out_str)
 
-    @commands.group(invoke_without_command=True, enabled=True)
-    async def acnh(self, ctx, member: discord.Member = None):
+    @commands.group(invoke_without_command=True)
+    async def acnh(self, ctx):
         """Command group to check and register AC:NH information."""
+
+        all_profile_data = await self._get_all_profile_data()
+
+        menu = MenuPages(
+            source=menus.ProfileSource(all_profile_data),
+            clear_reactions_after=True
+        )
+        await menu.start(ctx)
+
+    @acnh.command(name='card', aliases=['passport', 'profile'])
+    async def acnh_card(self, ctx, member: discord.Member = None):
+        """Check your or someone else's AC:NH profile card."""
 
         if member is None:
             member = ctx.author
 
         profile_data = await self._get_profile_data(member)
 
-        try:
-            hemisphere = PROFILE_HEMISPHERE[profile_data['hemisphere']].title()
-        except TypeError:
-            hemisphere = None
-
-        try:
-            fruit = profile_data['native_fruit']
-            native_fruit = (
-                f'{PROFILE_FRUIT[fruit].title()} '
-                f'{PROFILE_FRUIT_EMOJI[fruit]}'
-            )
-        except TypeError:
-            native_fruit = None
-
         profile_picture = io.BytesIO(profile_data['profile_picture'])
         resident_picture = discord.File(
             profile_picture, filename='resident_picture.png')
 
-        embed = discord.Embed(
-            title='Animal Crossing: New Horizons Profile Card',
-            color=PROFILE_EMBED_COLOR,
-            timestamp=datetime.utcnow(),
-        ).set_author(
-            name=member.display_name,
-            icon_url=member.avatar_url,
-        ).set_thumbnail(
-            url=f'attachment://{resident_picture.filename}',
-        )
+        thumbnail_url = f'attachment://{resident_picture.filename}'
 
-        embed.add_field(
-            name='Resident Name',
-            value=profile_data['resident_name'],
-        ).add_field(
-            name='Island Name',
-            value=profile_data['island_name'],
-        ).add_field(
-            name='Hemisphere',
-            value=hemisphere,
-        ).add_field(
-            name='Native Fruit',
-            value=native_fruit,
-        ).add_field(
-            name='Friend Code',
-            value=profile_data['friend_code'],
-        ).add_field(
-            name='Creator ID',
-            value=profile_data['creator_id'],
-        ).add_field(
-            name='Dream Address',
-            value=profile_data['dream_address'],
-        )
+        embed = menus.make_profile_embed(member, profile_data, thumbnail_url)
 
         await ctx.send(embed=embed, file=resident_picture)
+
+    @acnh.command(name='creators', aliases=['creator', 'designs', 'design'])
+    async def acnh_creators(self, ctx):
+        """Get the list of registered Creator IDs."""
+
+        embed = await self._make_codes_embed(
+            ctx, 'creator_id', 'Creator IDs')
+
+        await ctx.send(embed=embed)
+
+    @acnh.command(name='dreams', aliases=['dream'])
+    async def acnh_dreams(self, ctx):
+        """Get the list of registered Dream Addresses."""
+
+        embed = await self._make_codes_embed(
+            ctx, 'dream_address', 'Dream Addresses')
+
+        await ctx.send(embed=embed)
+
+    @acnh.command(name='friends', aliases=['friend'])
+    async def acnh_friends(self, ctx):
+        """Get the list of registered Friend Codes."""
+
+        embed = await self._make_codes_embed(
+            ctx, 'friend_code', 'Friend Codes')
+
+        await ctx.send(embed=embed)
 
     @acnh.command(name='form')
     @commands.dm_only()
@@ -250,6 +228,12 @@ class ACNH(BasicCog):
         await self._save_profile_picture(ctx.author, picture)
 
         await ctx.send('I successfully saved your picture! Thank you!')
+
+    @acnh_picture.error
+    async def acnh_picture_error(self, ctx, error):
+        """Error handler for the acnh_picture command."""
+
+        await ctx.send(f'There was an error:\n{error}')
 
     @acnh.command(name='register')
     async def acnh_register(self, ctx):
@@ -326,13 +310,13 @@ class ACNH(BasicCog):
             # change the repr of hemisphere and native_fruit
             hem = profile_data['hemisphere']
             try:
-                profile_data['hemisphere'] = PROFILE_HEMISPHERE[hem]
+                profile_data['hemisphere'] = objects.PROFILE_HEMISPHERE[hem]
             except TypeError:
                 profile_data['hemisphere'] = ''
 
             fruit = profile_data['native_fruit']
             try:
-                profile_data['native_fruit'] = PROFILE_FRUIT[fruit]
+                profile_data['native_fruit'] = objects.PROFILE_FRUIT[fruit]
             except TypeError:
                 profile_data['native_fruit'] = ''
 
@@ -349,6 +333,27 @@ class ACNH(BasicCog):
         else:
             # call the acnh_form method with the form
             await self.acnh_form(ctx=ctx, form=form)
+
+    async def _make_codes_embed(self, ctx, code_type, embed_title):
+
+        codes = await self._get_all_profile_codes(code_type)
+        lines = []
+        for code in codes:
+            if code[code_type] is not None:
+                member = ctx.guild.get_member(code['user_id'])
+                line = f'{member.mention}: **{code[code_type]}**'
+                lines.append(line)
+
+        embed = discord.Embed(
+            title=f'Animal Crossing: New Horizons {embed_title}',
+            timestamp=datetime.utcnow(),
+            color=objects.PROFILE_EMBED_COLOR,
+            description='\n'.join(lines),
+        ).set_thumbnail(
+            url=objects.PROFILE_CODE_THUMBNAIL[code_type],
+        )
+
+        return embed
 
     def _parse_hemisphere(self, hem):
         if hem is not None:
@@ -368,7 +373,8 @@ class ACNH(BasicCog):
         code = code.strip()
         extract_digits = re.compile('([0-9]{4})')
         match = re.compile(
-            '^(?:(?:DA)|(?:SW)|(?:MA)|(?:da)|(?:sw)|(?:ma))?(?:-?[0-9]{4}){3}$')
+            '^(?:(?:DA)|(?:SW)|(?:MA)|(?:da)|(?:sw)|(?:ma))?(?:-?[0-9]{4}){3}$'
+        )
 
         if re.fullmatch(match, code):
             digits = re.findall(extract_digits, code)
@@ -431,7 +437,7 @@ class ACNH(BasicCog):
 
         embed = discord.Embed(
             description=description,
-            color=TURNIP_EMBED_COLOR,
+            color=objects.TURNIP_EMBED_COLOR,
         ).set_image(
             url=f'attachment://{graph_file.filename}',
         ).set_author(
@@ -602,6 +608,33 @@ class ACNH(BasicCog):
         )
         await self.bot.db.commit()
 
+    async def _get_all_profile_data(self):
+        """Return a list of all the profiles data."""
+
+        async with self.bot.db.execute(
+                """
+                SELECT *
+                  FROM acnh_profile
+                """
+        ) as c:
+            rows = await c.fetchall()
+
+        return rows
+
+    async def _get_all_profile_codes(self, code_type):
+        """Return a list of all the codes of a given type.
+        Valid code types are friend_code, creator_id, and dream_address.
+        """
+        async with self.bot.db.execute(
+            f"""
+            SELECT user_id, {code_type}
+              FROM acnh_profile
+            """
+        ) as c:
+            rows = await c.fetchall()
+
+        return rows
+
     async def _get_profile_data(self, member):
         """Return the profile data for the given member."""
 
@@ -698,7 +731,7 @@ class ACNH(BasicCog):
         options_str = '&'.join(
             [f'{key}={value}' for key, value in options.items()])
 
-        url = f'{TURNIP_PROPHET_BASE}{options_str}'
+        url = f'{objects.TURNIP_PROPHET_BASE}{options_str}'
         return url
 
     async def _save_turnip_price(self, member, day, price):
