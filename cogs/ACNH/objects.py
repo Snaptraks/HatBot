@@ -32,5 +32,3 @@ PROFILE_CODE_THUMBNAIL = {
         'images/b/bc/NH-Icon-Nook_Phone-Chat_log.png'
     ),
 }
-TURNIP_EMBED_COLOR = 0xF3F5E8
-TURNIP_PROPHET_BASE = 'https://turnipprophet.io/?'
