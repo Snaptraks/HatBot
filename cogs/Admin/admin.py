@@ -1,19 +1,18 @@
-import asyncio
 import copy
 from datetime import datetime
 import logging
-import subprocess
 
 import discord
 from discord.ext import commands
+from discord.ext.menus import MenuPages
 
 from ..utils.cogs import BasicCog
+from ..utils.menus import ShellOutputSource, format_shell_output
 
 
 logger = logging.getLogger('discord')
 
 
-# class Admin(commands.Cog):
 class Admin(BasicCog):
     """Collection of administrative commands."""
 
@@ -23,27 +22,9 @@ class Admin(BasicCog):
     async def cog_check(self, ctx):
         return await self.bot.is_owner(ctx.author)
 
-    async def run_process(self, command):
-        """From https://github.com/Rapptz/RoboDanny/blob/rewrite/cogs/admin.py#L89-L97"""
-
-        try:
-            process = await asyncio.create_subprocess_shell(
-                command,
-                stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE,
-            )
-            result = await process.communicate()
-        except NotImplementedError:
-            process = subprocess.Popen(
-                command,
-                shell=True,
-                stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE,
-            )
-            result = await self.bot.loop.run_in_executor(
-                None, process.communicate)
-
-        return [output.decode() for output in result]
+    @property
+    def cog_dev(self):
+        return self.bot.get_cog('Dev')
 
     @commands.command(aliases=['stop', 'quit', 'exit'])
     async def kill(self, ctx):
@@ -130,21 +111,20 @@ class Admin(BasicCog):
         """Pull modifications from the git repo before reloading the cogs."""
 
         async with ctx.typing():
-            stdout, stderr = await self.run_process('git pull')
+            stdout, stderr = await self.cog_dev.run_process('git pull')
 
         if stdout.startswith('Already up to date.'):
             return await ctx.send(stdout)
 
         else:
-            output = (
-                f'**stdout**:\n{stdout}\n'
-                f'**stderr**:\n{stderr}'
+            paginator = format_shell_output(stdout, stderr)
+
+            menu = MenuPages(
+                source=ShellOutputSource(paginator.pages),
+                clear_reactions_after=True,
             )
-            try:
-                await ctx.send(output)
-            except discord.HTTPException:
-                print(output)
-                await ctx.send('Output too big, check the console.')
+
+            await menu.start(ctx)
 
     @cogs_load.after_invoke
     @cogs_unload.after_invoke

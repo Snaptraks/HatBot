@@ -1,16 +1,18 @@
 import asyncio
+from contextlib import redirect_stdout
+import inspect
 import io
 import re
+import subprocess
+import unicodedata
 import textwrap
 import traceback
-import unicodedata
-import inspect
-from contextlib import redirect_stdout
 
 import discord
-from discord.ext import commands
+from discord.ext import commands, menus
 
 from ..utils.cogs import BasicCog
+from ..utils.menus import ShellOutputSource, format_shell_output
 
 # Some commands taken from
 # https://github.com/Rapptz/RoboDanny/blob/rewrite/cogs/admin.py
@@ -32,17 +34,40 @@ class Dev(BasicCog):
         # remove `foo`
         return content.strip('` \n')
 
+    async def run_process(self, command):
+        """From
+        https://github.com/Rapptz/RoboDanny/blob/rewrite/cogs/admin.py
+        """
+
+        try:
+            process = await asyncio.create_subprocess_shell(
+                command,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+            )
+            result = await process.communicate()
+        except NotImplementedError:
+            process = subprocess.Popen(
+                command,
+                shell=True,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+            )
+            result = await self.bot.loop.run_in_executor(
+                None, process.communicate)
+
+        return [output.decode('utf-8', 'ignore') for output in result]
+
     async def cog_check(self, ctx):
         return await self.bot.is_owner(ctx.author)
-
-    @property
-    def cog_admin(self):
-        return self.bot.get_cog('Admin')
 
     def get_syntax_error(self, e):
         if e.text is None:
             return f'```py\n{e.__class__.__name__}: {e}\n```'
-        return f'```py\n{e.text}{"^":>{e.offset}}\n{e.__class__.__name__}: {e}```'
+        return (
+            f'```py\n{e.text}{"^":>{e.offset}}\n'
+            f'{e.__class__.__name__}: {e}```'
+        )
 
     @commands.command(name='eval')
     async def _eval(self, ctx, *, body: str):
@@ -80,7 +105,7 @@ class Dev(BasicCog):
         try:
             with redirect_stdout(stdout):
                 ret = await func()
-        except Exception as e:
+        except Exception:
             value = stdout.getvalue()
             await ctx.send(f'```py\n{value}{traceback.format_exc()}\n```')
         else:
@@ -164,7 +189,7 @@ class Dev(BasicCog):
                     result = executor(code, variables)
                     if inspect.isawaitable(result):
                         result = await result
-            except Exception as e:
+            except Exception:
                 value = stdout.getvalue()
                 fmt = f'```py\n{value}{traceback.format_exc()}\n```'
             else:
@@ -200,30 +225,34 @@ class Dev(BasicCog):
     @commands.command()
     async def sh(self, ctx, *, command):
         """Runs a shell command."""
-        # from cogs.utils.paginator import TextPages
 
         async with ctx.typing():
-            stdout, stderr = await self.cog_admin.run_process(command)
+            stdout, stderr = await self.run_process(command)
 
-        if stderr:
-            text = f'stdout:\n{stdout}\nstderr:\n{stderr}'
-        else:
-            text = stdout
+        paginator = format_shell_output(stdout, stderr)
 
-        await ctx.send(text)
+        menu = menus.MenuPages(
+            source=ShellOutputSource(paginator.pages),
+            clear_reactions_after=True,
+        )
+
+        await menu.start(ctx)
 
     @commands.command()
     async def charinfo(self, ctx, *, characters):
         """Shows you information on up to 25 unicode characters.
-        Adapted from https://github.com/python-discord/bot/blob/master/bot/cogs/utils.py
+        Adapted from
+        https://github.com/python-discord/bot/blob/master/bot/cogs/utils.py
         """
         match = re.match(r"<(a?):(\w+):(\d+)>", characters)
         if match:
             embed = discord.Embed(
                 title="Non-Character Detected",
                 description=(
-                    "Only unicode characters can be processed, but a custom Discord emoji "
-                    "was found. Please remove it and try again."))
+                    "Only unicode characters can be processed, but a custom "
+                    "Discord emoji was found. Please remove it and try again."
+                )
+            )
             embed.colour = discord.Colour.red()
             await ctx.send(embed=embed)
             return
