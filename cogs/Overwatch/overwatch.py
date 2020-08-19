@@ -5,7 +5,6 @@ share it nonetheless. Some features will not make sense to you, but the
 technical stuff is interesting enough that it deserves a look at.
 """
 
-import asyncio
 import json
 import numpy as np
 import pickle
@@ -52,6 +51,7 @@ VALID_HEROES = [
     'zarya',
     'zenyatta',
 ]
+EMBED_COLOR = 0xF99E1A
 
 
 class Overwatch(commands.Cog):
@@ -128,8 +128,6 @@ class Overwatch(commands.Cog):
     async def declare(self, ctx):
         """Send a gif to declare a game of Overwatch!"""
 
-        member = ctx.author
-        channel = ctx.channel
         # because xplio keeps making typos
         if ctx.invoked_with == 'decalre':
             _ing = 'decalring'
@@ -145,14 +143,19 @@ class Overwatch(commands.Cog):
             self.voice_lines['Kills'] + \
             self.voice_lines['Ultimate']
         vl = np.random.choice(vl)
-        # gif_url = await random_gif('overwatch zenyatta')
         gif_url = await random_gif(self.bot.http_session, 'overwatch')
-        out_str = (
-            f'{vl} {member.display_name} is {_ing}, join the fight.\n'
-            f'{gif_url}'
+        description = (
+            f'{vl} {ctx.author.mention} is {_ing}, join the fight.'
         )
 
-        await channel.send(out_str)
+        embed = discord.Embed(
+            description=description,
+            color=EMBED_COLOR,
+        ).set_image(
+            url=gif_url,
+        )
+
+        await ctx.send(embed=embed)
 
     @commands.group(aliases=['ow'])
     async def overwatch(self, ctx):
@@ -185,7 +188,7 @@ class Overwatch(commands.Cog):
                     self.api_url.format(**payload)) as resp:
                 try:
                     resp.raise_for_status()
-                except aiohttp.ClientResponseError as e:
+                except aiohttp.ClientResponseError:
                     # this is raised only if the status code is 4xx or 5xx
                     if resp.status < 500:  # is a 4xx error code
                         out_str = (
@@ -219,13 +222,13 @@ class Overwatch(commands.Cog):
 
             if battletag:
                 await ctx.send(
-                    (f'Your current BattleTag is {battletag}. '
-                     'If you want to change it, run `!ow register Name#01234`.')
+                    f'Your current BattleTag is {battletag}. '
+                    'If you want to change it, run `!ow register Name#01234`.'
                 )
             else:
                 await ctx.send(
-                    ('I do not have your BattleTag. If you want to '
-                     'register it, run `!ow register Name#01234`.')
+                    'I do not have your BattleTag. If you want to '
+                    'register it, run `!ow register Name#01234`.'
                 )
         else:
             raise error
@@ -294,7 +297,7 @@ class Overwatch(commands.Cog):
         e = discord.Embed(
             title=f'Overwatch {title} for {member}.',
             type='rich',
-            colour=discord.Colour(0xF99E1A),
+            colour=EMBED_COLOR,
         )
 
         if data.private:
@@ -486,7 +489,7 @@ class Overwatch(commands.Cog):
         try:
             converter = commands.MemberConverter()
             member = await converter.convert(ctx, member)
-        except commands.BadArgument as e:
+        except commands.BadArgument:
             hero = member
             member = ctx.author
 
