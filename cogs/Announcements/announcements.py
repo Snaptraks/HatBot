@@ -1,6 +1,5 @@
 import asyncio
 import datetime
-import pickle
 
 import discord
 from discord.ext import commands, tasks
