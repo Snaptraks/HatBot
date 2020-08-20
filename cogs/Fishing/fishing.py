@@ -128,7 +128,7 @@ class Fishing(FunCog):
             return
 
         winner_id = np.random.choice(active_members)
-        winner = self.bot.get_user(winner_id)
+        winner = self.guild.get_member(winner_id)
         bonus_experience = np.random.triangular(3, 5, 15)
         out_str = (
             f':moneybag: {escape_markdown(winner.display_name)} got a little '
