@@ -1,21 +1,50 @@
 import asyncio
 from datetime import datetime, timedelta
-import pickle
 
 import discord
-from discord.ext import commands
+from discord.ext import commands, tasks
 
 from ..utils.cogs import BasicCog
 from ..utils.converters import Duration
+from ..utils.formats import pretty_print_timedelta
+from . import menus
 
 
-class ContextLite:
-    def __init__(self, author, channel):
-        self.author = author
-        self.channel = channel
+def make_reminder_embed(reminder, member):
+    """Make the Embed when a reminder is saved or sent."""
 
-    async def send(self, message):
-        await self.channel.send(message)
+    now = datetime.utcnow()
+    since = now - reminder['created_at']
+    until = reminder['future'] - now
+
+    if until > timedelta(seconds=1):
+        remaining = pretty_print_timedelta(until)
+    else:
+        remaining = 'Now!'
+
+    if since > timedelta(seconds=1):
+        created = (
+            f'[{pretty_print_timedelta(since)} ago]'
+            f"({reminder['jump_url']})"
+        )
+    else:
+        created = f"[Here]({reminder['jump_url']})"
+
+    embed = discord.Embed(
+        color=discord.Color.blurple(),
+        description=reminder['message']
+    ).set_author(
+        name=f'Reminder for {member.display_name}',
+        icon_url=member.avatar_url,
+    ).add_field(
+        name='Remaining',
+        value=remaining,
+    ).add_field(
+        name='Created',
+        value=created,
+    )
+
+    return embed
 
 
 class Reminders(BasicCog):
@@ -23,146 +52,34 @@ class Reminders(BasicCog):
 
     def __init__(self, bot):
         super().__init__(bot)
-        self.reminders = {}
 
-        # rebuild the reminders dict and create the new reminders tasks
-        self.bot.loop.create_task(self.load_pickle())
+        self._have_reminder = asyncio.Event()
+        self._next_reminder = None
+        self._create_tables.start()
+        self._reminders_task = bot.loop.create_task(self.start_reminders())
 
     def cog_unload(self):
         super().cog_unload()
+        self._reminders_task.cancel()
 
-        # cancel all tasks and pickle the reminders
-        to_pickle = {}
-        for id, reminders in self.reminders.items():
-            spam = []
-            for reminder in reminders:
-                if not reminder[-1].done():
-                    spam.append(reminder[:-1])
-                    reminder[-1].cancel()  # cancel the Task
-            to_pickle[id] = spam
-
-        with open('cogs/Reminders/reminders.pkl', 'wb') as f:
-            pickle.dump(to_pickle, f)
-
-    async def load_pickle(self):
-        """Ugly hack to preserve the self.reminders list on reload."""
-
-        try:
-            with open('cogs/Reminders/reminders.pkl', 'rb') as f:
-                from_pickle = pickle.load(f)
-
-        except FileNotFoundError:
-            from_pickle = {}
-
-        for id, reminders in from_pickle.items():
-            spam = []
-            for reminder in reminders:
-                future, to_remind, ctx_info = reminder
-                delay = future - datetime.utcnow()
-
-                author = self.bot.get_user(ctx_info[0])
-                channel = self.bot.get_channel(ctx_info[1])
-                ctx = ContextLite(author, channel)
-
-                task = asyncio.create_task(
-                    self.remind_task(ctx, delay, to_remind)
-                )
-
-                spam.append((future, to_remind, ctx_info, task))
-
-            self.reminders[id] = spam
-
-    @commands.group(aliases=['remindme', 'reminder'],
+    @commands.group(aliases=['remindme', 'reminder', 'r'],
                     invoke_without_command=True)
     async def remind(self, ctx, future: Duration, *, to_remind: str):
         """Send a reminder in the future about something.
         Syntax: `!remind 1h30m to take out the trash`. The future argument
         has to either be in one word, or in "quotes".
         """
-        delay = future - datetime.utcnow() + timedelta(milliseconds=400)
-        delay_str = str(delay).split('.')[0]
-        to_remind = discord.utils.escape_mentions(to_remind)
 
-        task = asyncio.create_task(self.remind_task(ctx, delay, to_remind))
-        ctx_info = (ctx.author.id, ctx.channel.id)
-        try:
-            self.reminders[ctx.author.id].append(
-                (future, to_remind, ctx_info, task)
-            )
-        except KeyError:
-            self.reminders[ctx.author.id] = [
-                (future, to_remind, ctx_info, task)
-            ]
+        reminder = await self._save_reminder(ctx)
 
-        await ctx.send(f'Ok! I will remind you {to_remind} in {delay_str}.')
+        await ctx.send(
+            'Ok! Here is your reminder:',
+            embed=make_reminder_embed(reminder, ctx.author),
+        )
 
-    @remind.command(name='list')
-    async def remind_list(self, ctx):
-        """Print a list of active reminders."""
-
-        self._clean_tasks(ctx.author.id)
-
-        try:
-            reminders = self.reminders[ctx.author.id]
-        except KeyError:
-            reminders = []
-
-        out_str = ''
-        for i, t in enumerate(reminders):
-            future, to_remind = t[:2]
-            delay = future - datetime.utcnow()
-            delay_str = str(delay).split('.')[0]
-            out_str += f'[{i + 1}] {to_remind} in {delay_str}.\n'
-
-        if out_str == '':
-            out_str = 'No active reminders.'
-
-        await ctx.send(out_str)
-
-    @remind.command(name='cancel')
-    async def remind_cancel(self, ctx, index: int):
-        """Cancel a scheduled reminder.
-        The command takes the index of the reminder as shown in `remind list`.
-        """
-        try:
-            reminders = self.reminders[ctx.author.id]
-        except KeyError:
-            reminders = []
-
-        try:
-            task = reminders[index - 1]
-        except IndexError:
-            out_str = f'No such reminder at index {index}.'
-            task = None
-
-        if task:
-            task[-1].cancel()
-            out_str = f'Cancelled the reminder {task[1]}!'
-
-        await ctx.send(out_str)
-
-    @remind.command(name='clear')
-    async def remind_clear(self, ctx):
-        """Cancel all the current active reminders."""
-
-        try:
-            reminders = self.reminders[ctx.author.id]
-        except KeyError:
-            reminders = []
-
-        for task in reminders:
-            task[-1].cancel()
-
-        self._clean_tasks(ctx.author.id)
-
-        await ctx.send('All active reminders cancelled.')
-
-    @remind.command(name='me', hidden=True)
-    async def remind_me(self, ctx, future: Duration, *, to_remind: str):
-        """Accessibility command to call the `remindme` command as
-        `remind me`.
-        """
-        await ctx.invoke(self.remind, future=future, to_remind=to_remind)
+        if self._next_reminder and future < self._next_reminder['future']:
+            # stop the task and run it again to get the latest reminder
+            self._restart_reminders()
 
     @remind.error
     async def remind_error(self, ctx, error):
@@ -171,8 +88,10 @@ class Reminders(BasicCog):
         """
         if isinstance(error, commands.BadArgument):
             await ctx.send(error)
+
         elif isinstance(error, commands.MissingRequiredArgument):
             await ctx.send(f'You are missing argument {error.param.name}')
+
         elif isinstance(error, commands.ConversionError):
             await ctx.send(
                 'I am sorry, there was an error. '
@@ -181,18 +100,182 @@ class Reminders(BasicCog):
         else:
             raise error
 
-    async def remind_task(self, ctx, delay, to_remind):
-        await asyncio.sleep(delay.total_seconds())
-        await ctx.send(
-            f'Hey {ctx.author.mention}, I needed to remind you {to_remind}'
+    @remind.command(name='active', aliases=['a'])
+    async def remind_active(self, ctx):
+        await ctx.send(dict(self._next_reminder))
+
+    @remind.command(name='list')
+    async def remind_list(self, ctx):
+        """Print a list of active reminders."""
+
+        reminders = await self._get_reminders(ctx.author)
+        menu = menus.ReminderMenu(
+            source=menus.ReminderSource(reminders),
+            clear_reactions_after=True,
+        )
+        to_cancel = await menu.prompt(ctx)
+
+        await self._delete_reminders(to_cancel)
+
+        if self._next_reminder['rowid'] in to_cancel:
+            # stop the task and run it again to get the latest reminder
+            self._restart_reminders()
+
+    @remind.command(name='me', hidden=True)
+    async def remind_me(self, ctx, future: Duration, *, to_remind: str):
+        """Accessibility command to call the `remindme` command as
+        `remind me`.
+        """
+        await ctx.invoke(self.remind, future=future, to_remind=to_remind)
+
+    async def start_reminders(self):
+        """Task to start the reminders. Only wait for one at a time."""
+
+        await self.bot.wait_until_ready()
+
+        while not self.bot.is_closed():
+            reminder = await self._get_next_reminder()
+
+            if reminder is not None:
+                self._have_reminder.set()
+                self._next_reminder = reminder
+                await self.send_reminder(reminder)
+
+            else:
+                self._have_reminder.clear()
+                await self._have_reminder.wait()
+                # reminder = await self._get_next_reminder()
+                # await self.send_reminder(reminder)
+
+    async def send_reminder(self, reminder):
+        """Send the reminder to the channel after deleting it
+        from the DB.
+        """
+        await discord.utils.sleep_until(reminder['future'])
+        channel = self.bot.get_channel(reminder['channel_id'])
+        user = self.bot.get_user(reminder['user_id'])
+        await channel.send(
+            f'Hey {user.mention}! Here is your reminder:',
+            embed=make_reminder_embed(reminder, user),
         )
 
-    def _clean_tasks(self, id):
-        try:
-            reminders = self.reminders[id]
-        except KeyError:
-            reminders = []
+        await self._delete_single_reminder(reminder)
 
-        self.reminders[id] = [
-            task for task in reminders if not task[-1].done()
-        ]
+    def _restart_reminders(self):
+        """Helper function to restart the reminders task."""
+        self._reminders_task.cancel()
+        self._reminders_task = asyncio.create_task(self.start_reminders())
+
+    @tasks.loop(count=1)
+    async def _create_tables(self):
+        """Create the necessary DB tables if they do not exist."""
+
+        await self.bot.db.execute(
+            """
+            CREATE TABLE IF NOT EXISTS reminders_reminder(
+                channel_id INTEGER   NOT NULL,
+                created_at TIMESTAMP NOT NULL,
+                future     TIMESTAMP NOT NULL,
+                jump_url   TEXT      NOT NULL,
+                message    TEXT      NOT NULL,
+                user_id    INTEGER   NOT NULL
+            )
+            """
+        )
+
+        await self.bot.db.commit()
+
+    async def _delete_single_reminder(self, reminder):
+        """Delete one reminder."""
+
+        await self._delete_reminders([reminder['rowid']])
+
+    async def _delete_reminders(self, rowids):
+        """Delete the reminders."""
+
+        await self.bot.db.executemany(
+            """
+            DELETE FROM reminders_reminder
+             WHERE rowid = :rowid
+            """,
+            [{'rowid': rowid} for rowid in rowids]
+        )
+
+        await self.bot.db.commit()
+
+    async def _get_reminders(self, member):
+        """Get the reminders of the given member."""
+
+        async with self.bot.db.execute(
+                """
+                SELECT rowid, *
+                  FROM reminders_reminder
+                 WHERE user_id = :user_id
+                 ORDER BY future
+                """,
+                {'user_id': member.id}
+        ) as c:
+            rows = await c.fetchall()
+
+        return rows
+
+    async def _get_next_reminder(self):
+        """Get the reminder that needs to happen first."""
+
+        async with self.bot.db.execute(
+                """
+                SELECT rowid, *
+                  FROM reminders_reminder
+                 ORDER BY future
+                 LIMIT 1
+                """
+                # WHERE future < STRFTIME('%Y-%m-%d %H:%M:%f')
+        ) as c:
+            row = await c.fetchone()
+
+        return row
+
+    async def _save_reminder(self, ctx):
+        """Save the provided reminder to the DB."""
+
+        channel_id = ctx.channel.id
+        created_at = ctx.message.created_at
+        future = ctx.args[2]
+        jump_url = ctx.message.jump_url
+        message = discord.utils.escape_mentions(ctx.kwargs['to_remind'])
+        user_id = ctx.author.id
+
+        async with self.bot.db.execute(
+                """
+                INSERT INTO reminders_reminder
+                VALUES (:channel_id,
+                        :created_at,
+                        :future,
+                        :jump_url,
+                        :message,
+                        :user_id)
+                """,
+                {
+                    'channel_id': channel_id,
+                    'created_at': created_at,
+                    'future': future,
+                    'jump_url': jump_url,
+                    'message': message,
+                    'user_id': user_id,
+                }
+        ) as c:
+            lastrowid = c.lastrowid
+        await self.bot.db.commit()
+
+        async with self.bot.db.execute(
+                """
+                SELECT rowid, *
+                  FROM reminders_reminder
+                 WHERE rowid = :lastrowid
+                """,
+                {'lastrowid': lastrowid}
+        ) as c:
+            row = await c.fetchone()
+
+        self._have_reminder.set()
+        return row
