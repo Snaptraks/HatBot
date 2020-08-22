@@ -79,7 +79,10 @@ class FishingConfirm(_MenuUtils, menus.Menu):
 
     async def finalize(self, timed_out):
         if self.keep is None:
-            new_footer = 'You did not answer quickly enough, I kept it for you.'
+            new_footer = (
+                'You did not answer quickly enough, '
+                'I kept it for you.'
+            )
 
         elif self.keep:
             new_footer = 'You kept it in your inventory.'
