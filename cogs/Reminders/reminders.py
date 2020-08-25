@@ -111,6 +111,16 @@ class Reminders(BasicCog):
         """Print a list of active reminders."""
 
         reminders = await self._get_reminders(ctx.author)
+
+        if len(reminders) == 0:
+            embed = discord.Embed(
+                color=discord.Color.blurple(),
+                title=f'Reminders for {ctx.author.display_name}',
+                description='No active reminders',
+            )
+            await ctx.send(embed=embed)
+            return
+
         menu = menus.ReminderMenu(
             source=menus.ReminderSource(reminders),
             clear_reactions_after=True,
