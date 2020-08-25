@@ -16,6 +16,8 @@ def make_reminder_embed(reminder, member):
     now = datetime.utcnow()
     since = now - reminder['created_at']
     until = reminder['future'] - now
+    # fix rounding issues
+    until += timedelta(milliseconds=200)
 
     if until > timedelta(seconds=1):
         remaining = pretty_print_timedelta(until)
