@@ -172,3 +172,15 @@ class Fun(BasicCog):
         img = discord.File('cogs/Fun/8ball/magic_8ball_avatar.png')
 
         return img
+
+    @commands.command(hidden=True)
+    @commands.cooldown(1, 3600, commands.BucketType.guild)
+    async def play(self, ctx):
+        await ctx.send(
+            f"This ain't fucking Twitch, {ctx.author.display_name}."
+        )
+
+    @play.error
+    async def play_error(self, ctx, error):
+        if isinstance(error, commands.CommandOnCooldown):
+            await ctx.send('I do not know of a command like that...')
