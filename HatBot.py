@@ -99,16 +99,10 @@ if __name__ == '__main__':
         '%(asctime)s:%(levelname)s:%(name)s: %(message)s'))
     logger.addHandler(handler)
 
-    if 'win32' in sys.platform:
-        asyncio.set_event_loop(asyncio.ProactorEventLoop())
-
-    loop = asyncio.get_event_loop()
-
     bot = MyBot(
         description='HatBot by Snaptraks#2606',
         command_prefix='!',
         help_command=commands.DefaultHelpCommand(dm_help=True),
-        loop=loop,
         db_name='db/HatBot.db',
     )
 
