@@ -103,6 +103,7 @@ if __name__ == '__main__':
         description='HatBot by Snaptraks#2606',
         command_prefix='!',
         help_command=commands.DefaultHelpCommand(dm_help=True),
+        fetch_offline_members=True,
         db_name='db/HatBot.db',
     )
 
