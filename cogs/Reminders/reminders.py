@@ -103,6 +103,7 @@ class Reminders(BasicCog):
             raise error
 
     @remind.command(name='active', aliases=['a'])
+    @commands.is_owner()
     async def remind_active(self, ctx):
         await ctx.send(dict(self._next_reminder))
 
