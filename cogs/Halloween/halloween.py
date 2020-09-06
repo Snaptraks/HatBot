@@ -1,13 +1,31 @@
 import asyncio
 from datetime import datetime, timedelta
 import json
-import pickle
 
 import numpy as np
 import discord
-from discord.ext import commands
+from discord.ext import commands, tasks
 
 from ..utils.cogs import FunCog
+
+
+CANDY = [
+    '\U0001F36B',  # :chocolate_bar:
+    '\U0001F36C',  # :candy:
+    '\U0001F36D',  # :lollipop:
+]
+
+BUG = [
+]
+
+
+def get_random_candy():
+    """Return the ID and unicode for a random candy."""
+
+    candy_id = np.random.randint(len(CANDY))
+    candy = CANDY[candy_id]
+
+    return candy_id, candy
 
 
 def get_next_halloween():
@@ -24,30 +42,21 @@ def get_next_halloween():
     return halloween
 
 
-class Bag:
-    """Class to represent the bad of a trick-or-treater."""
+def format_candy_bag(row):
+    """Nicely format the candy bag into a mostly square grid."""
 
-    def __init__(self):
-        self.content = {}
+    candy_list = []
+    for key in row.keys():
+        if key.startswith('candy_'):
+            candy_id = int(key[key.rindex('_') + 1:])
+            candy_list += [CANDY[candy_id]] * row[key]
 
-    def __str__(self):
-        candy_list = []
-        for candy in self.content:
-            candy_list += [candy] * self.content[candy]
+    np.random.shuffle(candy_list)
+    n_candy = len(candy_list)
+    side = int(np.sqrt(n_candy))
+    candy_array = np.array_split(candy_list, side)
 
-        np.random.shuffle(candy_list)
-        n_candy = len(candy_list)
-        side = int(np.sqrt(n_candy))
-        candy_array = np.array_split(candy_list, side)
-
-        return '\n'.join(' '.join(row) for row in candy_array)
-
-    def add(self, candy):
-        try:
-            self.content[candy] += 1
-
-        except KeyError:
-            self.content[candy] = 1
+    return '\n'.join(' '.join(row) for row in candy_array)
 
 
 class Halloween(FunCog):
@@ -59,93 +68,44 @@ class Halloween(FunCog):
         super().__init__(bot)
         self.halloween_day = get_next_halloween()
 
-        self.candies = [
-            '\U0001F36B',  # :chocolate_bar:
-            '\U0001F36C',  # :candy:
-            '\U0001F36D',  # :lollipop:
-        ]
-
         with open('cogs/Halloween/halloween_names.json', 'r') as f:
             names = json.load(f)
         first_names = names['first_names']
         names['first_names'] = first_names[0] + first_names[1]
         self.names = names
 
-        try:
-            with open('cogs/Halloween/halloween_data.pkl', 'rb') as f:
-                self.data = pickle.load(f)
+        self.got_channel = asyncio.Event()
 
-        except FileNotFoundError:
-            self.data = {}
-
-        self.bot.loop.create_task(self.load_data())
-        self.bg_tasks = [
-            self.bot.loop.create_task(self.start_halloween_event()),
-            self.bot.loop.create_task(self.halloweenify()),
-        ]
+        self._create_tables.start()
+        self.halloween_event.start()
+        self.halloweenify.start()
 
     def cog_check(self, ctx):
-        valid = super().cog_check(ctx) \
-            and (datetime.utcnow().date() == self.halloween_day.date())
+        is_halloween = datetime.utcnow().date() in (
+            self.halloween_day.date(),
+            (self.halloween_day + timedelta(days=1)).date(),  # due to TZ
+        )
 
-        return valid
+        return super().cog_check(ctx) and is_halloween
 
     def cog_unload(self):
         super().cog_unload()
-        for task in self.bg_tasks:
-            task.cancel()
+        self.halloween_event.cancel()
+        self.halloweenify.cancel()
 
     async def cog_command_error(self, ctx, error):
         if isinstance(error, commands.CommandOnCooldown):
             await ctx.message.add_reaction('\U0000231B')  # :hourglass:
 
         else:
-            raise
+            raise error
 
-    async def load_data(self):
-        await self.bot.wait_until_ready()
-        guild = discord.utils.get(
-            self.bot.guilds,
-            name='Hatventures Community',
-        )
-        channel = discord.utils.get(
-            guild.channels,
-            name='hatbot-land',
-        )
-
-        self.guild = guild
-        self.channel = channel
-
-    async def halloweenify(self):
-        """Change the Bot's profile picture and guild nickname a week before
-        Halloween to something sp00py. Reset everything the day after
-        Halloween.
-        """
-        await self.bot.wait_until_ready()
-        week_before = self.halloween_day - timedelta(weeks=1)
-        day_after = self.halloween_day + timedelta(days=1)
-        bot_member = self.guild.get_member(self.bot.user.id)
-
-        # change pfp and nickname
-        delay = week_before - datetime.utcnow()
-        avatar = discord.File('HVClogoHalloween3.png')
-        await asyncio.sleep(delay.total_seconds())
-        await self.bot.user.edit(avatar=avatar.fp.read())
-        await bot_member.edit(nick='BatBot')
-
-        # reset pfp and nickname to normal
-        delay = day_after - datetime.utcnow()
-        avatar = discord.File('HVClogo.png')
-        await asyncio.sleep(delay.total_seconds())
-        await self.bot.user.edit(avatar=avatar.fp.read())
-        await bot_member.edit(nick=None)
-
-    async def start_halloween_event(self):
+    @tasks.loop(count=1)
+    async def halloween_event(self):
         """Announce the beginning of the Halloween event, with some help
         about the new commands.
         """
-        await self.bot.wait_until_ready()
-        delay = self.halloween_day - datetime.utcnow()
+        await self.got_channel.wait()
         out_str = (
             'Happy Halloween @everyone! Today we have a special event where '
             'you can collect candy from `!trickortreat`ing or simply '
@@ -159,28 +119,66 @@ class Halloween(FunCog):
             'Once you have collected many candies, you can check your `!bag` '
             'to see now many you collected! Happy trick-or-treating!'
         )
-        await asyncio.sleep(delay.total_seconds())
+        await discord.utils.sleep_until(self.halloween_day)
         self.announcement_message = await self.channel.send(out_str)
+
+    @halloween_event.before_loop
+    async def halloween_event_before(self):
+        """Get the channel where the even takes place before starting it."""
+
+        await self.bot.wait_until_ready()
+        # Hatventures Community #hatbot-pond
+        self.channel = self.bot.get_channel(548606793656303625)
+
+        self.got_channel.set()
+
+    @tasks.loop(count=1)
+    async def halloweenify(self):
+        """Change the Bot's profile picture and guild nickname a week before
+        Halloween to something sp00py. Reset everything the day after
+        Halloween.
+        """
+        await self.got_channel.wait()
+        week_before = self.halloween_day - timedelta(weeks=1)
+        day_after = self.halloween_day + timedelta(days=2)  # due to TZ
+        bot_member = self.channel.guild.me
+
+        # change nickname
+        await discord.utils.sleep_until(week_before)
+        await bot_member.edit(nick='BatBot')
+        # remind owner to change avatar
+        await self.bot.owner.send(
+            'Please change my picture to the Halloween one!'
+        )
+
+        # reset nickname to normal
+        await discord.utils.sleep_until(day_after)
+        await bot_member.edit(nick=None)
+        # remind owner to change avatar
+        await self.bot.owner.send(
+            'Please change my picture to the Normal one!'
+        )
 
     @commands.Cog.listener()
     async def on_message(self, message):
         """React with a random candy to some messages. The author can then
-        collect the candy and add it to their Bag.
+        collect the candy and add it to their bag.
         """
         r = np.random.randint(20)
         # technically we should pass a `Context` object, so let's hope it's ok
-        if self.cog_check(message) \
-                and not message.content.startswith(self.bot.command_prefix) \
-                and not message.author.bot:
+        if (self.cog_check(message)
+                and not message.content.startswith(self.bot.command_prefix)
+                and not message.author.bot):
 
             if r == 0:
-                # for some reason numpy.str_ objects aren't picklable
-                candy = str(np.random.choice(self.candies))
+                candy_id, candy = get_random_candy()
 
                 def check(reaction, member):
-                    valid = member == message.author \
-                        and reaction.message.id == message.id \
+                    valid = (
+                        member == message.author
+                        and reaction.message.id == message.id
                         and reaction.emoji == candy
+                    )
 
                     return valid
 
@@ -188,7 +186,7 @@ class Halloween(FunCog):
                 reaction, member = await self.bot.wait_for(
                     'reaction_add', check=check)
 
-                self.add_to_bag(message.author, candy)
+                await self._give_candy(message.author, candy_id)
 
                 async for member in reaction.users():
                     await reaction.remove(member)
@@ -197,15 +195,13 @@ class Halloween(FunCog):
     async def bag(self, ctx):
         """Show the content of your Halloween bag."""
 
-        try:
-            bag = self.data[ctx.author.id]
-
-        except KeyError:
-            bag = None
+        row = await self._get_candy(ctx.author)
+        if row:
+            bag = format_candy_bag(row)
+        else:
+            bag = '\U0001f578'  # :spider_web:
 
         embed = discord.Embed(
-            title=None,
-            type='rich',
             color=0xEB6123,
         ).set_author(
             name=ctx.author.display_name,
@@ -217,7 +213,6 @@ class Halloween(FunCog):
             text='Happy Halloween!'
         )
 
-        # print(bag)
         await ctx.send(embed=embed)
 
     @commands.cooldown(1, 15 * 60, commands.BucketType.member)
@@ -229,36 +224,35 @@ class Halloween(FunCog):
         await asyncio.sleep(2)
 
         r = np.random.randint(10)
+        prefix = (
+            "Aw, aren't you a cute one with your costume! "
+            "I will see what I have for you...\n"
+        )
         if r == 0:
             # TRICK
             old_nickname = ctx.author.display_name
             new_nickname = await self.change_nickname(ctx.author)
-            out_str = (
-                "Aw, aren't you a cute one with your costume! "
-                "I will see what I have for you...\n"
+            suffix = (
                 "IT'S A TRICK! Hahaha! Poof your name is now "
                 f'**{new_nickname}**! Happy Halloween! :jack_o_lantern:'
             )
 
-            await ctx.send(out_str)
+            await ctx.send(f'{prefix}{suffix}')
             await self.wait_and_revert(ctx.author, old_nickname)
 
         else:
             # TREAT
-            candy = str(np.random.choice(self.candies))
-            out_str = (
-                "Aw, aren't you a cute one with your costume! "
-                "I will see what I have for you...\n"
-                f'I have some candy! Happy Halloween! {candy}'
-            )
+            candy_id, candy = get_random_candy()
+            suffix = f'I have some candy! Happy Halloween! {candy}'
 
-            await ctx.send(out_str)
-            self.add_to_bag(ctx.author, candy)
+            await ctx.send(f'{prefix}{suffix}')
+            await self._give_candy(ctx.author, candy_id)
 
     @commands.cooldown(1, 15 * 60, commands.BucketType.member)
     @commands.command()
     async def trick(self, ctx):
         """Change the author's nickname to a random one."""
+
         await ctx.trigger_typing()
         await asyncio.sleep(2)
 
@@ -302,16 +296,59 @@ class Halloween(FunCog):
             # we don't have permissions, just ignore it
             pass
 
-    def add_to_bag(self, member, candy):
-        try:
-            self.data[member.id].add(candy)
+    @tasks.loop(count=1)
+    async def _create_tables(self):
+        """Create the necessary DB tables if they do not exist."""
 
-        except KeyError:
-            self.data[member.id] = Bag()
-            self.data[member.id].add(candy)
+        await self.bot.db.execute(
+            """
+            CREATE TABLE IF NOT EXISTS halloween_candy(
+                user_id    INTEGER PRIMARY KEY,
+                candy_0    INTEGER DEFAULT 0,
+                candy_1    INTEGER DEFAULT 0,
+                candy_2    INTEGER DEFAULT 0,
+                free_candy INTEGER DEFAULT 0
+            )
+            """
+        )
 
-        self._save_data()
 
-    def _save_data(self):
-        with open('cogs/Halloween/halloween_data.pkl', 'wb') as f:
-            pickle.dump(self.data, f)
+        await self.bot.db.commit()
+
+    async def _get_candy(self, member):
+        """Get a member's amount of candy."""
+
+        async with self.bot.db.execute(
+                """
+                SELECT *
+                  FROM halloween_candy
+                 WHERE user_id = :user_id
+                """,
+                {'user_id': member.id}
+        ) as c:
+            row = await c.fetchone()
+
+        return row
+
+    async def _give_candy(self, member, candy_id):
+        """Increment the number of candy the member has."""
+
+        await self.bot.db.execute(
+            """
+            INSERT OR IGNORE INTO halloween_candy(user_id)
+            VALUES (:user_id)
+            """,
+            {'user_id': member.id}
+        )
+
+        await self.bot.db.execute(
+            f"""
+            UPDATE halloween_candy
+               SET candy_{candy_id} = candy_{candy_id} + 1
+             WHERE user_id = :user_id
+            """
+            ,
+            {'user_id': member.id}
+        )
+
+        await self.bot.db.commit()
