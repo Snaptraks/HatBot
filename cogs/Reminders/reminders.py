@@ -105,6 +105,18 @@ class Reminders(BasicCog):
     @remind.command(name='active', aliases=['a'])
     @commands.is_owner()
     async def remind_active(self, ctx):
+        if self._reminders_task.done():
+            await ctx.send(
+                'Task is done with exception: '
+                f'{self._reminders_task.exception()}'
+            )
+            self._reminders_task.print_traceback()
+        else:
+            await ctx.send(self._reminders_task)
+
+    @remind.command(name='next', aliases=['n'])
+    @commands.is_owner()
+    async def remind_next(self, ctx):
         await ctx.send(dict(self._next_reminder))
 
     @remind.command(name='list')
