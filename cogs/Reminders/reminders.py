@@ -186,6 +186,7 @@ class Reminders(BasicCog):
 
     def _restart_reminders(self):
         """Helper function to restart the reminders task."""
+
         self._reminders_task.cancel()
         self._reminders_task = asyncio.create_task(self.start_reminders())
 
