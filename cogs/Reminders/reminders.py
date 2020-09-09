@@ -64,7 +64,7 @@ class Reminders(BasicCog):
         super().cog_unload()
         self._reminders_task.cancel()
 
-    @commands.group(aliases=['remindme', 'reminder', 'r'],
+    @commands.group(aliases=['remindme', 'reminder', 'reminders', 'r'],
                     invoke_without_command=True)
     async def remind(self, ctx, future: Duration, *, to_remind: str):
         """Send a reminder in the future about something.
