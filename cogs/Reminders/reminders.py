@@ -177,7 +177,7 @@ class Reminders(BasicCog):
         from the DB.
         """
         await discord.utils.sleep_until(reminder['future'])
-        channel = self.bot.get_channel(reminder['channel_id'])
+        channel = await self.bot.fetch_channel(reminder['channel_id'])
         user = self.bot.get_user(reminder['user_id'])
         await channel.send(
             f'Hey {user.mention}! Here is your reminder:',
