@@ -110,7 +110,7 @@ class Reminders(BasicCog):
                 'Task is done with exception: '
                 f'{self._reminders_task.exception()}'
             )
-            self._reminders_task.print_traceback()
+            self._reminders_task.print_stack()
         else:
             await ctx.send(self._reminders_task)
 
