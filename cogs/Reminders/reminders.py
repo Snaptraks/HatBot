@@ -169,8 +169,6 @@ class Reminders(BasicCog):
             else:
                 self._have_reminder.clear()
                 await self._have_reminder.wait()
-                # reminder = await self._get_next_reminder()
-                # await self.send_reminder(reminder)
 
     async def send_reminder(self, reminder):
         """Send the reminder to the channel after deleting it
