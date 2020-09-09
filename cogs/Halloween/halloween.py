@@ -75,8 +75,10 @@ class Halloween(FunCog):
         self.names = names
 
         self.got_channel = asyncio.Event()
+        self.announcement_ids = None
 
         self._create_tables.start()
+        self.get_channel.start()
         self.halloween_event.start()
         self.halloweenify.start()
 
@@ -101,29 +103,7 @@ class Halloween(FunCog):
             raise error
 
     @tasks.loop(count=1)
-    async def halloween_event(self):
-        """Announce the beginning of the Halloween event, with some help
-        about the new commands.
-        """
-        await self.got_channel.wait()
-        out_str = (
-            'Happy Halloween @everyone! Today we have a special event where '
-            'you can collect candy from `!trickortreat`ing or simply '
-            'having discussions here on the Discord server. '
-            'So if you see a candy popping up after one of your messages, '
-            'be sure to pick it up!\n\n'
-            'Be warned though, I am a playful being and might trick you '
-            'while you are trick-or-treating! '
-            'If you are the adventurous type, you can ask for a `!trick` '
-            'directly and I will cast my magic upon you!\n\n'
-            'Once you have collected many candies, you can check your `!bag` '
-            'to see now many you collected! Happy trick-or-treating!'
-        )
-        await discord.utils.sleep_until(self.halloween_day)
-        self.announcement_message = await self.channel.send(out_str)
-
-    @halloween_event.before_loop
-    async def halloween_event_before(self):
+    async def get_channel(self):
         """Get the channel where the even takes place before starting it."""
 
         await self.bot.wait_until_ready()
@@ -131,6 +111,49 @@ class Halloween(FunCog):
         self.channel = self.bot.get_channel(548606793656303625)
 
         self.got_channel.set()
+
+    @tasks.loop(count=1)
+    async def halloween_event(self):
+        """Announce the beginning of the Halloween event, with some help
+        about the new commands.
+        """
+        await self.got_channel.wait()
+
+        row = await self._maybe_get_announcement_ids(self.channel)
+        if row:
+            self.announcement_ids = (row['channel_id'], row['message_id'])
+
+        else:
+
+            out_str = (
+                'Happy Halloween @everyone! Today we have a special event '
+                'where you can collect candy from `!trickortreat`ing or '
+                'simply having discussions here on the Discord server. '
+                'So if you see a candy popping up after one of your messages, '
+                'be sure to pick it up!\n\n'
+                'Be warned though, I am a playful being and might trick you '
+                'while you are trick-or-treating! '
+                'If you are the adventurous type, you can ask for a `!trick` '
+                'directly and I will cast my magic upon you!\n\n'
+                'Once you have collected many candies, you can check your '
+                '`!bag` to see now many you collected! '
+                'Here are some free ones to get you started. '
+                'Happy trick-or-treating!'
+            )
+            await discord.utils.sleep_until(self.halloween_day)
+            announcement_message = await self.channel.send(out_str)
+            self.announcement_ids = (
+                announcement_message.channel.id,
+                announcement_message.id,
+            )
+            # save IDs in DB / memory
+            await self._save_announcement_ids(announcement_message)
+
+            # add candy reactions
+            for candy in CANDY:
+                await announcement_message.add_reaction(candy)
+
+            await announcement_message.pin()
 
     @tasks.loop(count=1)
     async def halloweenify(self):
@@ -188,15 +211,37 @@ class Halloween(FunCog):
 
                 await self._give_candy(message.author, candy_id)
 
-                async for member in reaction.users():
-                    await reaction.remove(member)
+                await message.clear_reactions()
+
+    @commands.Cog.listener()
+    async def on_raw_reaction_add(self, payload):
+        """Listener for the free candy on the Halloween Event
+        announcement message.
+        """
+        if self.announcement_ids is None:
+            return  # avoid errors on load time
+
+        is_channel = payload.channel_id == self.announcement_ids[0]
+        is_message = payload.message_id == self.announcement_ids[1]
+        is_not_bot = not payload.member.bot
+        is_candy = payload.emoji.name in CANDY
+
+        if is_channel and is_message and is_not_bot and is_candy:
+            row = await self._get_candy(payload.member)
+            candy_id = CANDY.index(payload.emoji.name)
+            free_candy = f'free_candy_{candy_id}'
+
+            if row[free_candy] == 0:
+                await self._give_candy(payload.member, candy_id)
+                await self._toggle_free_candy(payload.member, candy_id)
 
     @commands.command()
     async def bag(self, ctx):
         """Show the content of your Halloween bag."""
 
         row = await self._get_candy(ctx.author)
-        if row:
+        n_candy = row['candy_0'] + row['candy_1'] + row['candy_2']
+        if n_candy > 0:
             bag = format_candy_bag(row)
         else:
             bag = '\U0001f578'  # :spider_web:
@@ -303,20 +348,46 @@ class Halloween(FunCog):
         await self.bot.db.execute(
             """
             CREATE TABLE IF NOT EXISTS halloween_candy(
-                user_id    INTEGER PRIMARY KEY,
-                candy_0    INTEGER DEFAULT 0,
-                candy_1    INTEGER DEFAULT 0,
-                candy_2    INTEGER DEFAULT 0,
-                free_candy INTEGER DEFAULT 0
+                user_id      INTEGER PRIMARY KEY,
+                candy_0      INTEGER DEFAULT 0,
+                candy_1      INTEGER DEFAULT 0,
+                candy_2      INTEGER DEFAULT 0,
+                free_candy_0 INTEGER DEFAULT 0,
+                free_candy_1 INTEGER DEFAULT 0,
+                free_candy_2 INTEGER DEFAULT 0
             )
             """
         )
 
+        await self.bot.db.execute(
+            """
+            CREATE TABLE IF NOT EXISTS halloween_message(
+                channel_id INTEGER NOT NULL,
+                message_id INTEGER NOT NULL
+            )
+            """
+        )
 
         await self.bot.db.commit()
 
+    async def _create_or_ignore(self, member):
+        """Create an empty DB entry for the member, or ignore if it
+        already exists.
+        """
+
+        await self.bot.db.execute(
+            """
+            INSERT OR IGNORE INTO halloween_candy(user_id)
+            VALUES (:user_id)
+            """,
+            {'user_id': member.id}
+        )
+        # purposefully do not commit yet
+
     async def _get_candy(self, member):
         """Get a member's amount of candy."""
+
+        await self._create_or_ignore(member)
 
         async with self.bot.db.execute(
                 """
@@ -333,22 +404,62 @@ class Halloween(FunCog):
     async def _give_candy(self, member, candy_id):
         """Increment the number of candy the member has."""
 
-        await self.bot.db.execute(
-            """
-            INSERT OR IGNORE INTO halloween_candy(user_id)
-            VALUES (:user_id)
-            """,
-            {'user_id': member.id}
-        )
+        await self._create_or_ignore(member)
 
         await self.bot.db.execute(
             f"""
             UPDATE halloween_candy
                SET candy_{candy_id} = candy_{candy_id} + 1
              WHERE user_id = :user_id
-            """
-            ,
+            """,
             {'user_id': member.id}
+        )
+
+        await self.bot.db.commit()
+
+    async def _toggle_free_candy(self, member, candy_id):
+        """Toggle the free_candy switch to same when a user gets its
+        free candy of the type candy_id.
+        """
+        await self.bot.db.execute(
+            f"""
+            UPDATE halloween_candy
+               SET free_candy_{candy_id} = 1
+             WHERE user_id = :user_id
+            """,
+            {'user_id': member.id}
+        )
+
+        await self.bot.db.commit()
+
+    async def _maybe_get_announcement_ids(self, channel):
+        """Get the message and channel ids for the Halloween Event
+        announcement message, if they were posted already.
+        """
+
+        async with self.bot.db.execute(
+                """
+                SELECT *
+                  FROM halloween_message
+                 WHERE channel_id = :channel_id
+                """,
+                {'channel_id': channel.id}
+        ) as c:
+            row = await c.fetchone()
+
+        return row
+
+    async def _save_announcement_ids(self, message):
+        """Save the message and channel ids for the Halloween Event
+        announcement message.
+        """
+
+        await self.bot.db.execute(
+            """
+            INSERT INTO halloween_message
+            VALUES (:channel_id, :message_id)
+            """,
+            {'channel_id': message.channel.id, 'message_id': message.id}
         )
 
         await self.bot.db.commit()
