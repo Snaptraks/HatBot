@@ -83,10 +83,10 @@ class Halloween(FunCog):
         self.halloweenify.start()
 
     def cog_check(self, ctx):
-        is_halloween = datetime.utcnow().date() in (
-            self.halloween_day.date(),
-            (self.halloween_day + timedelta(days=1)).date(),  # due to TZ
-        )
+        halloween_before = self.halloween_day - timedelta(hours=12)
+        halloween_after = self.halloween_day + timedelta(hours=36)
+        # due to TZ
+        is_halloween = halloween_before < datetime.utcnow() < halloween_after
 
         return super().cog_check(ctx) and is_halloween
 
