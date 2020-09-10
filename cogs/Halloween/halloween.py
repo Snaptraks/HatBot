@@ -223,7 +223,12 @@ class Halloween(FunCog):
 
         is_channel = payload.channel_id == self.announcement_ids[0]
         is_message = payload.message_id == self.announcement_ids[1]
-        is_not_bot = not payload.member.bot
+        if payload.guild_id:
+            is_not_bot = not payload.member.bot  # will error if not in a guild
+        else:
+            # True or False shouldn't matter since is_channel will be False
+            # if the reaction is added in a DM anyway.
+            is_not_bot = False
         is_candy = payload.emoji.name in CANDY
 
         if is_channel and is_message and is_not_bot and is_candy:
