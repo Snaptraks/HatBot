@@ -16,6 +16,8 @@ CANDY = [
 ]
 
 BUG = [
+    '\U0001F41C',  # :ant:
+    '\U0001F577',  # :spider:
 ]
 
 
@@ -50,6 +52,11 @@ def format_candy_bag(row):
         if key.startswith('candy_'):
             candy_id = int(key[key.rindex('_') + 1:])
             candy_list += [CANDY[candy_id]] * row[key]
+
+    r = np.random.randint(15)
+    if r == 0:
+        bug = np.random.choice(BUG)
+        candy_list.append(bug)
 
     np.random.shuffle(candy_list)
     n_candy = len(candy_list)
