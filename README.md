@@ -37,26 +37,26 @@ With all this in mind, to run the bot locally and help with the development, you
 You can also run the bot inside a docker container, if you prefer. I have included the necessary files to create your image and start the container, all you need is run the commands inside the project's folder:
 
 * (Optional, if you want to move the image to another machine)
-```bash
+```
 docker build \
-   --file .docker/hatbot/Dockerfile \
-   --tag hatbot \
+   --file .docker/Dockerfile \
+   --tag discordbot \
    .
 ```
 * (Optional, save the image to disk)
-```bash
-docker save --output image.tar hatbot
+```
+docker save --output discordbot.tar discordbot
 ```
 * (Optional) Move the image to your prefered machine, as well as the ``.docker/``  subfolder.
 * (Optional, on the other machine to load the image there)
-```bash
-docker load --input image.tar
+```
+docker load --input discordbot.tar
 ```
 * [Build the image if not already built and] Start the bot, creating the necessary volumes for the database.
-```bash
+```
 docker-compose \
    --project-name hatbot \
-   --file .docker/hatbot/docker-compose.yml \
+   --file .docker/docker-compose.yml \
    --env-file .docker/hatbot/.env \
    up \
    --detatch
