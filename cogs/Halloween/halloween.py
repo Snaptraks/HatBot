@@ -69,6 +69,31 @@ def format_candy_bag(row):
     return '\n'.join(' '.join(row) for row in candy_array)
 
 
+async def curse_check(ctx):
+    """Check for the curse command. This verifies that the user invoking
+    the command has enough candy to send a curse to someone.
+    """
+    row = await ctx.cog._get_candy(ctx.author)
+    allowed = (
+        row['candy_0'] >= 2
+        and row['candy_1'] >= 2
+        and row['candy_2'] >= 2
+    )
+
+    if not allowed:
+        raise NotEnoughCandyError(
+            "You do not have enough different candy for that.")
+
+    else:
+        return True
+
+
+class NotEnoughCandyError(commands.CheckFailure):
+    """Exception raised when a member has not enough candy to curse."""
+
+    pass
+
+
 class Halloween(FunCog):
     """Cog for Halloween day!
     Enables trick-or-treating, with candy and a special trick!
@@ -110,6 +135,9 @@ class Halloween(FunCog):
             await ctx.message.add_reaction('\U0000231B')  # :hourglass:
 
         elif isinstance(error, commands.MissingRequiredArgument):
+            await ctx.send(error)
+
+        elif isinstance(error, NotEnoughCandyError):
             await ctx.send(error)
 
         else:
@@ -279,8 +307,9 @@ class Halloween(FunCog):
         await ctx.send(embed=embed)
 
     @commands.command()
+    @commands.check(curse_check)
     async def curse(self, ctx, target: discord.Member):
-        """Send a curse to someone.
+        """Send a curse to someone, at a cost.
         Be careful as it might backfire onto you!
         """
         # BUG: this command will create issues if someone is cursed
@@ -303,15 +332,19 @@ class Halloween(FunCog):
             old_nickname = target.display_name
             new_nickname = await self.change_nickname(target)
 
+            cost = {c: np.random.randint(1, 3) for c in CANDY}  # [1, 2]
+            total_cost = sum(cost.values())
+            await self._remove_candy_batch(ctx.author, cost)
+
             if not target.mentioned_in(ctx.message):
                 target_mention = target.mention
             else:
                 target_mention = old_nickname
 
             content = (
-                f"Oh no {target_mention}, you were cursed by "
-                f"{ctx.author.display_name}! Your name is now "
-                f"**{new_nickname}**! Happy Halloween :jack_o_lantern:"
+                f"Oh no {target_mention}, {ctx.author.display_name} "
+                f"sacrificed {total_cost} candy to curse you! Your name is "
+                f"now **{new_nickname}**! Happy Halloween :jack_o_lantern:"
             )
 
         await ctx.send(content)
