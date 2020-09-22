@@ -20,6 +20,8 @@ BUG = [
     '\U0001F577',  # :spider:
 ]
 
+TRICK_DELAY = 15 * 60  # 15 minutes
+
 
 def get_random_candy():
     """Return the ID and unicode for a random candy."""
@@ -105,6 +107,9 @@ class Halloween(FunCog):
     async def cog_command_error(self, ctx, error):
         if isinstance(error, commands.CommandOnCooldown):
             await ctx.message.add_reaction('\U0000231B')  # :hourglass:
+
+        elif isinstance(error, commands.MissingRequiredArgument):
+            await ctx.send(error)
 
         else:
             raise error
@@ -272,7 +277,59 @@ class Halloween(FunCog):
 
         await ctx.send(embed=embed)
 
-    @commands.cooldown(1, 15 * 60, commands.BucketType.member)
+    @commands.command()
+    async def curse(self, ctx, target: discord.Member):
+        """Send a curse to someone.
+        Be careful as it might backfire onto you!
+        """
+        # BUG: this command will create issues if someone is cursed
+        # many times in a row, since the old_nickname of the subsequent
+        # command calls will be the nickname of the previous call.
+        # One way to fix this would be to store the display_name of each
+        # member at the beginning of the event.
+        # I just can't be bothered to do this for a one-day thing.
+        backfire = np.random.randint(5) == 0
+
+        if backfire:
+            target = ctx.author
+            old_nickname = target.display_name
+            new_nickname = await self.change_nickname(target)
+            content = (
+                f"The curse failed! Now *you* are named **{new_nickname}**! "
+                "Happy Halloween! :jack_o_lantern:"
+            )
+        else:
+            old_nickname = target.display_name
+            new_nickname = await self.change_nickname(target)
+
+            if not target.mentioned_in(ctx.message):
+                target_mention = target.mention
+            else:
+                target_mention = old_nickname
+
+            content = (
+                f"Oh no {target_mention}, you were cursed by "
+                f"{ctx.author.display_name}! Your name is now "
+                f"**{new_nickname}**! Happy Halloween :jack_o_lantern:"
+            )
+
+        await ctx.send(content)
+        await self.wait_and_revert(target, old_nickname, delay=10 * 60)
+
+    @commands.command()
+    async def give(self, ctx, target: discord.Member):
+        """Give candy to someone."""
+
+        row = await self._get_candy(ctx.author)
+
+
+    @curse.error
+    @give.error
+    async def curse_target_error(self, ctx, error):
+        # So that the Help cog does not print an error
+        pass
+
+    @commands.cooldown(1, TRICK_DELAY, commands.BucketType.member)
     @commands.command(name='trickortreat', aliases=['tot'])
     async def trick_or_treat(self, ctx):
         """Get a candy, or a trick!"""
@@ -305,8 +362,8 @@ class Halloween(FunCog):
             await ctx.send(f'{prefix}{suffix}')
             await self._give_candy(ctx.author, candy_id)
 
-    @commands.cooldown(1, 15 * 60, commands.BucketType.member)
-    @commands.command()
+    @commands.cooldown(1, TRICK_DELAY, commands.BucketType.member)
+    @commands.command(hidden=True)
     async def trick(self, ctx):
         """Change the author's nickname to a random one."""
 
@@ -338,11 +395,11 @@ class Halloween(FunCog):
 
         return new_nickname
 
-    async def wait_and_revert(self, member, old_nickname):
-        """Wait 15 minutes and revert the member's display_name to
+    async def wait_and_revert(self, member, old_nickname, delay=TRICK_DELAY):
+        """Wait for the delay and revert the member's display_name to
         what it was before the trick.
         """
-        await asyncio.sleep(15 * 60)  # 15 minutes
+        await asyncio.sleep(delay)
         try:
             await member.edit(
                 nick=old_nickname,
