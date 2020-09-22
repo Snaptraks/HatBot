@@ -6,6 +6,7 @@ import numpy as np
 import discord
 from discord.ext import commands, tasks
 
+from . import menus
 from ..utils.cogs import FunCog
 
 
@@ -321,7 +322,14 @@ class Halloween(FunCog):
         """Give candy to someone."""
 
         row = await self._get_candy(ctx.author)
-
+        candies = [(CANDY[i], row[f'candy_{i}']) for i in range(len(CANDY))]
+        menu = menus.GiveCandyMenu(
+            source=menus.GiveCandySource(candies),
+            clear_reactions_after=True,
+        )
+        to_give = await menu.prompt(ctx)
+        await self._give_candy_batch(target, to_give)
+        await self._remove_candy_batch(ctx.author, to_give)
 
     @curse.error
     @give.error
@@ -482,6 +490,44 @@ class Halloween(FunCog):
              WHERE user_id = :user_id
             """,
             {'user_id': member.id}
+        )
+
+        await self.bot.db.commit()
+
+    async def _give_candy_batch(self, member, candies):
+        """Add many candy at once to a member's bag."""
+
+        data = {f'amount_{CANDY.index(c)}': candies[c] for c in candies}
+        data['user_id'] = member.id
+
+        await self.bot.db.execute(
+            """
+            UPDATE halloween_candy
+               SET candy_0 = candy_0 + :amount_0,
+                   candy_1 = candy_1 + :amount_1,
+                   candy_2 = candy_2 + :amount_2
+             WHERE user_id = :user_id
+            """,
+            data
+        )
+
+        await self.bot.db.commit()
+
+    async def _remove_candy_batch(self, member, candies):
+        """Remove many candy at once to a member's bag."""
+
+        data = {f'amount_{CANDY.index(c)}': candies[c] for c in candies}
+        data['user_id'] = member.id
+
+        await self.bot.db.execute(
+            """
+            UPDATE halloween_candy
+               SET candy_0 = candy_0 - :amount_0,
+                   candy_1 = candy_1 - :amount_1,
+                   candy_2 = candy_2 - :amount_2
+             WHERE user_id = :user_id
+            """,
+            data
         )
 
         await self.bot.db.commit()
