@@ -132,7 +132,7 @@ class Halloween(FunCog):
 
         else:
 
-            out_str = (
+            content = (
                 'Happy Halloween @everyone! Today we have a special event '
                 'where you can collect candy from `!trickortreat`ing or '
                 'simply having discussions here on the Discord server. '
@@ -148,7 +148,7 @@ class Halloween(FunCog):
                 'Happy trick-or-treating!'
             )
             await discord.utils.sleep_until(self.halloween_day)
-            announcement_message = await self.channel.send(out_str)
+            announcement_message = await self.channel.send(content)
             self.announcement_ids = (
                 announcement_message.channel.id,
                 announcement_message.id,
@@ -315,13 +315,13 @@ class Halloween(FunCog):
 
         old_nickname = ctx.author.display_name
         new_nickname = await self.change_nickname(ctx.author)
-        out_str = (
+        content = (
             'Oh, you want a trick? Well here you go!\n'
             f'Your name is now **{new_nickname}**! Happy Halloween! '
             ':jack_o_lantern:'
         )
 
-        await ctx.send(out_str)
+        await ctx.send(content)
         await self.wait_and_revert(ctx.author, old_nickname)
 
     async def change_nickname(self, member):
