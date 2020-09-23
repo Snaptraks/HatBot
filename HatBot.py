@@ -126,6 +126,7 @@ if __name__ == '__main__':
         'cogs.Reminders',
         'cogs.Responses',
         'cogs.Roles',
+        'cogs.Halloween',
     ]
 
     for extension in startup_extensions:
