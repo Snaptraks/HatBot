@@ -22,11 +22,11 @@ def make_reminder_embed(reminder, member):
     if until > timedelta(seconds=1):
         remaining = pretty_print_timedelta(until)
     else:
-        remaining = 'Now!'
+        remaining = "Now!"
 
     if since > timedelta(seconds=1):
         created = (
-            f'[{pretty_print_timedelta(since)} ago]'
+            f"[{pretty_print_timedelta(since)} ago]"
             f"({reminder['jump_url']})"
         )
     else:
@@ -36,13 +36,13 @@ def make_reminder_embed(reminder, member):
         color=discord.Color.blurple(),
         description=reminder['message']
     ).set_author(
-        name=f'Reminder for {member.display_name}',
+        name=f"Reminder for {member.display_name}",
         icon_url=member.avatar_url,
     ).add_field(
-        name='Remaining',
+        name="Remaining",
         value=remaining,
     ).add_field(
-        name='Created',
+        name="Created",
         value=created,
     )
 
@@ -64,7 +64,7 @@ class Reminders(BasicCog):
         super().cog_unload()
         self._reminders_task.cancel()
 
-    @commands.group(aliases=['remindme', 'reminder', 'reminders', 'r'],
+    @commands.group(aliases=["remindme", "reminder", "reminders", "r"],
                     invoke_without_command=True)
     async def remind(self, ctx, future: Duration, *, to_remind: str):
         """Send a reminder in the future about something.
@@ -75,7 +75,7 @@ class Reminders(BasicCog):
         reminder = await self._save_reminder(ctx)
 
         await ctx.send(
-            'Ok! Here is your reminder:',
+            "Ok! Here is your reminder:",
             embed=make_reminder_embed(reminder, ctx.author),
         )
 
@@ -92,34 +92,34 @@ class Reminders(BasicCog):
             await ctx.send(error)
 
         elif isinstance(error, commands.MissingRequiredArgument):
-            await ctx.send(f'You are missing argument {error.param.name}')
+            await ctx.send(f"You are missing argument {error.param.name}")
 
         elif isinstance(error, commands.ConversionError):
             await ctx.send(
-                'I am sorry, there was an error. '
-                'Maybe try a shorter amount of time?'
+                "I am sorry, there was an error. "
+                "Maybe try a shorter amount of time?"
             )
         else:
             raise error
 
-    @remind.command(name='active', aliases=['a'])
+    @remind.command(name="active", aliases=["a"])
     @commands.is_owner()
     async def remind_active(self, ctx):
         if self._reminders_task.done():
             await ctx.send(
-                'Task is done with exception: '
-                f'{self._reminders_task.exception()}'
+                "Task is done with exception: "
+                f"{self._reminders_task.exception()}"
             )
             self._reminders_task.print_stack()
         else:
             await ctx.send(self._reminders_task)
 
-    @remind.command(name='next', aliases=['n'])
+    @remind.command(name="next", aliases=["n"])
     @commands.is_owner()
     async def remind_next(self, ctx):
         await ctx.send(dict(self._next_reminder))
 
-    @remind.command(name='list')
+    @remind.command(name="list")
     async def remind_list(self, ctx):
         """Print a list of active reminders."""
 
@@ -128,8 +128,8 @@ class Reminders(BasicCog):
         if len(reminders) == 0:
             embed = discord.Embed(
                 color=discord.Color.blurple(),
-                title=f'Reminders for {ctx.author.display_name}',
-                description='No active reminders',
+                title=f"Reminders for {ctx.author.display_name}",
+                description="No active reminders",
             )
             await ctx.send(embed=embed)
             return
@@ -146,7 +146,7 @@ class Reminders(BasicCog):
             # stop the task and run it again to get the latest reminder
             self._restart_reminders()
 
-    @remind.command(name='me', hidden=True)
+    @remind.command(name="me", hidden=True)
     async def remind_me(self, ctx, future: Duration, *, to_remind: str):
         """Accessibility command to call the `remindme` command as
         `remind me`.
@@ -178,7 +178,7 @@ class Reminders(BasicCog):
         channel = await self.bot.fetch_channel(reminder['channel_id'])
         user = self.bot.get_user(reminder['user_id'])
         await channel.send(
-            f'Hey {user.mention}! Here is your reminder:',
+            f"Hey {user.mention}! Here is your reminder:",
             embed=make_reminder_embed(reminder, user),
         )
 

@@ -94,9 +94,9 @@ class FunCog(BasicCog):
 
     def cog_check(self, ctx):
         if ctx.guild:
-            if ctx.guild.name == 'Hatventures Community':
+            if ctx.guild.name == "Hatventures Community":
                 ch_name = ctx.channel.name
-                return ch_name.startswith('hatbot')
+                return ch_name.startswith("hatbot")
             else:
                 return True
         else:

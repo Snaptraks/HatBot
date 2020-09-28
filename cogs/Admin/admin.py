@@ -38,14 +38,14 @@ class Admin(BasicCog):
         """Return the external IP and SSH port.
         This works only if the bot is running on a Linux based machine.
         """
-        async with self.bot.http_session.get('https://ifconfig.me/ip') as resp:
+        async with self.bot.http_session.get("https://ifconfig.me/ip") as resp:
             if resp.status == 200:
                 ip_address = await resp.text()
 
             else:
-                ip_address = 'Could not get external IP'
+                ip_address = "Could not get external IP"
 
-        await ctx.send(f'`{ip_address}`')
+        await ctx.send(f"`{ip_address}`")
 
     @external_ip.error
     async def ip_error(self, ctx, error):
@@ -55,28 +55,28 @@ class Admin(BasicCog):
         else:
             raise error
 
-    @commands.group(aliases=['cog', 'c'], invoke_without_command=True)
+    @commands.group(aliases=["cog", "c"], invoke_without_command=True)
     async def cogs(self, ctx):
         """List current active cogs."""
 
-        content = f'Active Cogs:\n`{", ".join(self.bot.cogs.keys())}`'
+        content = f"Active Cogs:\n`{', '.join(self.bot.cogs.keys())}`"
         await ctx.send(content)
 
-    @cogs.command(name='load', aliases=['l'])
+    @cogs.command(name="load", aliases=["l"])
     async def cogs_load(self, ctx, module):
         """Load an extension."""
 
         await ctx.message.add_reaction('\U00002934')  # :arrow_heading_up:
         self._cogs_manage(ctx, self.bot.load_extension, module)
 
-    @cogs.command(name='unload', aliases=['u'])
+    @cogs.command(name="unload", aliases=["u"])
     async def cogs_unload(self, ctx, module):
         """Unload an extension."""
 
         await ctx.message.add_reaction('\U00002935')  # :arrow_heading_down:
         self._cogs_manage(ctx, self.bot.unload_extension, module)
 
-    @cogs.group(name='reload', aliases=['r'], invoke_without_command=True)
+    @cogs.group(name="reload", aliases=["r"], invoke_without_command=True)
     async def cogs_reload(self, ctx, module):
         """Reload an extension."""
 
@@ -84,7 +84,7 @@ class Admin(BasicCog):
         await ctx.message.add_reaction('\U0001F504')
         self._cogs_manage(ctx, self.bot.reload_extension, module)
 
-    @cogs_reload.command(name='all')
+    @cogs_reload.command(name="all")
     async def cogs_reload_all(self, ctx):
         """Reload all currently loaded extensions."""
 
@@ -100,8 +100,8 @@ class Admin(BasicCog):
         occur) and less code repetition.
         """
         # Assume all cogs are in folder cogs/ in the bot's root
-        if not module.startswith('cogs.'):
-            module = f'cogs.{module}'
+        if not module.startswith("cogs."):
+            module = f"cogs.{module}"
 
         # try it, and if an exception is raised, .error is called
         method(module)
@@ -111,9 +111,9 @@ class Admin(BasicCog):
         """Pull modifications from the git repo before reloading the cogs."""
 
         async with ctx.typing():
-            stdout, stderr = await self.cog_dev.run_process('git pull')
+            stdout, stderr = await self.cog_dev.run_process("git pull")
 
-        if stdout.startswith('Already up to date.'):
+        if stdout.startswith("Already up to date."):
             return await ctx.send(stdout)
 
         else:
@@ -132,30 +132,30 @@ class Admin(BasicCog):
     async def cogs_after_invoke(self, ctx):
         module = ctx.args[2]
         if not ctx.command_failed:
-            print(f'Successfully {ctx.command.name}ed extension {module}.')
-            await ctx.message.add_reaction('\N{WHITE HEAVY CHECK MARK}')
+            print(f"Successfully {ctx.command.name}ed extension {module}.")
+            await ctx.message.add_reaction("\N{WHITE HEAVY CHECK MARK}")
 
     @cogs_reload_all.after_invoke
     async def cogs_reload_all_after_invoke(self, ctx):
         if not ctx.command_failed:
-            print('Successfully reloaded all extensions.')
-            await ctx.message.add_reaction('\N{WHITE HEAVY CHECK MARK}')
+            print("Successfully reloaded all extensions.")
+            await ctx.message.add_reaction("\N{WHITE HEAVY CHECK MARK}")
 
     @cogs_load.error
     @cogs_unload.error
     @cogs_reload.error
     async def cogs_error(self, ctx, error):
         module = ctx.args[2]
-        exc = f'{type(error).__name__}: {error}'
-        print(f'Failed to {ctx.command.name} extension {module}.\n{exc}')
-        await ctx.message.add_reaction('\N{CROSS MARK}')
+        exc = f"{type(error).__name__}: {error}"
+        print(f"Failed to {ctx.command.name} extension {module}.\n{exc}")
+        await ctx.message.add_reaction("\N{CROSS MARK}")
         raise error
 
     @cogs_reload_all.error
     async def cogs_reload_all_error(self, ctx, error):
-        exc = f'{type(error).__name__}: {error}'
-        print('Failed to reload some extension.')
-        await ctx.message.add_reaction('\N{CROSS MARK}')
+        exc = f"{type(error).__name__}: {error}"
+        print("Failed to reload some extension.")
+        await ctx.message.add_reaction("\N{CROSS MARK}")
         await ctx.send(exc)  # because there is lots of info
         raise error
 
@@ -165,8 +165,10 @@ class Admin(BasicCog):
 
         # message = 'I have been online for {}! (Since {:%Y-%m-%d %H:%M:%S})'
         uptime_ = datetime.utcnow() - self.bot.boot_time
-        content = (f'I have been online for {uptime_.days} days! '
-                   f'(Since {self.bot.boot_time:%c})')
+        content = (
+            f"I have been online for {uptime_.days} days! "
+            f"(Since {self.bot.boot_time:%c})"
+        )
         await ctx.send(content)
 
     @commands.command()

@@ -26,29 +26,28 @@ class Blackjack:
 
         self.embed = discord.Embed(
             title=None,
-            type='rich',
             color=np.random.randint(0xFFFFFF),  # Random color
         ).set_author(
             name=self.ctx.author.display_name,
             icon_url=self.ctx.author.avatar_url_as(static_format='png'),
         ).add_field(
-            name='Blackjack',
+            name="Blackjack",
             value=None,  # will be filled later
             inline=False,
         ).add_field(
-            name='Player\'s Hand',
+            name="Player's Hand",
             value=None,  # will be filled later
             inline=True,
         ).add_field(
-            name='Dealer\'s Hand',
+            name="Dealer's Hand",
             value=None,  # will be filled after
             inline=True,
         ).set_footer(
-            text='Hit or Stand?',
+            text="Hit or Stand?",
         )
 
     async def play(self):
-        self.update_embed('Please wait, setting things up...')
+        self.update_embed("Please wait, setting things up...")
         self.message_game = await self.ctx.send(embed=self.embed)
 
         def check(reaction, user):
@@ -66,16 +65,16 @@ class Blackjack:
             # check for blackjacks
             if self.calculate_score(self.player_hand) == 21:
                 self.playing = False
-                hint_message = 'Congratulations! You got a Blackjack!'
+                hint_message = "Congratulations! You got a Blackjack!"
 
             elif self.calculate_score(self.dealer_hand) == 21:
                 self.playing = False
-                hint_message = 'Sadly the dealer got a Blackjack...'
+                hint_message = "Sadly the dealer got a Blackjack..."
 
             else:
                 hint_message = (
-                    'Your score is '
-                    f'**{self.calculate_score(self.player_hand)}**.'
+                    "Your score is "
+                    f"**{self.calculate_score(self.player_hand)}**."
                 )
                 self.update_embed(hint_message)
                 await self.message_game.edit(embed=self.embed)
@@ -102,8 +101,8 @@ class Blackjack:
                         self.playing = False
                         self.player_busted = True
                         hint_message = (
-                            'You busted with a score of '
-                            f'**{self.calculate_score(self.player_hand)}**.'
+                            "You busted with a score of "
+                            f"**{self.calculate_score(self.player_hand)}**."
                         )
 
                 # elif stand
@@ -114,34 +113,34 @@ class Blackjack:
                         if self.calculate_score(self.dealer_hand) > 21:
                             self.dealer_busted = True
                             hint_message = (
-                                'The dealer busted with a score of '
-                                f'**{self.calculate_score(self.dealer_hand)}**.')
+                                "The dealer busted with a score of "
+                                f"**{self.calculate_score(self.dealer_hand)}**.")
 
                     if self.calculate_score(self.dealer_hand) > \
                             self.calculate_score(self.player_hand) and \
                             not self.dealer_busted:
                         hint_message = (
-                            'The dealer won! You got '
-                            f'**{self.calculate_score(self.player_hand)}** '
-                            'while the dealer got '
-                            f'**{self.calculate_score(self.dealer_hand)}**.'
+                            "The dealer won! You got "
+                            f"**{self.calculate_score(self.player_hand)}** "
+                            "while the dealer got "
+                            f"**{self.calculate_score(self.dealer_hand)}**."
                         )
 
                     elif self.calculate_score(self.dealer_hand) < \
                             self.calculate_score(self.player_hand) and \
                             not self.player_busted:
                         hint_message = (
-                            'You won! You got '
-                            f'**{self.calculate_score(self.player_hand)}** '
-                            'while the dealer got '
-                            f'**{self.calculate_score(self.dealer_hand)}**.'
+                            "You won! You got "
+                            f"**{self.calculate_score(self.player_hand)}** "
+                            "while the dealer got "
+                            f"**{self.calculate_score(self.dealer_hand)}**."
                         )
 
                     elif self.calculate_score(self.dealer_hand) == \
                             self.calculate_score(self.player_hand):
                         hint_message = (
-                            'It is a tie! You both got '
-                            f'**{self.calculate_score(self.player_hand)}**.'
+                            "It is a tie! You both got "
+                            f"**{self.calculate_score(self.player_hand)}**."
                         )
 
                     self.playing = False
@@ -169,7 +168,7 @@ class Blackjack:
         return score
 
     def update_embed(self, hint_message):
-        player_cards = '\n'.join(card.emoji
+        player_cards = "\n".join(card.emoji
                                  for card in self.player_hand)
 
         if self.playing:  # hide last card
@@ -180,7 +179,7 @@ class Blackjack:
         else:
             dealer_cards = [card.emoji for card in self.dealer_hand]
 
-        dealer_cards = '\n'.join(dealer_cards)
+        dealer_cards = "\n".join(dealer_cards)
 
         self.embed.set_field_at(
             index=0,

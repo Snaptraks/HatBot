@@ -30,7 +30,7 @@ class Board:
             self.board[column, row] = player
 
         else:
-            raise ValueError('Column is full.')
+            raise ValueError("Column is full.")
 
     def check_winner(self, player):
         """Check if the board has a winning configuration for the player."""
@@ -70,7 +70,7 @@ class Board:
     def __repr__(self):
         """Represents the board visually, for debug purposes."""
 
-        rep = '\n'.join(str(line) for line in self.board.T)
+        rep = "\n".join(str(line) for line in self.board.T)
         return rep
 
 
@@ -92,10 +92,9 @@ class Connect4:
 
         self.embed = discord.Embed(
             title=None,
-            type='rich',
             color=np.random.randint(0xFFFFFF),  # Random color
         ).add_field(
-            name='Connect 4',
+            name="Connect 4",
             value=None,  # will be filled later
         )
 
@@ -104,7 +103,7 @@ class Connect4:
 
         player = 0
         tokens = [emoji.Connect4.RED.value, emoji.Connect4.BLUE.value]
-        hint_message = 'Please wait, setting things up...'
+        hint_message = "Please wait, setting things up..."
         self.update_embed(hint_message, player)
         self.message_game = await self.ctx.send(embed=self.embed)
         for number in self.emoji_numbers:
@@ -112,8 +111,8 @@ class Connect4:
 
         while self.winner == 0 and self.turn < self.max_turns:
             hint_message = (
-                f'It is {self.players[player].display_name}\'s turn! '
-                f'{tokens[player]}'
+                f"It is {self.players[player].display_name}'s turn! "
+                f"{tokens[player]}"
             )
             self.update_embed(hint_message, player)
             await self.message_game.edit(embed=self.embed)
@@ -147,7 +146,7 @@ class Connect4:
             try:
                 self.board.player_play(player + 1, column)
             except ValueError:
-                hint_message = 'Column is full, you can\'t do that!'
+                hint_message = "Column is full, you can't do that!"
                 self.update_embed(hint_message, player)
                 await self.message_game.edit(embed=self.embed)
                 await asyncio.sleep(2)
@@ -162,11 +161,11 @@ class Connect4:
 
         if self.winner != 0:
             hint_message = (
-                f'{self.players[player].display_name} won! '
-                f'{tokens[player]}'
+                f"{self.players[player].display_name} won! "
+                f"{tokens[player]}"
             )
         else:
-            hint_message = f'It is a tie!'
+            hint_message = f"It is a tie!"
 
         self.update_embed(hint_message, player)
         await self.message_game.edit(embed=self.embed)
@@ -207,8 +206,8 @@ class Connect4:
         if self.winner != 0:
             graphics[self.board.winning_move] = tokens_win[self.winner]
 
-        graphics_str = '\n'.join(''.join(i for i in col)
+        graphics_str = "\n".join("".join(i for i in col)
                                  for col in graphics.T)
-        graphics_str += '\n' + ''.join(self.emoji_numbers)
+        graphics_str += "\n" + "".join(self.emoji_numbers)
 
         return graphics_str

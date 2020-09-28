@@ -33,7 +33,7 @@ class ShellOutputSource(menus.ListPageSource):
         super().__init__(entries, per_page=1)
 
     def format_page(self, menu, page):
-        return f'{page}Page {menu.current_page + 1}/{self.get_max_pages()}'
+        return f"{page}Page {menu.current_page + 1}/{self.get_max_pages()}"
 
 
 def format_shell_output(stdout, stderr):
@@ -41,11 +41,11 @@ def format_shell_output(stdout, stderr):
     # max_size to allow space for page indicators
     paginator = commands.Paginator(max_size=1900)
 
-    paginator.add_line('STDOUT:')
-    for line in stdout.split('\n'):
+    paginator.add_line("STDOUT:")
+    for line in stdout.split("\n"):
         paginator.add_line(line)
     paginator.close_page()
-    paginator.add_line('STDERR:')
+    paginator.add_line("STDERR:")
     for line in stderr.split('\n'):
         paginator.add_line(line)
 

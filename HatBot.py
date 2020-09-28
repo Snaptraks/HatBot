@@ -56,21 +56,21 @@ class MyBot(Bot):
         permissions = discord.Permissions(permissions=67584)
         oauth_url = discord.utils.oauth_url(
             self.user.id, permissions=permissions)
-        print((
-            f'Logged in as {self.user.name} (ID:{self.user.id}) '
-            f'| Connected to {len(self.guilds)} guilds '
-            f'| Connected to {len(set(self.get_all_members()))} users\n'
-            '--------\n'
-            f'Startup Time: {self.boot_time.strftime("%c")} UTC\n'
-            f'Current Time: {datetime.utcnow().strftime("%c")} UTC\n'
-            '--------\n'
-            f'Current Discord.py Version: {discord.__version__} '
-            f'| Current Python Version: {platform.python_version()}\n'
-            '--------\n'
-            f'Use this link to invite {self.user.name}:\n'
-            f'{oauth_url}\n'
-            '--------'
-        ))
+        print(
+            f"Logged in as {self.user.name} (ID:{self.user.id}) "
+            f"| Connected to {len(self.guilds)} guilds "
+            f"| Connected to {len(set(self.get_all_members()))} users\n"
+            "--------\n"
+            f"Startup Time: {self.boot_time.strftime('%c')} UTC\n"
+            f"Current Time: {datetime.utcnow().strftime('%c')} UTC\n"
+            "--------\n"
+            f"Current Discord.py Version: {discord.__version__} "
+            f"| Current Python Version: {platform.python_version()}\n"
+            "--------\n"
+            f"Use this link to invite {self.user.name}:\n"
+            f"{oauth_url}\n"
+            "--------"
+        )
 
         # make sure to populate self.owner_id at startup
         await self.init_owner()
@@ -100,8 +100,8 @@ if __name__ == '__main__':
     logger.addHandler(handler)
 
     bot = MyBot(
-        description='HatBot by Snaptraks#2606',
-        command_prefix='!',
+        description="HatBot by Snaptraks#2606",
+        command_prefix="!",
         help_command=commands.DefaultHelpCommand(dm_help=True),
         fetch_offline_members=True,
         db_name='db/HatBot.db',
@@ -133,7 +133,7 @@ if __name__ == '__main__':
         try:
             bot.load_extension(extension)
         except Exception as e:
-            exc = '{}: {}'.format(type(e).__name__, e)
-            print('Failed to load extension {}\n{}'.format(extension, exc))
+            exc = f"{type(e).__name__}: {e}"
+            print(f"Failed to load extension {extension}\n{exc}")
 
     bot.run(config.hatbot_token)

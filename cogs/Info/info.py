@@ -24,11 +24,11 @@ class Info(BasicCog):
         Inspired by RoboDanny.
         """
         embed = discord.Embed(
-            title='Official GitHub Repository',
-            url='https://github.com/Snaptraks/HatBot',
+            title="Official GitHub Repository",
+            url="https://github.com/Snaptraks/HatBot",
             color=discord.Color.blurple(),
             description=(
-                f'Information about {str(self.bot.user)}.'
+                f"Information about {str(self.bot.user)}."
             ),
         )
 
@@ -63,41 +63,41 @@ class Info(BasicCog):
                     voice_channels += 1
 
         embed.add_field(
-            name='Members',
+            name="Members",
             value=(
-                f'{total_members} total\n'
-                f'{total_unique} unique\n'
-                f'{total_online} online'
+                f"{total_members} total\n"
+                f"{total_unique} unique\n"
+                f"{total_online} online"
             ),
         )
         embed.add_field(
-            name='Channels',
+            name="Channels",
             value=(
-                f'{text_channels + voice_channels} total\n'
-                f'{text_channels} text\n'
-                f'{voice_channels} voice'
+                f"{text_channels + voice_channels} total\n"
+                f"{text_channels} text\n"
+                f"{voice_channels} voice"
             ),
         )
         embed.add_field(
-            name='Servers',
+            name="Servers",
             value=guilds,
         )
         embed.add_field(
-            name='Uptime',
+            name="Uptime",
             value=pretty_print_timedelta(datetime.utcnow()
                                          - self.bot.boot_time),
         )
 
         embed.set_footer(
-            text=f'Made with discord.py v{version} by {str(owner)}',
-            icon_url='http://i.imgur.com/5BFecvA.png',
+            text=f"Made with discord.py v{version} by {str(owner)}",
+            icon_url="http://i.imgur.com/5BFecvA.png",
         )
         embed.timestamp = datetime.utcnow()
 
         await ctx.send(embed=embed)
 
     @commands.command()
-    async def time(self, ctx, tz_abr='UTC'):
+    async def time(self, ctx, tz_abr="UTC"):
         """Get the current time in the requested timezone."""
 
         now_utc = ctx.message.created_at
@@ -107,7 +107,7 @@ class Info(BasicCog):
             TZ = self.tz_table[tz_abr]
         except KeyError:
             TZ = self.tz_table['UTC']
-            tz_abr = 'UTC'
+            tz_abr = "UTC"
 
         utc_offset = timedelta(
             hours=TZ['HOURS'],
@@ -123,15 +123,15 @@ class Info(BasicCog):
             r_time = r_time[-4:-2]
         r_time = int(r_time)
 
-        emoji = f':clock{r_time}:'
+        emoji = f":clock{r_time}:"
         now = now_tz.strftime('%H:%M')
         tz_name = TZ['NAME']
         offset = TZ['OFFSET']
 
-        content = f'{emoji} It is {now} {tz_abr} ({tz_name}, {offset}).'
+        content = f"{emoji} It is {now} {tz_abr} ({tz_name}, {offset})."
         await ctx.send(content)
 
-    @commands.command(aliases=['pfp'])
+    @commands.command(aliases=["pfp"])
     async def avatar(self, ctx, *, member: discord.Member = None):
         """Send the member's avatar in the channel."""
 
@@ -143,7 +143,7 @@ class Info(BasicCog):
             extension = \
                 avatar_url[avatar_url.rindex('.'):avatar_url.rindex('?')]
         except ValueError as e:
-            extension = '.png'
+            extension = ".png"
 
         async with self.bot.http_session.get(avatar_url) as resp:
             if resp.status == 200:

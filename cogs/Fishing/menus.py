@@ -33,8 +33,8 @@ class CooldownMenu(menus.Menu):
 
         retry_after = timedelta(seconds=self.error.retry_after)
         await self.ctx.author.send(
-            f'{self.error_message}, '
-            f'wait for {pretty_print_timedelta(retry_after)}.'
+            f"{self.error_message}, "
+            f"wait for {pretty_print_timedelta(retry_after)}."
         )
 
         self.stop()
@@ -49,12 +49,14 @@ class FishingConfirm(_MenuUtils, menus.Menu):
         self.keep = None
 
     async def send_initial_message(self, ctx, channel):
-        self.embed.description = \
-            f'You caught something!\n{self.embed.description}'
+        self.embed.description = (
+            "You caught something!\n"
+            f"{self.embed.description}"
+        )
         self.embed.set_footer(
             text=(
-                f'Do you want to keep it {INVENTORY_EMOJI} '
-                f'or sell it {EXPERIENCE_EMOJI} for experience?'
+                f"Do you want to keep it {INVENTORY_EMOJI} "
+                f"or sell it {EXPERIENCE_EMOJI} for experience?"
             ),
         )
         return await channel.send(embed=self.embed)
@@ -80,15 +82,15 @@ class FishingConfirm(_MenuUtils, menus.Menu):
     async def finalize(self, timed_out):
         if self.keep is None:
             new_footer = (
-                'You did not answer quickly enough, '
-                'I kept it for you.'
+                "You did not answer quickly enough, "
+                "I kept it for you."
             )
 
         elif self.keep:
-            new_footer = 'You kept it in your inventory.'
+            new_footer = "You kept it in your inventory."
 
         else:
-            new_footer = 'You sold it for experience.'
+            new_footer = "You sold it for experience."
 
         self.embed.set_footer(text=new_footer)
         await self.message.edit(embed=self.embed)
@@ -141,19 +143,19 @@ class InventorySource(menus.ListPageSource):
         embed = fish.to_embed()
         date_str = fish.catch_time.strftime('%b %d %Y')
         embed.add_field(
-            name='Caught on',
+            name="Caught on",
             value=date_str,
         )
         embed.title = \
-            f'Fish Inventory ({menu.current_page + 1}/{self.get_max_pages()})'
+            f"Fish Inventory ({menu.current_page + 1}/{self.get_max_pages()})"
 
         if menu.current_page in self._to_sell:
-            footer_text = 'Sold!'
+            footer_text = "Sold!"
 
         else:
             footer_text = (
-                f'{EXPERIENCE_EMOJI} to sell current fish | '
-                f'{SELL_ALL_EMOJI} to sell all'
+                f"{EXPERIENCE_EMOJI} to sell current fish | "
+                f"{SELL_ALL_EMOJI} to sell all"
             )
 
         embed.set_footer(text=footer_text)
@@ -194,19 +196,19 @@ class TopCatchesSource(menus.ListPageSource):
         if member is None:
             member = discord.Object(fish.caught_by)
             member.avatar_url = None
-            member.mention = f'<@{fish.caught_by}>'
+            member.mention = f"<@{fish.caught_by}>"
 
         embed = discord.Embed(
-            title=f'#{menu.current_page + 1} Top Catch of the Server',
+            title=f"#{menu.current_page + 1} Top Catch of the Server",
             color=EMBED_COLOR,
         ).add_field(
-            name='Top Catch',
+            name="Top Catch",
             value=fish,
         ).add_field(
-            name='Caught by',
+            name="Caught by",
             value=member.mention,
         ).add_field(
-            name='Caught on',
+            name="Caught on",
             value=date_str,
         )
         embed.timestamp = datetime.utcnow()
@@ -232,23 +234,23 @@ class TopExperienceSource(menus.ListPageSource):
         if member is None:
             member = discord.Object(id)
             member.avatar_url = None
-            member.mention = f'<@{id}>'
+            member.mention = f"<@{id}>"
 
         # U G L Y
         best_catch = await menu.ctx.cog._get_best_catch(member)
         best_catch = Fish.from_dict(best_catch)
 
         embed = discord.Embed(
-            title=f'#{menu.current_page + 1} Experience of the Server',
+            title=f"#{menu.current_page + 1} Experience of the Server",
             color=EMBED_COLOR,
         ).add_field(
-            name='Member',
+            name="Member",
             value=member.mention,
         ).add_field(
-            name='Experience',
-            value=f'{page["exp"]:.3f} exp',
+            name="Experience",
+            value=f"{page['exp']:.3f} exp",
         ).add_field(
-            name='Best Catch',
+            name="Best Catch",
             value=best_catch,
         )
         embed.timestamp = datetime.utcnow()
@@ -272,12 +274,12 @@ class TradeConfirm(_MenuUtils, menus.Menu):
     async def send_initial_message(self, ctx, channel):
         return await channel.send(self.msg)
 
-    @menus.button('\N{WHITE HEAVY CHECK MARK}')
+    @menus.button("\N{WHITE HEAVY CHECK MARK}")
     async def do_confirm(self, payload):
         self.result = True
         self.stop()
 
-    @menus.button('\N{CROSS MARK}')
+    @menus.button("\N{CROSS MARK}")
     async def do_deny(self, payload):
         self.result = False
         self.stop()
@@ -317,18 +319,20 @@ class TradeSource(menus.ListPageSource):
         embed = fish.to_embed()
         date_str = fish.catch_time.strftime('%b %d %Y')
         embed.add_field(
-            name='Caught on',
+            name="Caught on",
             value=date_str,
         )
-        embed.title = \
-            f'Trade Menu ({menu.current_page + 1}/{self.get_max_pages()})'
+        embed.title = (
+            f"Trade Menu ({menu.current_page + 1}/"
+            f"{self.get_max_pages()})"
+        )
         embed.set_author(
             name=menu.ctx.author.display_name,
             icon_url=menu.ctx.author.avatar_url,
         )
 
         if menu.current_page == self._to_trade:
-            footer_text = 'Proposed for trade'
+            footer_text = "Proposed for trade"
 
         else:
             footer_text = discord.Embed.Empty

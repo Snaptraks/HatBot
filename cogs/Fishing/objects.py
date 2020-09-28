@@ -23,27 +23,27 @@ def get_fish_size_color(size):
 
 
 SMELLS = [
-    'It smells delightful!',
-    'It smells alright.',
-    'It does not smell that bad.',
-    'It does not smell anything.',
-    'It does not smell good.',
-    'It smells bad.',
-    'It smells horrible!',
-    'Oh no! What is that ungodly smell?!',
+    "It smells delightful!",
+    "It smells alright.",
+    "It does not smell that bad.",
+    "It does not smell anything.",
+    "It does not smell good.",
+    "It smells bad.",
+    "It smells horrible!",
+    "Oh no! What is that ungodly smell?!",
 ]
 
 
 WEATHERS = [
-    ('completely sunny', '\u2600\ufe0f'),
-    ('not very cloudy', '\U0001f324\ufe0f'),
-    ('partially cloudy', '\u26c5'),
-    ('cloudy', '\U0001f325\ufe0f'),
-    ('completely cloudy', '\u2601\ufe0f'),
-    ('somewhat rainy', '\U0001f326\ufe0f'),
-    ('rainy', '\U0001f327\ufe0f'),
-    ('stormy', '\u26c8\ufe0f'),
-    ('snowy', '\U0001f328\ufe0f'),
+    ("completely sunny", "\u2600\ufe0f"),
+    ("not very cloudy", "\U0001f324\ufe0f"),
+    ("partially cloudy", "\u26c5"),
+    ("cloudy", "\U0001f325\ufe0f"),
+    ("completely cloudy", "\u2601\ufe0f"),
+    ("somewhat rainy", "\U0001f326\ufe0f"),
+    ("rainy", "\U0001f327\ufe0f"),
+    ("stormy", "\u26c8\ufe0f"),
+    ("snowy", "\U0001f328\ufe0f"),
 ]
 
 
@@ -101,14 +101,14 @@ class Fish:
             color=self.color,
             description=SMELLS[self.smell],
         ).add_field(
-            name='Fish',
-            value=f'{self.size.title()} {self.species_str}',
+            name="Fish",
+            value=f"{self.size.title()} {self.species_str}",
         ).add_field(
-            name='Weight',
-            value=f'{self.weight:.3f} kg',
+            name="Weight",
+            value=f"{self.weight:.3f} kg",
         ).add_field(
-            name='Caught By',
-            value=f'<@{self.caught_by}>',
+            name="Caught By",
+            value=f"<@{self.caught_by}>",
         )
 
         return embed
@@ -132,7 +132,7 @@ class Fish:
         return cls(**fish_dict)
 
     def __repr__(self):
-        return f'{self.size.title()} {self.species_str} ({self.weight:.3f} kg)'
+        return f"{self.size.title()} {self.species_str} ({self.weight:.3f} kg)"
 
     def __lt__(self, other):
         """Less than operator. Compare instances on the weight attribute."""
@@ -153,4 +153,5 @@ class Weather:
         return cls(state)
 
     def __repr__(self):
-        return '{0} {1}'.format(*WEATHERS[self.state])
+        weather, emoji = WEATHERS[self.state]
+        return f"{weather} {emoji}"

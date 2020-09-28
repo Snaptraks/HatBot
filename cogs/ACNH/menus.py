@@ -18,14 +18,14 @@ def make_profile_embed(member, profile_data, thumbnail_url):
     try:
         fruit = profile_data['native_fruit']
         native_fruit = (
-            f'{objects.PROFILE_FRUIT[fruit].title()} '
-            f'{objects.PROFILE_FRUIT_EMOJI[fruit]}'
+            f"{objects.PROFILE_FRUIT[fruit].title()} "
+            f"{objects.PROFILE_FRUIT_EMOJI[fruit]}"
         )
     except TypeError:
         native_fruit = None
 
     embed = discord.Embed(
-        title='Animal Crossing: New Horizons Profile Card',
+        title="Animal Crossing: New Horizons Profile Card",
         color=objects.PROFILE_EMBED_COLOR,
         timestamp=datetime.utcnow(),
     ).set_author(
@@ -34,25 +34,25 @@ def make_profile_embed(member, profile_data, thumbnail_url):
     ).set_thumbnail(
         url=thumbnail_url,
     ).add_field(
-        name='Resident Name',
+        name="Resident Name",
         value=profile_data['resident_name'],
     ).add_field(
-        name='Island Name',
+        name="Island Name",
         value=profile_data['island_name'],
     ).add_field(
-        name='Hemisphere',
+        name="Hemisphere",
         value=hemisphere,
     ).add_field(
-        name='Native Fruit',
+        name="Native Fruit",
         value=native_fruit,
     ).add_field(
-        name='Friend Code',
+        name="Friend Code",
         value=profile_data['friend_code'],
     ).add_field(
-        name='Creator ID',
+        name="Creator ID",
         value=profile_data['creator_id'],
     ).add_field(
-        name='Dream Address',
+        name="Dream Address",
         value=profile_data['dream_address'],
     )
 

@@ -12,65 +12,65 @@ class HVC(BasicCog):
     def __init__(self, bot):
         super().__init__(bot)
 
-    @commands.command(aliases=['ts'])
+    @commands.command(aliases=["ts"])
     async def teamspeak(self, ctx):
         """Get the TeamSpeak server information."""
 
         embed = discord.Embed(
-            title='TeamSpeak Server',
-            description='Come chat with us!',
+            title="TeamSpeak Server",
+            description="Come chat with us!",
             colour=0x445277,
-            url='https://www.teamspeak.com/',
+            url="https://www.teamspeak.com/",
         )
         embed.add_field(
-            name='IP',
+            name="IP",
             value=config.hvc_ts['ip'],
             inline=False,
         )
         embed.set_thumbnail(url=config.hvc_ts['icon'])
         await ctx.send(embed=embed)
 
-    @commands.command(aliases=['mc', 'map', 'ip'])
+    @commands.command(aliases=["mc", "map", "ip"])
     async def minecraft(self, ctx):
         """Get the Minecraft server information."""
 
         server = MinecraftServer.lookup(config.hvc_mc['ip'])
 
         embed = discord.Embed(
-            title='Minecraft Server',
-            description='Official Hatventures Community Minecraft server',
+            title="Minecraft Server",
+            description="Official Hatventures Community Minecraft server",
             colour=0x5A894D,
             url=None)
         embed.add_field(
-            name='IP',
+            name="IP",
             value=config.hvc_mc['ip_name'],
             inline=True
         )
         embed.add_field(
-            name='Dynmap',
+            name="Dynmap",
             value=config.hvc_mc['dynmap'],
             inline=True
         )
         try:
             status = server.status()
             embed.add_field(
-                name='Version',
+                name="Version",
                 value=status.version.name,
                 inline=True
             )
             embed.add_field(
-                name='Status',
-                value='Online!',
+                name="Status",
+                value="Online!",
                 inline=True
             )
             embed.add_field(
-                name='Players',
-                value='{0.online}/{0.max}'.format(status.players),
+                name="Players",
+                value=f"{status.players.online}/{status.players.max}",
                 inline=True
             )
         except Exception as e:
             print(e)
-            embed.add_field(name='Status', value='Offline!')
+            embed.add_field(name="Status", value="Offline!")
 
         embed.set_thumbnail(url=config.hvc_mc['icon'])
 
@@ -81,20 +81,24 @@ class HVC(BasicCog):
         """Get Capgun's TTT server information."""
 
         embed = discord.Embed(
-            title='TTT Server',
+            title="TTT Server",
             description=(
-                'Provided and managed by <@136971401566355456>'
+                "Provided and managed by <@136971401566355456>"
             ),
             colour=0x1394F0,
         )
         embed.add_field(
-            name='IP',
+            name="IP",
             value=config.capgun_ttt['ip'],
         )
         embed.add_field(
-            name='Password',
+            name="Password",
             value=config.capgun_ttt['password'],
         )
 
-        link = 'steam://connect/{ip}/{password}'.format(**config.capgun_ttt)
+        # link = "steam://connect/{ip}/{password}".format(**config.capgun_ttt)
+        link = (
+            f"steam://connect/{config.capgun_ttt.ip}/"
+            f"{config.capgun_ttt.password}"
+        )
         await ctx.send(content=link, embed=embed)

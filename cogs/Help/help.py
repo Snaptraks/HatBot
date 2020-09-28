@@ -55,7 +55,7 @@ class CustomHelpCommand(commands.DefaultHelpCommand):
 
         cooldown = self.get_command_cooldown(command)
         if cooldown:
-            self.paginator.add_line(f'Cooldown: {cooldown}', empty=True)
+            self.paginator.add_line(f"Cooldown: {cooldown}", empty=True)
 
     def get_command_cooldown(self, command):
         """Retrieve the cooldown from the command, and format it in
@@ -66,12 +66,12 @@ class CustomHelpCommand(commands.DefaultHelpCommand):
         if cooldown is not None:
             per = timedelta(seconds=cooldown.per)
             name = cooldown.type.name
-            suffix = f'per {name}' if name != 'default' else 'globally'
+            suffix = f"per {name}" if name != "default" else "globally"
 
             return (
-                f'{cooldown.rate} time(s) '
-                f'per {pretty_print_timedelta(per)} '
-                f'{suffix}.'
+                f"{cooldown.rate} time(s) "
+                f"per {pretty_print_timedelta(per)} "
+                f"{suffix}."
             )
 
         else:
@@ -103,7 +103,7 @@ class Help(commands.Cog):
                 await menu.start(ctx)
 
             else:
-                await ctx.send('I do not know of a command like that...')
+                await ctx.send("I do not know of a command like that...")
 
         elif (ctx.command is not None
                 and not hasattr(ctx.command, 'on_error')):

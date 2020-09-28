@@ -64,8 +64,8 @@ def is_not_stunned():
         stunned = datetime.utcnow() < stunned_until
         if stunned:
             stunned_for = stunned_until - datetime.utcnow()
-            raise IsStunnedError('You are still stunned for '
-                                 f'{pretty_print_timedelta(stunned_for)}!')
+            raise IsStunnedError("You are still stunned for "
+                                 f"{pretty_print_timedelta(stunned_for)}!")
 
         return True
 
@@ -78,7 +78,7 @@ def no_opened_inventory():
     def predicate(ctx):
         if ctx.author.id in ctx.cog.opened_inventory:
             raise OpenedInventoryError(
-                'You need to close your inventory/trade menu first.')
+                "You need to close your inventory/trade menu first.")
 
         return True
 
@@ -131,8 +131,8 @@ class Fishing(FunCog):
         winner = self.guild.get_member(winner_id)
         bonus_experience = np.random.triangular(3, 5, 15)
         content = (
-            f':moneybag: {escape_markdown(winner.display_name)} got a little '
-            f'bit of experience! ({bonus_experience:.3f} exp)'
+            f":moneybag: {escape_markdown(winner.display_name)} got a little "
+            f"bit of experience! ({bonus_experience:.3f} exp)"
         )
 
         msg = await self.channel_msg.send(content)
@@ -163,7 +163,7 @@ class Fishing(FunCog):
         next = now // _12h + _12h  # get next 00 or 12
         await discord.utils.sleep_until(next)  # wait until then
 
-    @commands.group(aliases=['feesh', '<:feesh:427018890137174016>', 'FEESH'],
+    @commands.group(aliases=["feesh", "<:feesh:427018890137174016>", "FEESH"],
                     invoke_without_command=True, cooldown_after_parsing=True)
     # 1 every 20 mins
     @commands.cooldown(1, 20 * 60, commands.BucketType.member)
@@ -194,7 +194,7 @@ class Fishing(FunCog):
         if isinstance(error, commands.CommandOnCooldown):
             await menus.CooldownMenu(
                 ctx.message, error,
-                'You have already tried to fish recently').start(ctx)
+                "You have already tried to fish recently").start(ctx)
 
         elif isinstance(error, (IsStunnedError, OpenedInventoryError)):
             await ctx.send(error)
@@ -202,7 +202,7 @@ class Fishing(FunCog):
         else:
             raise error
 
-    @fish.command(name='bomb', cooldown_after_parsing=True)
+    @fish.command(name="bomb", cooldown_after_parsing=True)
     @commands.cooldown(1, 30, commands.BucketType.member)
     @no_opened_inventory()
     async def fish_bomb(self, ctx, *, member: discord.Member):
@@ -215,22 +215,22 @@ class Fishing(FunCog):
         bomb_fish = await self._get_bomb_fish(slapper)
 
         if len(bomb_fish) == 0:
-            raise NoFishError('You do not have any fish to slap with.')
+            raise NoFishError("You do not have any fish to slap with.")
 
         # slap with a list of Fish
         stunned_time = await self._execute_slap_bomb(member, bomb_fish)
 
         content = (
-            f'{escape_markdown(member.display_name)} got **bombed** by '
-            f'{escape_markdown(slapper.display_name)} with '
-            f'**{len(bomb_fish)} fish**!\n'
-            f'They are stunned for {pretty_print_timedelta(stunned_time)} '
-            'and cannot go fishing!'
+            f"{escape_markdown(member.display_name)} got **bombed** by "
+            f"{escape_markdown(slapper.display_name)} with "
+            f"**{len(bomb_fish)} fish**!\n"
+            f"They are stunned for {pretty_print_timedelta(stunned_time)} "
+            "and cannot go fishing!"
         )
 
         await ctx.send(content)
 
-    @fish.command(name='card')
+    @fish.command(name="card")
     async def fish_card(self, ctx, *, member: discord.Member = None):
         """Show some statistics about a member's fishing experience."""
 
@@ -244,27 +244,27 @@ class Fishing(FunCog):
             best_catch = Fish.from_dict(best_catch_dict)
             date_str = best_catch.catch_time.strftime('%b %d %Y')
         else:
-            best_catch = 'No catches yet'
+            best_catch = "No catches yet"
             date_str = None
 
         exp = await self._get_experience(member)
 
         embed = discord.Embed(
-            title=f'Fishing Card of {escape_markdown(member.display_name)}',
+            title=f"Fishing Card of {escape_markdown(member.display_name)}",
             color=EMBED_COLOR,
         ).set_thumbnail(
             url=member.avatar_url,
         )
 
         embed.add_field(
-            name='Best Catch',
+            name="Best Catch",
             value=best_catch,
         ).add_field(
-            name='Caught on',
+            name="Caught on",
             value=date_str,
         ).add_field(
-            name='Experience',
-            value=f'{exp:.3f} exp',
+            name="Experience",
+            value=f"{exp:.3f} exp",
         )
 
         await ctx.send(embed=embed)
@@ -276,7 +276,7 @@ class Fishing(FunCog):
         sorted_experience = await self._get_exptop()
 
         if len(sorted_experience) == 0:
-            raise FishTopNoEntriesError('No one with experience yet.')
+            raise FishTopNoEntriesError("No one with experience yet.")
 
         top_menu = menus.TopMenu(
             source=menus.TopExperienceSource(sorted_experience),
@@ -295,14 +295,14 @@ class Fishing(FunCog):
         else:
             raise error
 
-    @fish.command(name='inventory', aliases=['inv', 'bag', 'sell'])
+    @fish.command(name="inventory", aliases=["inv", "bag", "sell"])
     async def fish_inventory(self, ctx):
         """Look at your fishing inventory.
         Also allows you to sell the fish you previously saved.
         """
         inventory = await self._get_inventory(ctx.author)
         if len(inventory) == 0:
-            raise NoFishError('No fish in inventory.')
+            raise NoFishError("No fish in inventory.")
 
         inventory_menu = menus.InventoryMenu(
             source=menus.InventorySource(inventory),
@@ -335,8 +335,8 @@ class Fishing(FunCog):
 
         if isinstance(error, NoFishError):
             embed = discord.Embed(
-                title='Fish Inventory',
-                description='No fish in inventory.',
+                title="Fish Inventory",
+                description="No fish in inventory.",
                 color=EMBED_COLOR,
             )
             delay = 3 * 60
@@ -347,7 +347,7 @@ class Fishing(FunCog):
         else:
             raise error
 
-    @fish.group(name='journal', aliases=['log', 'stats'],
+    @fish.group(name="journal", aliases=["log", "stats"],
                 invoke_without_command=True)
     async def fish_journal(self, ctx, member: discord.Member = None):
         """Fishing log of the amount of fish caught and different stats."""
@@ -371,7 +371,7 @@ class Fishing(FunCog):
         else:
             raise error
 
-    @fish_journal.command(name='global', aliases=['all'])
+    @fish_journal.command(name="global", aliases=["all"])
     async def fish_journal_global(self, ctx):
         """Global fishing log."""
 
@@ -381,7 +381,7 @@ class Fishing(FunCog):
 
         await journal.start(ctx)
 
-    @fish.command(name='slap', cooldown_after_parsing=True)
+    @fish.command(name="slap", cooldown_after_parsing=True)
     @commands.cooldown(1, 30, commands.BucketType.member)
     @no_opened_inventory()
     async def fish_slap(self, ctx, *, member: discord.Member):
@@ -394,16 +394,16 @@ class Fishing(FunCog):
         slap_fish = await self._get_slap_fish(slapper)
 
         if len(slap_fish) == 0:
-            raise NoFishError('You do not have any fish to slap with.')
+            raise NoFishError("You do not have any fish to slap with.")
 
         stunned_time = await self._execute_slap_bomb(member, slap_fish)
 
         content = (
-            f'{escape_markdown(member.display_name)} got slapped by '
-            f'{escape_markdown(slapper.display_name)} with a '
-            f'{Fish.from_dict(slap_fish[0])}!\n'
-            f'They are stunned for {pretty_print_timedelta(stunned_time)} '
-            'and cannot go fishing!'
+            f"{escape_markdown(member.display_name)} got slapped by "
+            f"{escape_markdown(slapper.display_name)} with a "
+            f"{Fish.from_dict(slap_fish[0])}!\n"
+            f"They are stunned for {pretty_print_timedelta(stunned_time)} "
+            "and cannot go fishing!"
         )
 
         await ctx.send(content)
@@ -417,12 +417,12 @@ class Fishing(FunCog):
             await menus.CooldownMenu(
                 ctx.message,
                 error,
-                f'You have already tried to {ctx.command.name} recently',
+                f"You have already tried to {ctx.command.name} recently",
             ).start(ctx)
 
         elif isinstance(error, commands.MissingRequiredArgument):
             await ctx.send(
-                f'You need to specify someone to {ctx.command.name}.')
+                f"You need to specify someone to {ctx.command.name}.")
 
         elif isinstance(error, (
                 commands.BadArgument,
@@ -434,14 +434,14 @@ class Fishing(FunCog):
         else:
             raise error
 
-    @fish.command(name='top')
+    @fish.command(name="top")
     async def fish_top(self, ctx):
         """Display the best catches server-wide."""
 
         sorted_best_catches = await self._get_top()
 
         if len(sorted_best_catches) == 0:
-            raise FishTopNoEntriesError('No best catches yet.')
+            raise FishTopNoEntriesError("No best catches yet.")
 
         top_menu = menus.TopMenu(
             source=menus.TopCatchesSource(sorted_best_catches),
@@ -460,23 +460,23 @@ class Fishing(FunCog):
         else:
             raise error
 
-    @fish.command(name='trade')
+    @fish.command(name="trade")
     @commands.max_concurrency(1, per=commands.BucketType.channel)
     async def fish_trade(self, ctx, *, other_member: discord.Member):
         """Trade fish with another member."""
 
         if other_member == ctx.author:
-            raise commands.BadArgument('You cannot trade with yourself!')
+            raise commands.BadArgument("You cannot trade with yourself!")
 
         author_inventory = await self._get_inventory(ctx.author)
         other_inventory = await self._get_inventory(other_member)
         other_str = escape_markdown(other_member.display_name)
 
         if len(author_inventory) == 0:
-            raise NoFishError('You have no fish to trade!')
+            raise NoFishError("You have no fish to trade!")
 
         elif len(other_inventory) == 0:
-            raise NoFishError(f'{other_str} has no fish to trade!')
+            raise NoFishError(f"{other_str} has no fish to trade!")
 
         if not other_member.mentioned_in(ctx.message):
             other_str = other_member.mention
@@ -486,15 +486,15 @@ class Fishing(FunCog):
         other_ctx = await self.bot.get_context(msg, cls=type(ctx))
 
         confirm_msg = (
-            f'Hey {other_str}, '
-            f'{escape_markdown(ctx.author.display_name)} '
-            'wants to trade with you! Do you accept?'
+            f"Hey {other_str}, "
+            f"{escape_markdown(ctx.author.display_name)} "
+            "wants to trade with you! Do you accept?"
         )
 
         confirm = await menus.TradeConfirm(confirm_msg).prompt(other_ctx)
 
         if confirm:
-            await ctx.send('Trade accepted.', delete_after=5 * 60)
+            await ctx.send("Trade accepted.", delete_after=5 * 60)
             # start both menus and then transfer the fish
             author_menu = menus.TradeMenu(
                 source=menus.TradeSource(
@@ -522,7 +522,7 @@ class Fishing(FunCog):
             to_trade = [t.result() for t in done]
             to_trade = {t[0].id: t[1] for t in to_trade}
             if None in to_trade.values():
-                await ctx.send('Trade cancelled.', delete_after=5 * 60)
+                await ctx.send("Trade cancelled.", delete_after=5 * 60)
                 return
 
             # proceed to trade
@@ -530,10 +530,10 @@ class Fishing(FunCog):
             other_trade = other_inventory[to_trade[other_member.id]]
             await self._trade_fish(author_trade, other_trade)
 
-            await ctx.send('Trade successful!', delete_after=5 * 60)
+            await ctx.send("Trade successful!", delete_after=5 * 60)
 
         else:
-            await ctx.send('Trade denied.', delete_after=5 * 60)
+            await ctx.send("Trade denied.", delete_after=5 * 60)
 
     @fish_trade.before_invoke
     async def fish_trade_before(self, ctx):
@@ -557,11 +557,11 @@ class Fishing(FunCog):
 
         if isinstance(error, commands.MaxConcurrencyReached):
             name = error.per.name
-            suffix = f'for this {name}' if name != 'default' else 'globally'
-            await ctx.send(f'This command is already running {suffix}.')
+            suffix = f"for this {name}" if name != "default" else "globally"
+            await ctx.send(f"This command is already running {suffix}.")
 
         elif isinstance(error, commands.MissingRequiredArgument):
-            await ctx.send('You need to specify a member to trade with.')
+            await ctx.send("You need to specify a member to trade with.")
 
         elif isinstance(error, (commands.BadArgument, NoFishError)):
             await ctx.send(error)
@@ -573,7 +573,7 @@ class Fishing(FunCog):
     async def weather(self, ctx):
         """Check today's weather."""
 
-        await ctx.send(f'The weather currently is {self.weather}')
+        await ctx.send(f"The weather currently is {self.weather}")
 
     @weather.command(name='set')
     @commands.is_owner()
@@ -581,7 +581,7 @@ class Fishing(FunCog):
         """Set the weather to the given state (positive integer)."""
 
         self.weather = Weather(state)
-        await ctx.send(f'Weather set to {self.weather}')
+        await ctx.send(f"Weather set to {self.weather}")
 
     def _build_journal_from_rows(self, rows):
         """Convert a list of Rows to a defaultdict of Counters."""
@@ -598,15 +598,17 @@ class Fishing(FunCog):
         if member is not None:
             journal = await self._get_journal(member)
             total_weight = await self._get_journal_total_weight(member)
-            embed_title = ('Fishing Journal of '
-                           f'{escape_markdown(member.display_name)}')
+            embed_title = (
+                "Fishing Journal of "
+                f"{escape_markdown(member.display_name)}"
+            )
             thumbnail = member.avatar_url
 
         else:
             journal = await self._get_journal_global()
             total_weight = await self._get_journal_global_total_weight()
-            embed_title = 'Global Fishing Journal'
-            thumbnail = ''
+            embed_title = "Global Fishing Journal"
+            thumbnail = ""
 
         if total_weight is None:
             total_weight = 0
@@ -621,8 +623,8 @@ class Fishing(FunCog):
         species_caught = {size: len(journal.get(size, []))
                           for size in FISH_SPECIES}
 
-        species_caught_str = '\n'.join(
-            f'{size.title()}: **{species_caught[size]}/{total_species[size]}**'
+        species_caught_str = "\n".join(
+            f"{size.title()}: **{species_caught[size]}/{total_species[size]}**"
             for size in FISH_SPECIES.keys()
         )
 
@@ -630,24 +632,24 @@ class Fishing(FunCog):
                        for key, value in journal.items()
                        if len(value) > 0}
 
-        most_caught_str = '\n'.join((
-            f'{size.title()} '
-            f'**{get_fish_species_str(size, most_caught[size][0])} '
-            f'({most_caught[size][1]})**')
+        most_caught_str = "\n".join((
+            f"{size.title()} "
+            f"**{get_fish_species_str(size, most_caught[size][0])} "
+            f"({most_caught[size][1]})**")
             for size in most_caught.keys()
         )
 
         totals_str = (
-            'Species Caught: '
-            f'**{sum(species_caught.values())}'
-            f'/{sum(total_species.values())}**\n'
-            f'Catches: **{total_caught}**\n'
-            f'Weight Fished: **{total_weight:.0f} kg**'
+            "Species Caught: "
+            f"**{sum(species_caught.values())}"
+            f"/{sum(total_species.values())}**\n"
+            f"Catches: **{total_caught}**\n"
+            f"Weight Fished: **{total_weight:.0f} kg**"
         )
 
         graph = await self.bot.loop.run_in_executor(
             None, self._plot_journal_pie_chart, journal)
-        file = discord.File(graph, filename='pie.png')
+        file = discord.File(graph, filename="pie.png")
 
         embed = discord.Embed(
             title=embed_title,
@@ -655,16 +657,16 @@ class Fishing(FunCog):
         ).set_thumbnail(
             url=thumbnail,
         ).add_field(
-            name='Species Caught',
+            name="Species Caught",
             value=species_caught_str if species_caught_str else None,
         ).add_field(
-            name='Most Caught',
+            name="Most Caught",
             value=most_caught_str if most_caught_str else None,
         ).add_field(
-            name='Totals',
+            name="Totals",
             value=totals_str,
         ).set_image(
-            url=f'attachment://{file.filename}',
+            url=f"attachment://{file.filename}",
         )
 
         return embed, file
@@ -678,7 +680,7 @@ class Fishing(FunCog):
         ]
 
         fig, ax = plt.subplots(ncols=2, figsize=(7, 3.5))
-        title = ['Smaller Fish', 'Bigger Fish']
+        title = ["Smaller Fish", "Bigger Fish"]
         startangle = [180, 0]
 
         for i in range(2):
@@ -688,9 +690,9 @@ class Fishing(FunCog):
             for s in SIZES[i]:
                 x.append(sum(journal[s].values()))
                 if x[-1] > 0:
-                    labels.append(f'{s.title()} ({x[-1]})')
+                    labels.append(f"{s.title()} ({x[-1]})")
                 else:
-                    labels.append('')
+                    labels.append("")
                 colors.append(
                     to_mpl_rbg(
                         get_fish_size_color(s).to_rgb()
@@ -700,9 +702,9 @@ class Fishing(FunCog):
             if i == 0:
                 x.append(sum([sum(journal[s].values()) for s in SIZES[1]]))
                 if x[-1] > 0:
-                    labels.append('Bigger Fish')
+                    labels.append("Bigger Fish")
                 else:
-                    labels.append('')
+                    labels.append("")
                 colors.append([1, 0, 0])  # red
 
             ax[i].pie(x, labels=labels, colors=colors,
@@ -711,9 +713,9 @@ class Fishing(FunCog):
             ax[i].set_title(title[i])
 
         plt.tight_layout()
-        fig.suptitle('Fish Size Chart')
+        fig.suptitle("Fish Size Chart")
         buffer = io.BytesIO()
-        fig.savefig(buffer, format='png')
+        fig.savefig(buffer, format="png")
         plt.close(fig=fig)
         buffer.seek(0)
 

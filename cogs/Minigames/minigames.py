@@ -36,7 +36,7 @@ class Minigames(FunCog):
             pass
 
         elif isinstance(error, commands.MissingRequiredArgument):
-            await ctx.send('You need another player to play that game.')
+            await ctx.send("You need another player to play that game.")
 
         elif isinstance(error, commands.BadArgument):
             await ctx.send(error)
@@ -66,7 +66,7 @@ class Minigames(FunCog):
         """
         if other_player.bot or other_player == ctx.author:
             raise commands.BadArgument(
-                'Cannot play a game against that member.')
+                "Cannot play a game against that member.")
 
         game = Connect4(ctx, self.bot, other_player)
         await game.play()
@@ -79,7 +79,7 @@ class Minigames(FunCog):
         game = Hangman(ctx, self.bot)
         await game.play()
 
-    @commands.command(name='higherlower', aliases=['highlow', 'hilo'])
+    @commands.command(name="higherlower", aliases=["highlow", "hilo"])
     async def higher_lower(self, ctx):
         """A game of Higher-or-Lower.
         The player plays against the dealer (bot) for half a deck of cards.
@@ -93,14 +93,14 @@ class Minigames(FunCog):
         # Proposed by Princerbang
         pass
 
-    @commands.command(name='tictactoe')
+    @commands.command(name="tictactoe")
     async def tic_tac_toe(self, ctx, other_player: discord.Member = None):
         """A game of Tic-Tac-Toe with another member.
         Proposed by Princerbang.
         """
         if other_player.bot or other_player == ctx.author:
             raise commands.BadArgument(
-                'Cannot play a game against that member.')
+                "Cannot play a game against that member.")
 
         game = TicTacToe(ctx, self.bot, other_player)
         await game.play()
@@ -110,13 +110,13 @@ class Minigames(FunCog):
         # Proposed by Tant
         pass
 
-    @commands.command(name='rps', aliases=['rockpaperscissors'])
+    @commands.command(name="rps", aliases=["rockpaperscissors"])
     async def rock_paper_scissors(self, ctx, player_choice=''):
         """Play a game of Rock Paper Scissors.
         Contributed by danjono#8310!
         """
-        options_text: List[str] = ['rock', 'paper', 'scissors']
-        options_emoji: List[str] = [':full_moon:', ':newspaper:', ':scissors:']
+        options_text = ["rock", "paper", "scissors"]
+        options_emoji = [":full_moon:", ":newspaper:", ":scissors:"]
 
         # Convert answer to lowercase
         player_choice = player_choice.lower()
@@ -124,36 +124,36 @@ class Minigames(FunCog):
         # Give the bot a random choice
         i = np.random.randint(3)
         bot_choice = options_text[i]
-        bot_choice_message = 'I choose ' + bot_choice + '! ' + options_emoji[i]
+        bot_choice_message = f"I choose {bot_choice}! {options_emoji[i]}"
 
         if player_choice in options_text:
             await ctx.send(bot_choice_message)
 
-        player_win_message = 'You won! :cry:'
-        bot_win_message = 'You lose! :stuck_out_tongue_closed_eyes:'
+        player_win_message = "You won! :cry:"
+        bot_win_message = "You lose! :stuck_out_tongue_closed_eyes:"
 
         # Now to work out who won"
         if player_choice == bot_choice:
-            await ctx.send('It\'s a draw!')
-        elif (player_choice == 'rock') and (bot_choice == 'scissors'):
+            await ctx.send("It's a draw!")
+        elif (player_choice == "rock") and (bot_choice == "scissors"):
             await ctx.send(player_win_message)
-        elif (player_choice == 'rock') and (bot_choice == 'paper'):
+        elif (player_choice == "rock") and (bot_choice == "paper"):
             await ctx.send(bot_win_message)
-        elif (player_choice == 'paper') and (bot_choice == 'rock'):
+        elif (player_choice == "paper") and (bot_choice == "rock"):
             await ctx.send(player_win_message)
-        elif (player_choice == 'paper') and (bot_choice == 'scissors'):
+        elif (player_choice == "paper") and (bot_choice == "scissors"):
             await ctx.send(bot_win_message)
-        elif (player_choice == 'scissors') and (bot_choice == 'paper'):
+        elif (player_choice == "scissors") and (bot_choice == "paper"):
             await ctx.send(player_win_message)
-        elif (player_choice == 'scissors') and (bot_choice == 'rock'):
+        elif (player_choice == "scissors") and (bot_choice == "rock"):
             await ctx.send(bot_win_message)
         # Easter eggs!
-        elif player_choice == 'spock':
-            await ctx.send('Live long and prosper :vulcan:')
-        elif player_choice == 'dynamite' or player_choice == 'tnt':
+        elif player_choice == "spock":
+            await ctx.send("Live long and prosper :vulcan:")
+        elif player_choice == "dynamite" or player_choice == "tnt":
             await ctx.send(bot_choice_message)
-            await ctx.send('No wait that\'s cheati.. :fire: :fire: :fire:')
-        elif player_choice == 'lizard':
-            await ctx.send(':lizard:')
+            await ctx.send("No wait that's cheati.. :fire: :fire: :fire:")
+        elif player_choice == "lizard":
+            await ctx.send(":lizard:")
         else:
-            await ctx.send('Wait, that\'s not a valid move!')
+            await ctx.send("Wait, that's not a valid move!")

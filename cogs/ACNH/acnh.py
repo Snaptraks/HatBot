@@ -45,7 +45,7 @@ class ACNH(BasicCog):
             self.presence_task.cancel()
             return
 
-        game = discord.Game(name='Animal Crossing: New Horizons')
+        game = discord.Game(name="Animal Crossing: New Horizons")
         await self.bot.change_presence(activity=game)
 
     @presence_task.before_loop
@@ -83,7 +83,7 @@ class ACNH(BasicCog):
         )
         await menu.start(ctx)
 
-    @acnh.command(name='card', aliases=['passport', 'profile'])
+    @acnh.command(name="card", aliases=["passport", "profile"])
     async def acnh_card(self, ctx, member: discord.Member = None):
         """Check your or someone else's AC:NH profile card."""
 
@@ -96,40 +96,40 @@ class ACNH(BasicCog):
         resident_picture = discord.File(
             profile_picture, filename='resident_picture.png')
 
-        thumbnail_url = f'attachment://{resident_picture.filename}'
+        thumbnail_url = f"attachment://{resident_picture.filename}"
 
         embed = menus.make_profile_embed(member, profile_data, thumbnail_url)
 
         await ctx.send(embed=embed, file=resident_picture)
 
-    @acnh.command(name='creators', aliases=['creator', 'designs', 'design'])
+    @acnh.command(name="creators", aliases=["creator", "designs", "design"])
     async def acnh_creators(self, ctx):
         """Get the list of registered Creator IDs."""
 
         embed = await self._make_codes_embed(
-            ctx, 'creator_id', 'Creator IDs')
+            ctx, 'creator_id', "Creator IDs")
 
         await ctx.send(embed=embed)
 
-    @acnh.command(name='dreams', aliases=['dream'])
+    @acnh.command(name="dreams", aliases=["dream"])
     async def acnh_dreams(self, ctx):
         """Get the list of registered Dream Addresses."""
 
         embed = await self._make_codes_embed(
-            ctx, 'dream_address', 'Dream Addresses')
+            ctx, 'dream_address', "Dream Addresses")
 
         await ctx.send(embed=embed)
 
-    @acnh.command(name='friends', aliases=['friend'])
+    @acnh.command(name="friends", aliases=["friend"])
     async def acnh_friends(self, ctx):
         """Get the list of registered Friend Codes."""
 
         embed = await self._make_codes_embed(
-            ctx, 'friend_code', 'Friend Codes')
+            ctx, 'friend_code', "Friend Codes")
 
         await ctx.send(embed=embed)
 
-    @acnh.command(name='form')
+    @acnh.command(name="form")
     @commands.dm_only()
     async def acnh_form(self, ctx, *, form: str):
         """Send the filled out form and save it."""
@@ -150,32 +150,32 @@ class ACNH(BasicCog):
 
         # parse friend_code, creator_id and dream_address
         code_prefix = {
-            'friend_code': 'SW',
-            'creator_id': 'MA',
-            'dream_address': 'DA',
+            'friend_code': "SW",
+            'creator_id': "MA",
+            'dream_address': "DA",
         }
         for c in ('friend_code', 'creator_id', 'dream_address'):
             code = profile_data[c]
             if code is not None:
                 parsed = self._parse_acnh_code(code)
-                profile_data[c] = f'{code_prefix[c]}-{parsed}'
+                profile_data[c] = f"{code_prefix[c]}-{parsed}"
 
         await self._save_profile_data(ctx.author, profile_data)
 
-        await ctx.send('I successfully saved your information! Thank you!')
+        await ctx.send("I successfully saved your information! Thank you!")
 
     @acnh_form.error
     async def acnh_form_error(self, ctx, error):
         """Error handler for the form filing process."""
 
         await ctx.send(
-            'There was an error filling out the form. '
-            'Do not forget to copy-paste the form in full before '
-            'filling it out! (You can leave sections empty though)'
+            "There was an error filling out the form. "
+            "Do not forget to copy-paste the form in full before "
+            "filling it out! (You can leave sections empty though)"
         )
         raise error
 
-    @acnh.command(name='picture')
+    @acnh.command(name="picture")
     @commands.dm_only()
     async def acnh_picture(self, ctx):
         """Register a picture for the AC:NH profile card.
@@ -187,28 +187,26 @@ class ACNH(BasicCog):
 
         await self._save_profile_picture(ctx.author, picture)
 
-        await ctx.send('I successfully saved your picture! Thank you!')
+        await ctx.send("I successfully saved your picture! Thank you!")
 
     @acnh_picture.error
     async def acnh_picture_error(self, ctx, error):
         """Error handler for the acnh_picture command."""
 
-        await ctx.send(f'There was an error:\n{error}')
+        await ctx.send(f"There was an error:\n{error}")
 
-    @acnh.command(name='register')
+    @acnh.command(name="register")
     async def acnh_register(self, ctx):
         """Start the registration process for the AC:NH profile card."""
 
         member = ctx.author
         try:
             await member.send(
-                'Let\'s begin creating your Animal Crossing: New Horizons '
-                'profile card, shall we? I will ask you a few questions.'
+                "Let's begin creating your Animal Crossing: New Horizons "
+                "profile card, shall we? I will ask you a few questions."
             )
         except discord.Forbidden:
-            await ctx.send(
-                'I cannot send you private messages... :('
-            )
+            await ctx.send("I cannot send you private messages... :(")
             return
 
         with open(os.path.join(
@@ -216,41 +214,41 @@ class ACNH(BasicCog):
             template = Template(f.read())
 
         example_data = {
-            'resident_name': 'HatBot',
-            'island_name': 'HatLand',
-            'hemisphere': 'north',
-            'native_fruit': 'orange',
-            'friend_code': 'SW-1234-1234-1234',
-            'creator_id': '',
-            'dream_address': 'DA-9012-9012-9012',
+            'resident_name': "HatBot",
+            'island_name': "HatLand",
+            'hemisphere': "north",
+            'native_fruit': "orange",
+            'friend_code': "SW-1234-1234-1234",
+            'creator_id': "",
+            'dream_address': "DA-9012-9012-9012",
         }
 
         hint_data = {
-            'resident_name': '<Name Here>',
-            'island_name': '<Island Name Here>',
-            'hemisphere': '<north or south>',
-            'native_fruit': '<apple, cherry, orange, peach, or pear>',
-            'friend_code': 'SW-xxxx-xxxx-xxxx',
-            'creator_id': 'MA-xxxx-xxxx-xxxx',
-            'dream_address': 'DA-xxxx-xxxx-xxxx',
+            'resident_name': "<Name Here>",
+            'island_name': "<Island Name Here>",
+            'hemisphere': "<north or south>",
+            'native_fruit': "<apple, cherry, orange, peach, or pear>",
+            'friend_code': "SW-xxxx-xxxx-xxxx",
+            'creator_id': "MA-xxxx-xxxx-xxxx",
+            'dream_address': "DA-xxxx-xxxx-xxxx",
         }
 
         await member.send(
-            'I would like some information first. I will send you a form '
-            'that you will need to fill out. Once it is done you can send it '
-            'back with the command `!acnh form <copy filled form here>`.'
-            'Here is an example of a command with the filled form, with'
-            'possible data ommited if you do not want to provide it:\n'
-            f'```\n!acnh form\n{template.substitute(example_data)}\n```\n'
-            'You can also upload a picture of your character! '
-            'Simply send the command `!acnh picture` with the file attached '
-            'to the message, and you will be good to go!\n'
-            f'Here is the form:'
+            "I would like some information first. I will send you a form "
+            "that you will need to fill out. Once it is done you can send it "
+            "back with the command `!acnh form <copy filled form here>`."
+            "Here is an example of a command with the filled form, with"
+            "possible data ommited if you do not want to provide it:\n"
+            f"```\n!acnh form\n{template.substitute(example_data)}\n```\n"
+            "You can also upload a picture of your character! "
+            "Simply send the command `!acnh picture` with the file attached "
+            "to the message, and you will be good to go!\n"
+            f"Here is the form:"
         )
 
-        await member.send(f'```\n{template.substitute(hint_data)}```')
+        await member.send(f"```\n{template.substitute(hint_data)}```")
 
-    @acnh.command(name='update')
+    @acnh.command(name="update")
     @commands.dm_only()
     async def acnh_update(self, ctx, *, form: str = None):
         """Update your AC:NH profile information."""
@@ -272,23 +270,21 @@ class ACNH(BasicCog):
             try:
                 profile_data['hemisphere'] = objects.PROFILE_HEMISPHERE[hem]
             except TypeError:
-                profile_data['hemisphere'] = ''
+                profile_data['hemisphere'] = ""
 
             fruit = profile_data['native_fruit']
             try:
                 profile_data['native_fruit'] = objects.PROFILE_FRUIT[fruit]
             except TypeError:
-                profile_data['native_fruit'] = ''
+                profile_data['native_fruit'] = ""''""
 
             await ctx.send(
-                'You requested to update your AC:NH profile information. '
-                'Here is what you have provided already, you can copy it '
-                'and edit what you want to add or remove, then send it back '
-                'with the command `!acnh update <copy filled form here>`.'
+                "You requested to update your AC:NH profile information. "
+                "Here is what you have provided already, you can copy it "
+                "and edit what you want to add or remove, then send it back "
+                "with the command `!acnh update <copy filled form here>`."
             )
-            await ctx.send(
-                f'```\n{template.substitute(profile_data)}\n```'
-            )
+            await ctx.send(f"```\n{template.substitute(profile_data)}\n```")
 
         else:
             # call the acnh_form method with the form
@@ -301,11 +297,11 @@ class ACNH(BasicCog):
         for code in codes:
             if code[code_type] is not None:
                 member = ctx.guild.get_member(code['user_id'])
-                line = f'{member.mention}: **{code[code_type]}**'
+                line = f"{member.mention}: **{code[code_type]}**"
                 lines.append(line)
 
         embed = discord.Embed(
-            title=f'Animal Crossing: New Horizons {embed_title}',
+            title=f"Animal Crossing: New Horizons {embed_title}",
             timestamp=datetime.utcnow(),
             color=objects.PROFILE_EMBED_COLOR,
             description='\n'.join(lines),
@@ -340,7 +336,7 @@ class ACNH(BasicCog):
             digits = re.findall(extract_digits, code)
 
         else:
-            raise InvalidCode(f'Code {code} is not valid.')
+            raise InvalidCode(f"Code {code} is not valid.")
 
         return '-'.join(digits)
 

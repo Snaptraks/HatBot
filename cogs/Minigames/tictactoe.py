@@ -19,7 +19,7 @@ class Board:
         if self.board[position] == 0:
             self.board[position] = player
         else:
-            raise ValueError('Position already taken.')
+            raise ValueError("Position already taken.")
 
     def check_winner(self, player):
         """Check if the board has a winning configuration for the player."""
@@ -47,7 +47,7 @@ class Board:
     def __repr__(self):
         """Represents the board visually, for debug purposes."""
 
-        rep = '\n'.join(str(line) for line in self.board.T)
+        rep = "\n".join(str(line) for line in self.board.T)
         return rep
 
 
@@ -65,10 +65,9 @@ class TicTacToe:
 
         self.embed = discord.Embed(
             title=None,
-            type='rich',
             color=np.random.randint(0xFFFFFF),  # Random color
         ).add_field(
-            name='Tic-Tac-Toe',
+            name="Tic-Tac-Toe",
             value=None,  # will be filled later
         )
 
@@ -78,7 +77,7 @@ class TicTacToe:
         player = 0
         turn = 0
         tokens = [emoji.TicTacToe.O.value, emoji.TicTacToe.X.value]
-        hint_message = 'Please wait, setting things up...'
+        hint_message = "Please wait, setting things up..."
         self.update_embed(hint_message, player)
         self.message_game = await self.ctx.send(embed=self.embed)
         for pos in self.emoji_positions:
@@ -86,8 +85,8 @@ class TicTacToe:
 
         while self.winner == 0 and turn < 9:
             hint_message = (
-                f'It is {self.players[player].display_name}\'s turn! '
-                f'{tokens[player]}'
+                f"It is {self.players[player].display_name}'s turn! "
+                f"{tokens[player]}"
             )
             self.update_embed(hint_message, player)
             await self.message_game.edit(embed=self.embed)
@@ -123,7 +122,7 @@ class TicTacToe:
             try:
                 self.board.player_play(player + 1, position)
             except ValueError:
-                hint_message = 'Try another position.'
+                hint_message = "Try another position."
                 self.update_embed(hint_message, player)
                 await self.message_game.edit(embed=self.embed)
                 await asyncio.sleep(2)
@@ -138,11 +137,11 @@ class TicTacToe:
 
         if self.winner != 0:
             hint_message = (
-                f'{self.players[player].display_name} won! '
-                f'{tokens[player]}'
+                f"{self.players[player].display_name} won! "
+                f"{tokens[player]}"
             )
         else:
-            hint_message = f'It is a tie!'
+            hint_message = "It is a tie!"
 
         self.update_embed(hint_message, player)
         await self.message_game.edit(embed=self.embed)
@@ -175,7 +174,7 @@ class TicTacToe:
         int_to_emoji = np.vectorize(lambda i: tokens[i])
         graphics = int_to_emoji(self.board.board).reshape((3, 3))
 
-        graphics_str = '\n'.join(' '.join(i for i in col)
+        graphics_str = "\n".join(" ".join(i for i in col)
                                  for col in graphics)
 
         return graphics_str

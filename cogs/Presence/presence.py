@@ -54,9 +54,9 @@ class Presence(BasicCog):
             print(before.activities)
             print(after.activities)
             print(streaming_before, streaming_after)
-            print('==:', streaming_before == streaming_after)
-            print('!=:', streaming_before != streaming_after)
-            print('before is not None AND after is None:',
+            print("==:", streaming_before == streaming_after)
+            print("!=:", streaming_before != streaming_after)
+            print("before is not None AND after is None:",
                   streaming_before is not None and streaming_after is None)
 
         # exit early if no changes were made to the Streaming activities
@@ -91,7 +91,7 @@ class Presence(BasicCog):
 
         else:
             print(
-                'WEIRD MEMBER_UPDATE EVENT',
+                "WEIRD MEMBER_UPDATE EVENT",
                 streaming_before,
                 streaming_after)
 

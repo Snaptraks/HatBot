@@ -47,14 +47,14 @@ class Giveaways(BasicCog):
         with open(os.path.join(self._cog_path, 'keys_given.txt'), 'w') as f:
             f.write('\n'.join(self.steam_keys_given))
 
-    @commands.group(aliases=['ga'])
+    @commands.group(aliases=["ga"])
     async def giveaway(self, ctx):
         """Commands to control the giveaways."""
 
         pass
 
     @commands.is_owner()
-    @giveaway.command(name='start')
+    @giveaway.command(name="start")
     async def giveaway_start(self, ctx):
         """Start the giveaways to create one at regular interval."""
 
@@ -63,22 +63,22 @@ class Giveaways(BasicCog):
             self.giveaway_master_task.start(ctx)
         except RuntimeError as e:
             await ctx.message.delete()
-            await ctx.send('Task alread running.', delete_after=15)
+            await ctx.send("Task alread running.", delete_after=15)
 
     @commands.is_owner()
-    @giveaway.command(name='stop')
+    @giveaway.command(name="stop")
     async def giveaway_stop(self, ctx):
         """Stop the giveaways."""
 
         self.giveaway_master_task.cancel()
 
     @commands.is_owner()
-    @giveaway.command(name='reload')
+    @giveaway.command(name="reload")
     async def giveaway_reload(self, ctx):
         """Reload the list of games."""
         self._load_games()
         await ctx.send(
-            f'Reloaded list of games ({len(self.steam_keys)} games)')
+            f"Reloaded list of games ({len(self.steam_keys)} games)")
 
     @has_role_or_above('Mod')
     @giveaway.command(name='trigger')
@@ -88,17 +88,15 @@ class Giveaways(BasicCog):
         self.bot.loop.create_task(self.giveaway_task(ctx))
 
     # @commands.is_owner()
-    @giveaway.group(name='remaining', invoke_without_command=True)
+    @giveaway.group(name="remaining", invoke_without_command=True)
     async def giveaway_remaining(self, ctx):
         """Count of the remaining available games for the giveaway."""
 
         remaining = self._get_remaining()
 
-        await ctx.send(
-            f'{len(remaining)} remaining games.'
-        )
+        await ctx.send(f"{len(remaining)} remaining games.")
 
-    @giveaway_remaining.command(name='list')
+    @giveaway_remaining.command(name="list")
     async def giveaway_remaining_list(self, ctx):
         """List of the remaining available games for the giveaway."""
 
@@ -106,8 +104,8 @@ class Giveaways(BasicCog):
         remaining_str = '\n'.join(remaining)
 
         await ctx.send(
-            f'{len(remaining)} remaining games:\n'
-            f'```\n{remaining_str}\n```'
+            f"{len(remaining)} remaining games:\n"
+            f"```\n{remaining_str}\n```"
         )
 
     def _get_remaining(self):
@@ -132,7 +130,7 @@ class Giveaways(BasicCog):
         """
         if len(self.steam_keys) == len(self.steam_keys_given):
             # if all keys have been given out, exit ASAP
-            await ctx.send('No more keys!')
+            await ctx.send("No more keys!")
             # stop the master task just in case
             self.giveaway_master_task.cancel()
             return
@@ -144,11 +142,11 @@ class Giveaways(BasicCog):
         self._save_keys_given(game_info[1])
 
         embed = discord.Embed(
-            title='Giveaway!',
+            title="Giveaway!",
             color=0xB3000C,
             description=(
-                f'We are giving away [**{game_info[0]}**]({game_info[2]})!\n'
-                f'React with {GIFT_EMOJI} to enter!'
+                f"We are giving away [**{game_info[0]}**]({game_info[2]})!\n"
+                f"React with {GIFT_EMOJI} to enter!"
             )
         )
         giveaway_end = datetime.now(timezone.utc) + GIVEAWAY_TIME
@@ -181,21 +179,21 @@ class Giveaways(BasicCog):
 
         try:
             await giveaway_winner.send(
-                f'Congratulations! You won the giveaway for '
-                f'**{game_info[0]}**!\n'
-                f'Your Steam key is ||{game_info[1]}|| .'
+                f"Congratulations! You won the giveaway for "
+                f"**{game_info[0]}**!\n"
+                f"Your Steam key is ||{game_info[1]}|| ."
             )
         except discord.Forbidden as e:
             app_info = await self.bot.application_info()
             await app_info.owner.send(
-                f'Could not DM {giveaway_winner.display_name} '
-                f'({giveaway_winner.mention}). They won the giveaway for '
-                f'**{game_info[0]}** with key ||{game_info[1]}||.'
+                f"Could not DM {giveaway_winner.display_name} "
+                f"({giveaway_winner.mention}). They won the giveaway for "
+                f"**{game_info[0]}** with key ||{game_info[1]}||."
             )
 
         embed.description = (
-            f'{giveaway_winner.display_name} won the giveaway for '
-            f'[**{game_info[0]}**]({game_info[2]}). Congrats to them!'
+            f"{giveaway_winner.display_name} won the giveaway for "
+            f"[**{game_info[0]}**]({game_info[2]}). Congrats to them!"
         )
 
         await giveaway_message.edit(embed=embed)
@@ -207,11 +205,11 @@ class Giveaways(BasicCog):
     @giveaway_master_task.after_loop
     async def giveaway_master_after_loop(self):
         if self.giveaway_master_task.is_being_cancelled():
-            await self.giveaway_master_task.ctx.send('Giveaway was stopped.')
+            await self.giveaway_master_task.ctx.send("Giveaway was stopped.")
 
         elif self.giveaway_master_task.failed():
             await self.giveaway_master_task.ctx.send(
-                'An exception occured. Contact the Tech!')
+                "An exception occured. Contact the Tech!")
 
         else:
-            await self.giveaway_master_task.ctx.send('No more keys!')
+            await self.giveaway_master_task.ctx.send("No more keys!")

@@ -36,7 +36,7 @@ class Responses(BasicCog):
     def cog_unload(self):
         super().cog_unload()
 
-    @commands.Cog.listener(name='on_reaction_add')
+    @commands.Cog.listener(name="on_reaction_add")
     async def react(self, reaction, user):
         """Sometimes react to a message after someone adds a reaction."""
 
@@ -51,7 +51,7 @@ class Responses(BasicCog):
                 except discord.NotFound:  # if message gets deleted before
                     pass
 
-    @commands.Cog.listener(name='on_message')
+    @commands.Cog.listener(name="on_message")
     async def on_mention(self, message):
         """Send a funny reply when the bot is mentionned."""
 
@@ -68,15 +68,15 @@ class Responses(BasicCog):
             await self.send_typing_delay(message.channel)
             await message.channel.send(out)
 
-    @commands.Cog.listener(name='on_message')
+    @commands.Cog.listener(name="on_message")
     async def hello_there(self, message):
         """Send a picture if 'hello there' is in a message."""
 
-        if 'hello there' in message.content.lower() \
+        if "hello there" in message.content.lower() \
                 and not message.author.bot \
                 and not message.content.startswith(self.bot.command_prefix) \
                 and self.bot.user.mention not in message.content \
-                and message.channel.name != 'general':
+                and message.channel.name != "general":
 
             dt = datetime.utcnow() - self.hello_there_params['last_time']
 
@@ -92,10 +92,10 @@ class Responses(BasicCog):
     async def they_said(self, message):
         """Reply with the last message IN CAPS."""
 
-        whats = ('what', 'whut', 'whot', 'wat', 'wut', 'wot')
+        whats = ("what", "whut", "whot", "wat", "wut", "wot")
 
         if message.content.lower() in whats \
-                and message.channel.name != 'general':
+                and message.channel.name != "general":
 
             author = message.author
             channel = message.channel
@@ -154,11 +154,11 @@ class Responses(BasicCog):
                     out_content = m.content.upper()
 
                     if message.content == message.content.upper():
-                        prefix = 'THEY SAID'
+                        prefix = "THEY SAID"
                     else:
-                        prefix = 'They said'
+                        prefix = "They said"
 
-                    content = '{} **{}**'.format(prefix, out_content)
+                    content = f'{prefix} **{out_content}**'
                     await self.send_typing_delay(channel)
                     await channel.send(content)
                     # print('Sent they_said at i={} ({})'.format(i, out_content))

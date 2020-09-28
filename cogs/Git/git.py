@@ -16,7 +16,7 @@ class Git(BasicCog):
                 pass
             self.repo_url = f.readline().split()[-1]
 
-    @commands.group(aliases=['git'])
+    @commands.group(aliases=["git"])
     async def github(self, ctx):
         """Print the link for the GitHub repository."""
 
@@ -27,4 +27,4 @@ class Git(BasicCog):
     async def github_issues(self, ctx):
         """Print the link to the Issues page of the repository."""
 
-        await ctx.send(self.repo_url + '/issues')
+        await ctx.send(self.repo_url + "/issues")

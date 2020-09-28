@@ -11,14 +11,14 @@ from ..utils.cogs import FunCog
 
 
 CANDY = [
-    '\U0001F36B',  # :chocolate_bar:
-    '\U0001F36C',  # :candy:
-    '\U0001F36D',  # :lollipop:
+    "\U0001F36B",  # :chocolate_bar:
+    "\U0001F36C",  # :candy:
+    "\U0001F36D",  # :lollipop:
 ]
 
 BUG = [
-    '\U0001F41C',  # :ant:
-    '\U0001F577',  # :spider:
+    "\U0001F41C",  # :ant:
+    "\U0001F577",  # :spider:
 ]
 
 TRICK_DELAY = 15 * 60  # 15 minutes
@@ -66,7 +66,7 @@ def format_candy_bag(row):
     side = int(np.sqrt(n_candy))
     candy_array = np.array_split(candy_list, side)
 
-    return '\n'.join(' '.join(row) for row in candy_array)
+    return "\n".join(" ".join(row) for row in candy_array)
 
 
 async def curse_check(ctx):
@@ -209,10 +209,10 @@ class Halloween(FunCog):
 
         # change nickname
         await discord.utils.sleep_until(week_before)
-        await bot_member.edit(nick='BatBot')
+        await bot_member.edit(nick="BatBot")
         # remind owner to change avatar
         await self.bot.owner.send(
-            'Please change my picture to the Halloween one!'
+            "Please change my picture to the Halloween one!"
         )
 
         # reset nickname to normal
@@ -220,7 +220,7 @@ class Halloween(FunCog):
         await bot_member.edit(nick=None)
         # remind owner to change avatar
         await self.bot.owner.send(
-            'Please change my picture to the Normal one!'
+            "Please change my picture to the Normal one!"
         )
 
     @commands.Cog.listener()
@@ -298,10 +298,10 @@ class Halloween(FunCog):
             name=ctx.author.display_name,
             icon_url=ctx.author.avatar_url_as(static_format='png'),
         ).add_field(
-            name='Content of your Halloween bag',
+            name="Content of your Halloween bag",
             value=bag,
         ).set_footer(
-            text='Happy Halloween!'
+            text="Happy Halloween!"
         )
 
         await ctx.send(embed=embed)
@@ -389,7 +389,7 @@ class Halloween(FunCog):
             new_nickname = await self.change_nickname(ctx.author)
             suffix = (
                 "IT'S A TRICK! Hahaha! Poof your name is now "
-                f'**{new_nickname}**! Happy Halloween! :jack_o_lantern:'
+                f"**{new_nickname}**! Happy Halloween! :jack_o_lantern:"
             )
 
             await ctx.send(f'{prefix}{suffix}')
@@ -398,7 +398,7 @@ class Halloween(FunCog):
         else:
             # TREAT
             candy_id, candy = get_random_candy()
-            suffix = f'I have some candy! Happy Halloween! {candy}'
+            suffix = f"I have some candy! Happy Halloween! {candy}"
 
             await ctx.send(f'{prefix}{suffix}')
             await self._give_candy(ctx.author, candy_id)
@@ -414,9 +414,9 @@ class Halloween(FunCog):
         old_nickname = ctx.author.display_name
         new_nickname = await self.change_nickname(ctx.author)
         content = (
-            'Oh, you want a trick? Well here you go!\n'
-            f'Your name is now **{new_nickname}**! Happy Halloween! '
-            ':jack_o_lantern:'
+            "Oh, you want a trick? Well here you go!\n"
+            f"Your name is now **{new_nickname}**! Happy Halloween! "
+            ":jack_o_lantern:"
         )
 
         await ctx.send(content)
@@ -428,7 +428,7 @@ class Halloween(FunCog):
         new_nickname = f'{first} {last}'
 
         try:
-            await member.edit(nick=new_nickname, reason='Halloween Trick')
+            await member.edit(nick=new_nickname, reason="Halloween Trick")
 
         except discord.Forbidden:
             # we don't have permissions, just ignore it
@@ -444,7 +444,7 @@ class Halloween(FunCog):
         try:
             await member.edit(
                 nick=old_nickname,
-                reason='Revert Halloween Trick'
+                reason="Revert Halloween Trick"
             )
 
         except discord.Forbidden:

@@ -63,10 +63,10 @@ class Dev(BasicCog):
 
     def get_syntax_error(self, e):
         if e.text is None:
-            return f'```py\n{e.__class__.__name__}: {e}\n```'
+            return f"```py\n{e.__class__.__name__}: {e}\n```"
         return (
-            f'```py\n{e.text}{"^":>{e.offset}}\n'
-            f'{e.__class__.__name__}: {e}```'
+            f"```py\n{e.text}{"^":>{e.offset}}\n"
+            f"{e.__class__.__name__}: {e}```"
         )
 
     @commands.command(name='eval')
@@ -90,16 +90,16 @@ class Dev(BasicCog):
                 r"^(return|import|for|while|def|class|"
                 r"from|exit|[a-zA-Z0-9]+\s*=)", body, re.M) \
                 and len(body.split("\n")) == 1:
-            body = f'return {body}'
+            body = f"return {body}"
 
         stdout = io.StringIO()
 
-        to_compile = f'async def func():\n{textwrap.indent(body, "  ")}'
+        to_compile = f"async def func():\n{textwrap.indent(body, '  ')}"
 
         try:
             exec(to_compile, env)
         except Exception as e:
-            return await ctx.send(f'```py\n{e.__class__.__name__}: {e}\n```')
+            return await ctx.send(f"```py\n{e.__class__.__name__}: {e}\n```")
 
         func = env['func']
         try:
@@ -107,7 +107,7 @@ class Dev(BasicCog):
                 ret = await func()
         except Exception:
             value = stdout.getvalue()
-            await ctx.send(f'```py\n{value}{traceback.format_exc()}\n```')
+            await ctx.send(f"```py\n{value}{traceback.format_exc()}\n```")
         else:
             value = stdout.getvalue()
             try:
@@ -117,10 +117,10 @@ class Dev(BasicCog):
 
             if ret is None:
                 if value:
-                    await ctx.send(f'```py\n{value}\n```')
+                    await ctx.send(f"```py\n{value}\n```")
             else:
                 self._last_result = ret
-                await ctx.send(f'```py\n{value}{ret}\n```')
+                await ctx.send(f"```py\n{value}{ret}\n```")
 
     @commands.command()
     @commands.max_concurrency(1, commands.BucketType.channel)
@@ -137,13 +137,15 @@ class Dev(BasicCog):
             '_': None,
         }
 
-        await ctx.send(('Enter code to execute or evaluate. '
-                        '`exit()` or `quit` to exit.'))
+        await ctx.send(
+            "Enter code to execute or evaluate. "
+            "`exit()` or `quit` to exit."
+        )
 
         def check(m):
             return m.author.id == ctx.author.id and \
                 m.channel.id == ctx.channel.id and \
-                m.content.startswith('`')
+                m.content.startswith("`")
 
         while True:
             try:
@@ -153,20 +155,20 @@ class Dev(BasicCog):
                     timeout=10.0 * 60.0
                 )
             except asyncio.TimeoutError:
-                await ctx.send('Exiting REPL session.')
+                await ctx.send("Exiting REPL session.")
                 break
 
             cleaned = self.cleanup_code(response.content)
 
-            if cleaned in ('quit', 'exit', 'exit()'):
-                await ctx.send('Exiting.')
+            if cleaned in ("quit", "exit", "exit()"):
+                await ctx.send("Exiting.")
                 return None
 
             executor = exec
             if cleaned.count('\n') == 0:
                 # single statement, potentially 'eval'
                 try:
-                    code = compile(cleaned, '<repl session>', 'eval')
+                    code = compile(cleaned, "<repl session>", "eval")
                 except SyntaxError:
                     pass
                 else:
@@ -174,7 +176,7 @@ class Dev(BasicCog):
 
             if executor is exec:
                 try:
-                    code = compile(cleaned, '<repl session>', 'exec')
+                    code = compile(cleaned, "<repl session>", "exec")
                 except SyntaxError as e:
                     await ctx.send(self.get_syntax_error(e))
                     continue
@@ -191,33 +193,35 @@ class Dev(BasicCog):
                         result = await result
             except Exception:
                 value = stdout.getvalue()
-                fmt = f'```py\n{value}{traceback.format_exc()}\n```'
+                fmt = f"```py\n{value}{traceback.format_exc()}\n```"
             else:
                 value = stdout.getvalue()
                 if result is not None:
-                    fmt = f'```py\n{value}{result}\n```'
+                    fmt = f"```py\n{value}{result}\n```"
                     variables['_'] = result
                 elif value:
-                    fmt = f'```py\n{value}\n```'
+                    fmt = f"```py\n{value}\n```"
 
             try:
                 if fmt is not None:
                     if len(fmt) > 2000:
-                        await ctx.send('Content too big to be printed.')
+                        await ctx.send("Content too big to be printed.")
                     else:
                         await ctx.send(fmt)
             except discord.Forbidden:
                 pass
             except discord.HTTPException as e:
-                await ctx.send(f'Unexpected error: `{e}`')
+                await ctx.send(f"Unexpected error: `{e}`")
 
     @repl.error
     async def repl_error(self, ctx, error):
         """Error hangling for the repl command."""
 
         if isinstance(error, commands.MaxConcurrencyReached):
-            await ctx.send(('Already running a REPL session. '
-                            'Exit it with `exit` or `quit`.'))
+            await ctx.send(
+                "Already running a REPL session. "
+                "Exit it with `exit` or `quit`."
+            )
 
         else:
             raise error
@@ -284,7 +288,7 @@ class Dev(BasicCog):
 
         if len(characters) > 1:
             embed.add_field(
-                name='Raw',
+                name="Raw",
                 value=f"`{''.join(rawlist)}`",
                 inline=False,
             )

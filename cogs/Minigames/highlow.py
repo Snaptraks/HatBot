@@ -26,21 +26,20 @@ class HighLow:
 
         self.embed = discord.Embed(
             title=None,
-            type='rich',
             color=np.random.randint(0xFFFFFF),  # Random color
         ).set_author(
             name=self.ctx.author.display_name,
             icon_url=self.ctx.author.avatar_url_as(static_format='png'),
         ).add_field(
-            name='Higher or Lower?',
+            name="Higher or Lower?",
             value=None,  # will be filled later
             inline=False,
         ).add_field(
-            name='Previous Card',
+            name="Previous Card",
             value=None,  # will be filled later
             inline=True,
         ).add_field(
-            name='Next Card',
+            name="Next Card",
             value=None,  # will be filled later
             inline=True,
         )
@@ -48,7 +47,7 @@ class HighLow:
     async def play(self):
         self.prev_card = self.deck.pop_card()
 
-        self.update_embed('Please wait, setting things up...', hide_next=True)
+        self.update_embed("Please wait, setting things up...", hide_next=True)
         self.message_game = await self.ctx.send(embed=self.embed)
 
         def check(reaction, user):
@@ -62,14 +61,14 @@ class HighLow:
             await self.message_game.add_reaction(move)
 
         dstr = {
-            emoji.HighLow.HIGH.value: 'higher',
-            emoji.HighLow.LOW.value: 'lower',
+            emoji.HighLow.HIGH.value: "higher",
+            emoji.HighLow.LOW.value: "lower",
         }
 
         while len(self.deck) > 0:
             self.next_card = self.deck.pop_card()
 
-            self.update_embed('Higher or Lower?', hide_next=True)
+            self.update_embed("Higher or Lower?", hide_next=True)
             await self.message_game.edit(embed=self.embed)
 
             # guess = input('Higher or Lower? ').upper()
@@ -87,15 +86,15 @@ class HighLow:
             prev_lower_than_next = self.prev_card.rank < self.next_card.rank
 
             if self.prev_card.rank == self.next_card.rank:
-                hint_message = 'Actually, that was mean.'
+                hint_message = "Actually, that was mean."
 
             elif (move == emoji.HighLow.HIGH.value
                     and prev_lower_than_next) or \
                     (move == emoji.HighLow.LOW.value
                      and not prev_lower_than_next):
                 hint_message = (
-                    f'Yep! {self.next_card} is {dstr[move]} '
-                    f'than {self.prev_card}.'
+                    f"Yep! {self.next_card} is {dstr[move]} "
+                    f"than {self.prev_card}."
                 )
                 self.player_score += 1
 
@@ -104,7 +103,7 @@ class HighLow:
                 break
 
             else:
-                hint_message = 'Nope!'
+                hint_message = "Nope!"
                 self.dealer_score += 1
 
             self.update_embed(hint_message, hide_next=False)
@@ -115,16 +114,16 @@ class HighLow:
 
         # print('No more cards!')
         # print(f'Dealer: {self.dealer_score}\nPlayer: {self.player_score}')
-        self.update_embed('No more cards!', hide_next=True)
+        self.update_embed("No more cards!", hide_next=True)
         await self.message_game.edit(embed=self.embed)
 
         await self.message_game.clear_reactions()
 
     def update_embed(self, hint_message, hide_next):
         score_str = (
-            f'You got **{self.player_score}** guesses right, '
-            f'and {self.dealer_score} wrong.\n'
-            f'({len(self.deck)} cards left in the deck)'
+            f"You got **{self.player_score}** guesses right, "
+            f"and {self.dealer_score} wrong.\n"
+            f"({len(self.deck)} cards left in the deck)"
         )
 
         self.embed.set_field_at(

@@ -45,27 +45,27 @@ class ReminderSource(menus.ListPageSource):
         if page['rowid'] not in menu.to_cancel:
             remaining = pretty_print_timedelta(until)
         else:
-            remaining = 'Cancelled'
+            remaining = "Cancelled"
 
         embed = discord.Embed(
             color=discord.Color.blurple(),
             description=page['message'],
         ).set_author(
-            name=f'Reminders for {menu.ctx.author.display_name}',
+            name=f"Reminders for {menu.ctx.author.display_name}",
             icon_url=menu.ctx.author.avatar_url,
         ).add_field(
-            name='Remaining',
+            name="Remaining",
             value=remaining,
         ).add_field(
-            name='Created',
+            name="Created",
             value=(
-                f'[{pretty_print_timedelta(since)} ago]'
+                f"[{pretty_print_timedelta(since)} ago]"
                 f"({page['jump_url']})"
             ),
         ).set_footer(
             text=(
-                f'Reminder {menu.current_page + 1}/{self.get_max_pages()} '
-                f'| {CANCEL_EMOJI} to toggle cancellation'
+                f"Reminder {menu.current_page + 1}/{self.get_max_pages()} "
+                f"| {CANCEL_EMOJI} to toggle cancellation"
             ),
         )
 

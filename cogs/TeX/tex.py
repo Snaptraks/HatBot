@@ -62,7 +62,7 @@ class TeX(BasicCog):
         for i, match in enumerate(matches):
             tempfile = f'{message.id}_{i}'
             with open(f'{LATEX_TEMP_PATH}{tempfile}.tex', 'w') as f:
-                f.write(LATEX_FILE.replace('%equation%', match.strip('$')))
+                f.write(LATEX_FILE.replace("%equation%", match.strip("$")))
 
             for cmd in get_latex_cmds(tempfile):
                 process = await asyncio.create_subprocess_exec(
@@ -72,7 +72,7 @@ class TeX(BasicCog):
                 )
                 await process.wait()
 
-            file = discord.File(f'{LATEX_TEMP_PATH}{tempfile}-1.png')
+            file = discord.File(f"{LATEX_TEMP_PATH}{tempfile}-1.png")
             await message.channel.send(file=file)
 
     @tasks.loop(hours=1)

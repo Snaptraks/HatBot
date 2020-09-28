@@ -12,7 +12,7 @@ with open('cogs/Minigames/hangman_words.pkl', 'rb') as f:
     WORD_LIST = pickle.load(f)
 
 
-VALID_CHARACTERS = 'abcdefghijklmnopqrstuvwxyz'
+VALID_CHARACTERS = "abcdefghijklmnopqrstuvwxyz"
 
 
 HANGMAN_LIMBS = [
@@ -40,21 +40,20 @@ class Hangman:
 
         self.embed = discord.Embed(
             title=None,
-            type='rich',
             color=np.random.randint(0xFFFFFF),  # Random color
         ).set_author(
             name=self.ctx.author.display_name,
             icon_url=self.ctx.author.avatar_url_as(static_format='png'),
         ).add_field(
-            name='Hangman',
+            name="Hangman",
             value=None,  # will be filled later
             inline=True,
         ).add_field(
-            name='Bad Guesses',
+            name="Bad Guesses",
             value=None,
             inline=True,
         ).add_field(
-            name='Guess the word!',
+            name="Guess the word!",
             value=None,  # will be filled after
             inline=False,
         )
@@ -66,10 +65,10 @@ class Hangman:
             valid = (message.author == self.ctx.author and
                      message.channel == self.ctx.channel) and \
                 (len(message.content) == 1 or
-                 message.content.lower() == 'cancel')
+                 message.content.lower() == "cancel")
             return valid
 
-        hint_message = 'Guess the word! Enter a letter to begin.'
+        hint_message = "Guess the word! Enter a letter to begin."
         self.update_embed(hint_message)
         self.message_game = await self.ctx.send(embed=self.embed)
 
@@ -88,23 +87,23 @@ class Hangman:
             guess = guess_message.content.lower()
             await guess_message.delete(delay=1)
 
-            if guess.lower() == 'cancel':
+            if guess.lower() == "cancel":
                 break
 
             elif guess not in VALID_CHARACTERS:
-                hint_message = 'Please enter a single letter'
+                hint_message = "Please enter a single letter"
 
             elif guess in self.good_guesses + self.bad_guesses:
-                hint_message = 'You already tried that one.'
+                hint_message = "You already tried that one."
 
             elif guess not in self.word_to_guess:
                 self.chances -= 1
                 self.bad_guesses.append(guess)
-                hint_message = 'Bad guess! Try another letter.'
+                hint_message = "Bad guess! Try another letter."
 
             else:
                 self.good_guesses.append(guess)
-                hint_message = 'Correct! Try another letter.'
+                hint_message = "Correct! Try another letter."
 
             self.won = all([x in self.good_guesses
                             for x in set(self.word_to_guess)])
@@ -114,9 +113,9 @@ class Hangman:
                 await self.message_game.edit(embed=self.embed)
 
         if self.won:
-            hint_message = f'You won! The word was {self.word_to_guess}.'
+            hint_message = f"You won! The word was {self.word_to_guess}."
         else:
-            hint_message = f'You lost! The word was {self.word_to_guess}.'
+            hint_message = f"You lost! The word was {self.word_to_guess}."
 
         self.update_embed(hint_message)
         await self.message_game.edit(embed=self.embed)
@@ -125,18 +124,18 @@ class Hangman:
         """Edit the Embed, the progress on the word to guess, chances,
         and the graphics of the hangman.
         """
-        current_progress = ' '.join(
+        current_progress = " ".join(
             emoji.Alphabet[x.upper()].value if x in self.good_guesses
             else emoji.Hangman.BLANK.value for x in self.word_to_guess
         )
 
-        bad_guesses_str = ' '.join(c.upper() for c in self.bad_guesses)
+        bad_guesses_str = " ".join(c.upper() for c in self.bad_guesses)
         # if it is an empty string, the Embed will complain
         if not bad_guesses_str:
             bad_guesses_str = None
 
         graphics = self.make_graphics(len(self.bad_guesses))
-        graphics_str = '\n'.join(''.join(line) for line in graphics.T)
+        graphics_str = "\n".join("".join(line) for line in graphics.T)
 
         self.embed.set_field_at(
             index=0,  # graphics
