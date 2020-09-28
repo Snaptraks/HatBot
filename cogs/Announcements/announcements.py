@@ -57,11 +57,11 @@ class Announcements(BasicCog):
 
         if member_count % each_n == 0:
             system_channel = member.guild.system_channel
-            out_str = (
+            content = (
                 f':tada: {member.display_name} is our {member_count}th '
                 f'member! Welcome to the {member.guild.name} server!'
             )
-            await system_channel.send(out_str)
+            await system_channel.send(content)
 
     @commands.Cog.listener(name='on_message')
     async def birthday_confetti(self, message):
@@ -143,19 +143,19 @@ class Announcements(BasicCog):
             if row is not None:
                 bday = row['birthday']
                 time_until_bday = time_until_birthday(bday)
-                out_str = (
+                content = (
                     f'Your birthday is **{bday.strftime("%d of %B")}**. '
                     f'See you in {time_until_bday.days} day(s)!'
                 )
 
             else:
-                out_str = (
+                content = (
                     'You can register your birthday with '
                     '`!birthday register <DD/MM/YYYY>` in a private '
                     'message with me.'
                 )
 
-            await ctx.send(out_str)
+            await ctx.send(content)
 
     @birthday.command(name='register')
     @commands.dm_only()
@@ -187,15 +187,15 @@ class Announcements(BasicCog):
             await self._save_birthday(ctx.author, bday)
 
             time_until_bday = time_until_birthday(bday)
-            out_str = (
+            content = (
                 'I saved your birthday! See you in '
                 f'{time_until_bday.days} day(s)!'
             )
 
         else:  # no
-            out_str = 'To enter again, just send the command again!'
+            content = 'To enter again, just send the command again!'
 
-        await ctx.send(out_str)
+        await ctx.send(content)
 
     @birthday_register.error
     async def birthday_register_error(self, ctx, error):
@@ -235,13 +235,13 @@ class Announcements(BasicCog):
         if not already_registered:
             # send a message to member to ask if they would like to register
             today = datetime.date.today().strftime('%d/%m/%Y')
-            out_str = (
+            content = (
                 'It seems it is your birthday today! Sadly I did not know '
                 'and someone just told me. If you would like me to remember '
                 'for next time please enter the command '
                 f'`!birthday register {today}`! And happy birthday!'
             )
-            await member.send(out_str)
+            await member.send(content)
 
     @birthday.command(name='delete')
     @commands.is_owner()

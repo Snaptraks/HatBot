@@ -158,9 +158,9 @@ class Responses(BasicCog):
                     else:
                         prefix = 'They said'
 
-                    out_str = '{} **{}**'.format(prefix, out_content)
+                    content = '{} **{}**'.format(prefix, out_content)
                     await self.send_typing_delay(channel)
-                    await channel.send(out_str)
+                    await channel.send(content)
                     # print('Sent they_said at i={} ({})'.format(i, out_content))
                     return
 

@@ -173,7 +173,7 @@ class Overwatch(commands.Cog):
         # check if the provided BattleTag is in the right format
         valid = re.match(r'.*?#\d{4,5}', battletag)
         if not valid:
-            out_str = (
+            content = (
                 f'BattleTag {battletag} is not valid. Please enter '
                 'in the format `username#01234`.'
             )
@@ -191,24 +191,24 @@ class Overwatch(commands.Cog):
                 except aiohttp.ClientResponseError:
                     # this is raised only if the status code is 4xx or 5xx
                     if resp.status < 500:  # is a 4xx error code
-                        out_str = (
+                        content = (
                             'Could not find that BattleTag. '
                             'Make sure you entered it correctly.'
                         )
                     else:  # is a 5xx error code
-                        out_str = (
+                        content = (
                             'Something went wrong but the BattleTag '
                             'seemed correct. I registered it anyway.'
                         )
                         self.battletags[ctx.author.id] = battletag
                 else:
-                    out_str = 'BattleTag registered successfully! Thank you!'
+                    content = 'BattleTag registered successfully! Thank you!'
                     self.battletags[ctx.author.id] = battletag
 
             with open('cogs/Overwatch/battletags.pkl', 'wb') as f:
                 pickle.dump(self.battletags, f)
 
-        await ctx.send(out_str)
+        await ctx.send(content)
 
     @overwatch_register.error
     async def overwatch_register_error(self, ctx, error):

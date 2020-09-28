@@ -130,12 +130,12 @@ class Fishing(FunCog):
         winner_id = np.random.choice(active_members)
         winner = self.guild.get_member(winner_id)
         bonus_experience = np.random.triangular(3, 5, 15)
-        out_str = (
+        content = (
             f':moneybag: {escape_markdown(winner.display_name)} got a little '
             f'bit of experience! ({bonus_experience:.3f} exp)'
         )
 
-        msg = await self.channel_msg.send(out_str)
+        msg = await self.channel_msg.send(content)
 
         await self._save_interest_experience(winner, msg, bonus_experience)
 
@@ -220,7 +220,7 @@ class Fishing(FunCog):
         # slap with a list of Fish
         stunned_time = await self._execute_slap_bomb(member, bomb_fish)
 
-        out_str = (
+        content = (
             f'{escape_markdown(member.display_name)} got **bombed** by '
             f'{escape_markdown(slapper.display_name)} with '
             f'**{len(bomb_fish)} fish**!\n'
@@ -228,7 +228,7 @@ class Fishing(FunCog):
             'and cannot go fishing!'
         )
 
-        await ctx.send(out_str)
+        await ctx.send(content)
 
     @fish.command(name='card')
     async def fish_card(self, ctx, *, member: discord.Member = None):
@@ -398,7 +398,7 @@ class Fishing(FunCog):
 
         stunned_time = await self._execute_slap_bomb(member, slap_fish)
 
-        out_str = (
+        content = (
             f'{escape_markdown(member.display_name)} got slapped by '
             f'{escape_markdown(slapper.display_name)} with a '
             f'{Fish.from_dict(slap_fish[0])}!\n'
@@ -406,7 +406,7 @@ class Fishing(FunCog):
             'and cannot go fishing!'
         )
 
-        await ctx.send(out_str)
+        await ctx.send(content)
 
     @fish_bomb.error
     @fish_slap.error

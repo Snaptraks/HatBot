@@ -59,8 +59,8 @@ class Admin(BasicCog):
     async def cogs(self, ctx):
         """List current active cogs."""
 
-        out_str = f'Active Cogs:\n`{", ".join(self.bot.cogs.keys())}`'
-        await ctx.send(out_str)
+        content = f'Active Cogs:\n`{", ".join(self.bot.cogs.keys())}`'
+        await ctx.send(content)
 
     @cogs.command(name='load', aliases=['l'])
     async def cogs_load(self, ctx, module):
@@ -165,9 +165,9 @@ class Admin(BasicCog):
 
         # message = 'I have been online for {}! (Since {:%Y-%m-%d %H:%M:%S})'
         uptime_ = datetime.utcnow() - self.bot.boot_time
-        out_str = (f'I have been online for {uptime_.days} days! '
+        content = (f'I have been online for {uptime_.days} days! '
                    f'(Since {self.bot.boot_time:%c})')
-        await ctx.send(out_str)
+        await ctx.send(content)
 
     @commands.command()
     async def susay(self, ctx, channel: discord.TextChannel, *, message: str):

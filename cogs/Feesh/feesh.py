@@ -201,28 +201,28 @@ class Feesh(FunCog):
                 weights /= weights.sum()
 
             if len(members_list) == 0:
-                out_str = (
+                content = (
                     'No one is online, I guess I\'ll have a snack! '
                     ':sushi:'
                 )
-                await self.channel_msg.send(out_str)
+                await self.channel_msg.send(content)
             else:
                 winner = np.random.choice(members_list, p=weights)
-                out_str = f'{winner.display_name} got a feesh !'
-                out_str = (
+                content = f'{winner.display_name} got a feesh !'
+                content = (
                     f'{escape(winner.display_name)} got a '
                     f'{self.feesh_emoji} !'
                 )
 
                 # 1337 feesh
                 if self.data['total'] == 1337 - 1:
-                    out_str = (
+                    content = (
                         f'{leet(winner.display_name)} '
                         f'({winner.display_name}) 607 4 '
                         f'{self.feesh_emoji}'
                     )
 
-                await self.channel_msg.send(out_str)
+                await self.channel_msg.send(content)
 
                 # statistics
                 self.transfer_feesh(member=winner, amount=1)
@@ -242,12 +242,12 @@ class Feesh(FunCog):
         except KeyError as e:
             amount = 0
 
-        out_str = (
+        content = (
             f'{total} {self.feesh_emoji} were given in total, '
             f'{escape(member.display_name)} has {amount}.'
         )
 
-        await ctx.send(out_str)
+        await ctx.send(content)
 
     @feesh.group(name='give', aliases=['kobe'], invoke_without_command=True)
     async def feesh_give(self, ctx, amount: typing.Optional[int] = 1, *,
@@ -258,10 +258,10 @@ class Feesh(FunCog):
 
         # Checks to see if the member to receive a feesh is valid
         if donor == member:
-            out_str = f'But... You can\'t give yourself a {self.feesh_emoji} !'
+            content = f'But... You can\'t give yourself a {self.feesh_emoji} !'
 
         elif member.bot:
-            out_str = 'I\'m touched, but I cannot accept this :flushed:'
+            content = 'I\'m touched, but I cannot accept this :flushed:'
 
         else:  # It is valid:
             try:
@@ -271,22 +271,22 @@ class Feesh(FunCog):
                 x = 0
 
             if amount < 1:
-                out_str = 'Nice try.'
+                content = 'Nice try.'
 
             elif x - amount < 0:
-                out_str = (
+                content = (
                     'That\'s very nice of you, but you don\'t '
                     f'have enough {self.feesh_emoji}!'
                 )
 
             else:
                 self.transfer_feesh(member=member, donor=donor, amount=amount)
-                out_str = (
+                content = (
                     f'You gave {amount} {self.feesh_emoji} to '
                     f'{escape(member.display_name)}. Yay!'
                 )
 
-        await ctx.send(out_str)
+        await ctx.send(content)
 
     @feesh_give.command(name='random')
     async def feesh_give_random(self, ctx):
@@ -307,8 +307,8 @@ class Feesh(FunCog):
         message = ctx.message
 
         if self.data['members'][author.id]['amount'] == 0:
-            out_str = f'You have no {self.feesh_emoji} though.'
-            await channel.send(out_str)
+            content = f'You have no {self.feesh_emoji} though.'
+            await channel.send(content)
             return
 
         await message.add_reaction(cancel)
@@ -323,8 +323,8 @@ class Feesh(FunCog):
             reaction, member = await self.bot.wait_for(
                 'reaction_add', check=check, timeout=60)
         except asyncio.TimeoutError:
-            out_str = 'You didn\'t confirm quickly enough, I must cancel.'
-            await channel.send(out_str)
+            content = 'You didn\'t confirm quickly enough, I must cancel.'
+            await channel.send(content)
             return
 
         def isvalid(m):
@@ -337,8 +337,8 @@ class Feesh(FunCog):
         members_list = [m for m in self.guild.members if isvalid(m)]
 
         if reaction.emoji == cancel:
-            out_str = 'Abort mission!'
-            await channel.send(out_str)
+            content = 'Abort mission!'
+            await channel.send(content)
 
         elif reaction.emoji == bomb:
             amount = self.data['members'][author.id]['amount']
@@ -346,15 +346,15 @@ class Feesh(FunCog):
             targets = np.random.choice(
                 members_list, size=amount, replace=False)
 
-            out_str = ':tired_face:  :triumph:  :boom:\n'
-            out_str += feesh_wall().format(self.feesh_emoji)
+            content = ':tired_face:  :triumph:  :boom:\n'
+            content += feesh_wall().format(self.feesh_emoji)
 
             pm_str = 'You sent a feesh to\n```\n' + \
                 '\n'.join([m.display_name for m in targets]) + \
                 '\n```'
 
             await author.send(pm_str)
-            await channel.send(out_str)
+            await channel.send(content)
 
             for member in targets:
                 self.transfer_feesh(member=member, donor=author, amount=1)
@@ -384,13 +384,13 @@ class Feesh(FunCog):
                 )
 
         plural = 's' if len(top_members) > 1 else ''
-        out_str = (
+        content = (
             f'Member{plural} with the most {self.feesh_emoji} '
             f'(**{top_amount}**):\n'
         )
-        out_str += '```\n' + '\n'.join(top_members) + '\n```'
+        content += '```\n' + '\n'.join(top_members) + '\n```'
 
-        await ctx.channel.send(out_str)
+        await ctx.channel.send(content)
 
     @commands.cooldown(1, 24 * 3600, commands.BucketType.user)
     @feesh.group(name='steal', hidden=True, aliases=['yoink'],
@@ -410,13 +410,13 @@ class Feesh(FunCog):
         channel = ctx.channel
 
         if thief == target:
-            out_str = f'You cannot {ctx.invoked_with} from yourself.'
-            await channel.send(out_str)
+            content = f'You cannot {ctx.invoked_with} from yourself.'
+            await channel.send(content)
             raise ValueError(f'Tried to steal from self')
 
         # elif target.bot:
-            # out_str = 'Please, I have no {}!'.format(self.feesh_emoji)
-            # await channel.send(out_str)
+            # content = 'Please, I have no {}!'.format(self.feesh_emoji)
+            # await channel.send(content)
             # raise ValueError('Tried to steal from the bot')
 
         else:
@@ -431,10 +431,10 @@ class Feesh(FunCog):
             feesh_diff = feesh_target - feesh_thief
 
             if feesh_target == 0:
-                out_str = (
+                content = (
                     f'{escape(target.display_name)} has no {self.feesh_emoji}, '
                     f'you can\'t {ctx.invoked_with} from them.')
-                await channel.send(out_str)
+                await channel.send(content)
                 raise ValueError('Target has no feesh')
 
             def odds(y):
@@ -466,20 +466,20 @@ class Feesh(FunCog):
             r = np.random.rand()
             if r < fail:
                 # fail
-                out_str = (
+                content = (
                     f'You failed at {_ing} a {self.feesh_emoji} '
                     f'from {escape(target.display_name)}.'
                 )
-                await channel.send(out_str)
+                await channel.send(content)
             elif r < fail + drop:
                 # drop
                 if feesh_thief != 0:
-                    out_str = [
+                    content = [
                         (f'In your haste, you dropped a {self.feesh_emoji} '
                          'of your own!\n'),
                         'Who will get it?'
                     ]
-                    msg = await channel.send(''.join(out_str))
+                    msg = await channel.send(''.join(content))
                     # reaction
                     await msg.add_reaction(self.feesh_emoji)
 
@@ -494,18 +494,18 @@ class Feesh(FunCog):
                         'reaction_add', check=check)
 
                     # take a feesh from thief, give to member
-                    out_str = out_str[0] + \
+                    content = content[0] + \
                         f'{escape(member.display_name)} took it!'
-                    await msg.edit(content=out_str)
+                    await msg.edit(content=content)
                     # edit stats
                     self.transfer_feesh(member, donor=thief, amount=1)
 
                 else:
-                    out_str = (
+                    content = (
                         f'You failed to {ctx.invoked_with} and '
                         'got caught! THIEF!'
                     )
-                    await channel.send(out_str)
+                    await channel.send(content)
                     try:
                         # change nickname
                         old_display_name = thief.display_name
@@ -527,11 +527,11 @@ class Feesh(FunCog):
 
             else:
                 # steal
-                out_str = (
+                content = (
                     f'You {_ed} a {self.feesh_emoji} from '
                     f'{escape(target.display_name)}! How could you...'
                 )
-                await channel.send(out_str)
+                await channel.send(content)
                 # edit stats
                 self.transfer_feesh(thief, donor=target, amount=1)
 
@@ -571,11 +571,11 @@ class Feesh(FunCog):
 
         member_amount = self.data['members'][member.id]['amount']
 
-        out_str = (
+        content = (
             f'{escape(member.display_name)} has {member_amount} '
             f'{self.feesh_emoji}.'
         )
-        await ctx.send(out_str, file=img)
+        await ctx.send(content, file=img)
 
     @feesh.command(name='whohas')
     async def feesh_whohas(self, ctx, amount: int):
@@ -596,9 +596,9 @@ class Feesh(FunCog):
                     # if the member was not found, for some reason
                     pass
 
-        out_str = f'Member(s) with {amount} {self.feesh_emoji}:\n'
-        out_str += '```\n' + '\n'.join(sorted(who)) + '\n```'
-        await ctx.send(out_str)
+        content = f'Member(s) with {amount} {self.feesh_emoji}:\n'
+        content += '```\n' + '\n'.join(sorted(who)) + '\n```'
+        await ctx.send(content)
 
     @feesh.command(name='random')
     async def feesh_random(self, ctx, subcommand):
@@ -664,11 +664,11 @@ class Feesh(FunCog):
                     retry_after = '{:.0f} hour(s)'.format(
                         error.retry_after / 3600)
 
-                out_str = (
+                content = (
                     f'You have already tried to {ctx.invoked_with} today, '
                     f'wait for {retry_after}.'
                 )
-                await ctx.author.send(out_str)
+                await ctx.author.send(content)
 
         else:
             if isinstance(error, commands.CommandInvokeError):

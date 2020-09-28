@@ -10,20 +10,20 @@ def pretty_print_timedelta(delta: timedelta):
     hours, seconds = divmod(seconds, 3600)
     minutes, seconds = divmod(seconds, 60)
 
-    out_str = ''
+    time_string = ''
     if seconds > 0:
-        out_str = f'{seconds}s {out_str}'
+        time_string = f'{seconds}s {time_string}'
 
     if minutes > 0:
-        out_str = f'{minutes}m {out_str}'
+        time_string = f'{minutes}m {time_string}'
 
     if hours > 0:
-        out_str = f'{hours}h {out_str}'
+        time_string = f'{hours}h {time_string}'
 
     if abs(days) > 0:
-        out_str = f'{days}d {out_str}'
+        time_string = f'{days}d {time_string}'
 
-    if out_str == '':
-        out_str = 'less than a second'
+    if time_string == '':
+        time_string = 'less than a second'
 
-    return out_str.strip()
+    return time_string.strip()

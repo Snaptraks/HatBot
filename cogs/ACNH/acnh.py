@@ -67,9 +67,9 @@ class ACNH(BasicCog):
                 and not message.mention_everyone \
                 and not message.content.startswith(self.bot.command_prefix):
 
-            out_str = np.random.choice(self.quotes)
+            content = np.random.choice(self.quotes)
             await self.send_typing_delay(ctx.channel)
-            await ctx.send(out_str)
+            await ctx.send(content)
 
     @commands.group(invoke_without_command=True)
     async def acnh(self, ctx):

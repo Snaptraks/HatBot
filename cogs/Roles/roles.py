@@ -20,11 +20,11 @@ class Roles(BasicCog):
 
         available = self.get_available_roles(ctx)
         blue_dia = ':small_blue_diamond:'
-        out_str = 'Here are the roles you can `!join`/`!leave`:\n'
-        out_str += '\n'.join([f'{blue_dia} {r}' for r in available])
-        out_str += f'\nFor example: `!join {np.random.choice(available)}`'
+        content = 'Here are the roles you can `!join`/`!leave`:\n'
+        content += '\n'.join([f'{blue_dia} {r}' for r in available])
+        content += f'\nFor example: `!join {np.random.choice(available)}`'
 
-        await ctx.send(out_str)
+        await ctx.send(content)
 
     # TODO: merge the join/leave commands to avoid duplicate code
     @commands.command()
@@ -34,16 +34,16 @@ class Roles(BasicCog):
         as the argument (case sentitive, please do not @mention the role).
         """
         if role is None:
-            out_str = 'Please enter a role from `!roles`.'
+            content = 'Please enter a role from `!roles`.'
 
         elif role not in self.get_available_roles(ctx):
-            out_str = 'It is not a role you can join... :dizzy_face:'
+            content = 'It is not a role you can join... :dizzy_face:'
 
         else:
             await ctx.author.add_roles(role)
-            out_str = f'You joined the {role.name} role! :smile:'
+            content = f'You joined the {role.name} role! :smile:'
 
-        bot_msg = await ctx.send(out_str)
+        bot_msg = await ctx.send(content)
         await asyncio.sleep(30)
         await ctx.channel.delete_messages([ctx.message, bot_msg])
 
@@ -54,16 +54,16 @@ class Roles(BasicCog):
         as the argument (case sentitive, please do not @mention the role).
         """
         if role is None:
-            out_str = 'Please enter a role from `!roles`.'
+            content = 'Please enter a role from `!roles`.'
 
         elif role not in self.get_available_roles(ctx):
-            out_str = 'It is not a role you can leave... :dizzy_face:'
+            content = 'It is not a role you can leave... :dizzy_face:'
 
         else:
             await ctx.author.remove_roles(role)
-            out_str = f'You left the {role} role! :frowning:'
+            content = f'You left the {role} role! :frowning:'
 
-        bot_msg = await ctx.send(out_str)
+        bot_msg = await ctx.send(content)
         await asyncio.sleep(30)
         await ctx.channel.delete_messages([ctx.message, bot_msg])
 

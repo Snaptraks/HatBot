@@ -16,7 +16,7 @@ while True:
     tz_abr = input('> ').upper()
 
     now_utc = datetime.utcnow()
-    out_str = '{emoji} It is {time} {tz_abr} ({tz_name}, {offset}).'
+    content = '{emoji} It is {time} {tz_abr} ({tz_name}, {offset}).'
 
     try:
         TZ = tz_table[tz_abr]
@@ -36,10 +36,10 @@ while True:
         r_time = r_time[-4:-2]
     print(r_time)
 
-    out_str = out_str.format(emoji=':clock{}:'.format(int(r_time)),
+    content = content.format(emoji=':clock{}:'.format(int(r_time)),
                              time=now_tz.strftime('%H:%M'),
                              tz_abr=tz_abr,
                              tz_name=TZ['NAME'],
                              offset=TZ['OFFSET'])
 
-    print(out_str)
+    print(content)

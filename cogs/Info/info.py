@@ -128,8 +128,8 @@ class Info(BasicCog):
         tz_name = TZ['NAME']
         offset = TZ['OFFSET']
 
-        out_str = f'{emoji} It is {now} {tz_abr} ({tz_name}, {offset}).'
-        await ctx.send(out_str)
+        content = f'{emoji} It is {now} {tz_abr} ({tz_name}, {offset}).'
+        await ctx.send(content)
 
     @commands.command(aliases=['pfp'])
     async def avatar(self, ctx, *, member: discord.Member = None):
