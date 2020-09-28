@@ -65,7 +65,7 @@ class Dev(BasicCog):
         if e.text is None:
             return f"```py\n{e.__class__.__name__}: {e}\n```"
         return (
-            f"```py\n{e.text}{"^":>{e.offset}}\n"
+            f"```py\n{e.text}{'^':>{e.offset}}\n"
             f"{e.__class__.__name__}: {e}```"
         )
 

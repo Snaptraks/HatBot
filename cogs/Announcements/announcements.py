@@ -144,7 +144,7 @@ class Announcements(BasicCog):
                 bday = row['birthday']
                 time_until_bday = time_until_birthday(bday)
                 content = (
-                    f"Your birthday is **{bday.strftime("%d of %B")}**. "
+                    f"Your birthday is **{bday.strftime('%d of %B')}**. "
                     f"See you in {time_until_bday.days} day(s)!"
                 )
 
