@@ -181,7 +181,7 @@ class Announcements(BasicCog):
         )
 
         confirm = await menus.ConfirmBirthday(
-            f"Is your birthday **{bday.strftime'%d of %B')}**?").prompt(ctx)
+            f"Is your birthday **{bday.strftime('%d of %B')}**?").prompt(ctx)
 
         if confirm:  # yes
             await self._save_birthday(ctx.author, bday)
