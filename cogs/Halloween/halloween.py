@@ -167,19 +167,20 @@ class Halloween(FunCog):
         else:
 
             content = (
-                'Happy Halloween @everyone! Today we have a special event '
-                'where you can collect candy from `!trickortreat`ing or '
-                'simply having discussions here on the Discord server. '
-                'So if you see a candy popping up after one of your messages, '
-                'be sure to pick it up!\n\n'
-                'Be warned though, I am a playful being and might trick you '
-                'while you are trick-or-treating! '
-                'If you are the adventurous type, you can ask for a `!trick` '
-                'directly and I will cast my magic upon you!\n\n'
-                'Once you have collected many candies, you can check your '
-                '`!bag` to see now many you collected! '
-                'Here are some free ones to get you started. '
-                'Happy trick-or-treating!'
+                "Happy Halloween @everyone! Today we have a special event "
+                "where you can collect candy from `!trickortreat`ing or "
+                "simply having discussions here on the Discord server. "
+                "So if you see a candy popping up after one of your messages, "
+                "be sure to pick it up!\n\n"
+                "Be warned though, I am a playful being and might trick you "
+                "while you are trick-or-treating! "
+                "If you are the adventurous type, you can send a `!curse` "
+                "to someone and I will send my magic upon them or will I?\n\n"
+                "Once you have collected many candies, you can check your "
+                "`!bag` to see now many you collected, and `!give` some to "
+                "your friends!\n\n"
+                "Here are some free ones to get you started. "
+                "Happy trick-or-treating!"
             )
             await discord.utils.sleep_until(self.halloween_day)
             announcement_message = await self.channel.send(content)
