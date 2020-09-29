@@ -46,8 +46,9 @@ class MyBot(Bot):
 
         await self.http_session.close()
         # because .close is called twice for some reason
-        if self.db._connection:
-            await self.db.close()
+        # if self.db._connection:
+        #     await self.db.close()
+        await self.db.close()
         await super().close()
 
     async def on_ready(self):
