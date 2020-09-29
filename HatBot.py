@@ -98,11 +98,15 @@ if __name__ == '__main__':
         '%(asctime)s:%(levelname)s:%(name)s: %(message)s'))
     logger.addHandler(handler)
 
+    # TODO: Filter out intents that are not needed
+    intents = discord.Intents.all()
+
     bot = MyBot(
         description="HatBot by Snaptraks#2606",
         command_prefix="!",
         help_command=commands.DefaultHelpCommand(dm_help=True),
-        fetch_offline_members=True,
+        intents=intents,
+        chunk_guilds_at_startup=True,
         db_name='db/HatBot.db',
     )
 
