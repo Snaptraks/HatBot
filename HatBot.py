@@ -1,8 +1,6 @@
-import asyncio
 import logging
 import platform
 import aiosqlite
-import sys
 
 import aiohttp
 from datetime import datetime
