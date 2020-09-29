@@ -59,5 +59,6 @@ docker-compose \
    --file .docker/docker-compose.yml \
    --env-file .docker/hatbot/.env \
    up \
+   --build \
    --detatch
 ```
