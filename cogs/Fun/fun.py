@@ -101,6 +101,14 @@ class Fun(BasicCog):
 
         await ctx.send(embed=embed)
 
+    @commands.command()
+    async def kick(self, ctx, *, slappie: Union[discord.Member, str] = None):
+        """Kick someone (not really)! Or get kicked yourself!"""
+
+        embed = await self._hug_slap_embed('kick', ctx.author, slappie)
+
+        await ctx.send(embed=embed)
+
     async def _hug_slap_embed(self, action: str, author: discord.Member,
                               destination: Union[discord.Member, str]):
         """Helper function to create the embed for the hug and slap
@@ -130,11 +138,13 @@ class Fun(BasicCog):
         color = {
             'hug': 0xFF4CD5,
             'slap': 0xFFCC4D,
+            'kick': 0xFFCC4D,
         }
 
         emoji = {
             'hug': ":heart:",
             'slap': ":hand_splayed:",
+            'kick': ":foot:",
         }
 
         embed = discord.Embed(
