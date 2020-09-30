@@ -101,11 +101,11 @@ class Fun(BasicCog):
 
         await ctx.send(embed=embed)
 
-    @commands.command()
-    async def kick(self, ctx, *, slappie: Union[discord.Member, str] = None):
+    @commands.command(aliases=["votekick"])
+    async def kick(self, ctx, *, kickie: Union[discord.Member, str] = None):
         """Kick someone (not really)! Or get kicked yourself!"""
 
-        embed = await self._hug_slap_embed('kick', ctx.author, slappie)
+        embed = await self._hug_slap_embed('kick', ctx.author, kickie)
 
         await ctx.send(embed=embed)
 
