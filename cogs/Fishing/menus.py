@@ -99,14 +99,18 @@ class FishingConfirm(_MenuUtils, menus.Menu):
 class InventoryMenu(_MenuUtils, menus.MenuPages):
     """Interactive menu to access Fish inventory."""
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.to_sell = set()
+
     @menus.button(EXPERIENCE_EMOJI, position=Middle(0))
     async def on_sell_one(self, payload):
         """Sell the Fish on the current_page."""
 
-        if self.current_page in self.source._to_sell:
-            self.source._to_sell.remove(self.current_page)
+        if self.current_page in self.to_sell:
+            self.to_sell.remove(self.current_page)
         else:
-            self.source._to_sell.add(self.current_page)
+            self.to_sell.add(self.current_page)
 
         await self.show_page(self.current_page)
 
@@ -114,10 +118,10 @@ class InventoryMenu(_MenuUtils, menus.MenuPages):
     async def on_sell_all(self, payload):
         """Sell all the Fish in the member's inventory."""
 
-        if self.current_page in self.source._to_sell:
-            self.source._to_sell = set()
+        if self.current_page in self.to_sell:
+            self.to_sell = set()
         else:
-            self.source._to_sell = set(range(self.source.get_max_pages()))
+            self.to_sell = set(range(self.source.get_max_pages()))
 
         await self.show_page(self.current_page)
 
@@ -125,7 +129,7 @@ class InventoryMenu(_MenuUtils, menus.MenuPages):
         """Start the menu and return the Fish to sell."""
 
         await self.start(ctx, wait=True)
-        return self.source._to_sell
+        return self.to_sell
 
     async def finalize(self, timed_out):
         asyncio.create_task(self._delete_message(10))
@@ -135,7 +139,6 @@ class InventorySource(menus.ListPageSource):
     """Page source to format the inventory menu."""
 
     def __init__(self, entries):
-        self._to_sell = set()
         super().__init__(entries, per_page=1)
 
     async def format_page(self, menu, page):
@@ -149,7 +152,7 @@ class InventorySource(menus.ListPageSource):
         embed.title = \
             f"Fish Inventory ({menu.current_page + 1}/{self.get_max_pages()})"
 
-        if menu.current_page in self._to_sell:
+        if menu.current_page in menu.to_sell:
             footer_text = "Sold!"
 
         else:
@@ -292,16 +295,20 @@ class TradeConfirm(_MenuUtils, menus.Menu):
 class TradeMenu(_MenuUtils, menus.MenuPages):
     """Interactive menu to trade Fish."""
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.to_trade = None
+
     @menus.button(TRADE_EMOJI, position=Middle(0))
     async def on_select_trade(self, payload):
         """Select the current Fish for trade."""
 
-        self.source._to_trade = self.current_page
+        self.to_trade = self.current_page
         await self.show_page(self.current_page)
 
     async def prompt(self, ctx):
         await self.start(ctx, wait=True)
-        return (self.ctx.author, self.source._to_trade)
+        return (self.ctx.author, self.to_trade)
 
     async def finalize(self, timed_out):
         asyncio.create_task(self._delete_message(5 * 60))
@@ -311,7 +318,6 @@ class TradeSource(menus.ListPageSource):
     """Page source to format the trade menu."""
 
     def __init__(self, data):
-        self._to_trade = None
         super().__init__(data, per_page=1)
 
     async def format_page(self, menu, page):
@@ -331,7 +337,7 @@ class TradeSource(menus.ListPageSource):
             icon_url=menu.ctx.author.avatar_url,
         )
 
-        if menu.current_page == self._to_trade:
+        if menu.current_page == menu.to_trade:
             footer_text = "Proposed for trade"
 
         else:

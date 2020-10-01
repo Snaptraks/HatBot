@@ -4,12 +4,16 @@ from discord.ext import menus
 from ..utils.menus import _MenuUtils, Middle
 
 
-INCREASE_EMOJI = '\U0001f53c'
-DECREASE_EMOJI = '\U0001f53d'
+INCREASE_EMOJI = "\U0001f53c"
+DECREASE_EMOJI = "\U0001f53d"
 
 
 class GiveCandyMenu(_MenuUtils, menus.MenuPages):
     """Interactive menu to select hoe many candy to give."""
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.to_give = {e[0]: 0 for e in self.source.entries}
 
     @menus.button(INCREASE_EMOJI, position=Middle(0))
     async def on_increase(self, payload):
@@ -19,8 +23,8 @@ class GiveCandyMenu(_MenuUtils, menus.MenuPages):
         candy = page[0]
         max_val = self.source.entries[self.current_page][1]
 
-        if self.source._to_give[candy] < max_val:
-            self.source._to_give[candy] += 1
+        if self.to_give[candy] < max_val:
+            self.to_give[candy] += 1
 
         await self.show_page(self.current_page)
 
@@ -31,8 +35,8 @@ class GiveCandyMenu(_MenuUtils, menus.MenuPages):
         page = await self.source.get_page(self.current_page)
         candy = page[0]
 
-        if self.source._to_give[candy] > 0:
-            self.source._to_give[candy] -= 1
+        if self.to_give[candy] > 0:
+            self.to_give[candy] -= 1
 
         await self.show_page(self.current_page)
 
@@ -60,7 +64,7 @@ class GiveCandySource(menus.ListPageSource):
             value=self.format_field(self.entries),
         ).add_field(
             name="To Give",
-            value=self.format_field(self._to_give),
+            value=self.format_field(menu.to_give),
         )
 
         return embed
