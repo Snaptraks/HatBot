@@ -89,7 +89,7 @@ class Fun(BasicCog):
     async def hug(self, ctx, *, huggie: Union[discord.Member, str] = None):
         """Send a hug to someone or get one yourself!"""
 
-        embed = await self._hug_slap_embed('hug', ctx.author, huggie)
+        embed = await self._action_embed('hug', ctx.author, huggie)
 
         await ctx.send(embed=embed)
 
@@ -97,7 +97,7 @@ class Fun(BasicCog):
     async def slap(self, ctx, *, slappie: Union[discord.Member, str] = None):
         """Slap someone! Or get slapped yourself!"""
 
-        embed = await self._hug_slap_embed('slap', ctx.author, slappie)
+        embed = await self._action_embed('slap', ctx.author, slappie)
 
         await ctx.send(embed=embed)
 
@@ -105,14 +105,14 @@ class Fun(BasicCog):
     async def kick(self, ctx, *, kickie: Union[discord.Member, str] = None):
         """Kick someone (not really)! Or get kicked yourself!"""
 
-        embed = await self._hug_slap_embed('kick', ctx.author, kickie)
+        embed = await self._action_embed('kick', ctx.author, kickie)
 
         await ctx.send(embed=embed)
 
-    async def _hug_slap_embed(self, action: str, author: discord.Member,
-                              destination: Union[discord.Member, str]):
-        """Helper function to create the embed for the hug and slap
-        commands.
+    async def _action_embed(self, action: str, author: discord.Member,
+                            destination: Union[discord.Member, str]):
+        """Helper function to create the embed for one of the
+        action commands.
         """
         gif_url = await random_gif(self.bot.http_session, action)
         description = "{1} {0}s {2}!"
