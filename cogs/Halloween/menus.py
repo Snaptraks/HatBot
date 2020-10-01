@@ -6,6 +6,7 @@ from ..utils.menus import _MenuUtils, Middle
 
 INCREASE_EMOJI = "\U0001f53c"
 DECREASE_EMOJI = "\U0001f53d"
+ZERO_EMOJI = "\u0030\u20e3"
 
 
 class GiveCandyMenu(_MenuUtils, menus.MenuPages):
@@ -37,6 +38,16 @@ class GiveCandyMenu(_MenuUtils, menus.MenuPages):
 
         if self.to_give[candy] > 0:
             self.to_give[candy] -= 1
+
+        await self.show_page(self.current_page)
+
+    @menus.button(ZERO_EMOJI, position=Middle(2))
+    async def on_clear(self, payload):
+        """Reset the amount of candy on the page to 0."""
+
+        page = await self.source.get_page(self.current_page)
+        candy = page[0]
+        self.to_give[candy] = 0
 
         await self.show_page(self.current_page)
 
