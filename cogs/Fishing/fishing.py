@@ -349,7 +349,7 @@ class Fishing(FunCog):
 
     @fish.group(name="journal", aliases=["log", "stats"],
                 invoke_without_command=True)
-    async def fish_journal(self, ctx, member: discord.Member = None):
+    async def fish_journal(self, ctx, *, member: discord.Member = None):
         """Fishing log of the amount of fish caught and different stats."""
 
         if member is None:
