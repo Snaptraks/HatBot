@@ -111,7 +111,12 @@ class Admin(BasicCog):
         """Pull modifications from the git repo before reloading the cogs."""
 
         async with ctx.typing():
-            stdout, stderr = await self.cog_dev.run_process("git pull")
+            try:
+                stdout, stderr = await self.cog_dev.run_process("git pull")
+
+            except AttributeError:
+                # Dev cog not loaded
+                return
 
         if stdout.startswith("Already up to date."):
             return await ctx.send(stdout)
