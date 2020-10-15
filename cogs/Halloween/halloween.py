@@ -224,8 +224,8 @@ class Halloween(FunCog):
             "Please change my picture to the Normal one!"
         )
 
-    @commands.Cog.listener()
-    async def on_message(self, message):
+    @commands.Cog.listener(name='on_message')
+    async def random_candy_drop(self, message):
         """React with a random candy to some messages. The author can then
         collect the candy and add it to their bag.
         """
@@ -255,8 +255,8 @@ class Halloween(FunCog):
 
                 await message.clear_reactions()
 
-    @commands.Cog.listener()
-    async def on_raw_reaction_add(self, payload):
+    @commands.Cog.listener(name='on_raw_reaction_add')
+    async def free_candy_reaction(self, payload):
         """Listener for the free candy on the Halloween Event
         announcement message.
         """
