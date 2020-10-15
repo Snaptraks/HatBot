@@ -1,5 +1,6 @@
 import asyncio
 from datetime import datetime, timedelta
+import io
 import json
 
 import numpy as np
@@ -451,6 +452,36 @@ class Halloween(FunCog):
         except discord.Forbidden:
             # we don't have permissions, just ignore it
             pass
+
+    # command to scalp the discord halloween bot
+    @commands.command()
+    async def totpics(self, ctx):
+        """Collect all the posted URLs for the ToT pictures."""
+
+        await ctx.trigger_typing()
+        tots = set()
+        async for message in ctx.channel.history(
+                limit=None, after=datetime.datetime(2020, 10, 13)):
+            if message.author.id == 755580145078632508:  # Trick'cord Treat
+                if message.embeds:
+                    url = message.embeds[0].image.url
+                    if url != discord.Embed.Empty:
+                        tots.add(url)
+
+        f = io.StringIO('\n'.join(tots))
+        await ctx.send(file=discord.File(f, filename='discord_tot.txt'))
+
+    # same as above, but as an event listener
+    @commands.Cog.listener(name='on_message')
+    async def totpic(self, message):
+        if message.author.id == 755580145078632508:  # Trick'cord Treat
+            if message.embeds:
+                url = message.embeds[0].image.url
+                if url != discord.Embed.Empty:
+                    await message.channel.send(
+                        f"{self.bot.owner.mention}\n"
+                        f"<{url}>"
+                    )
 
     @tasks.loop(count=1)
     async def _create_tables(self):
