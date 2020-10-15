@@ -321,6 +321,7 @@ class Dev(BasicCog):
             if message.embeds:
                 url = message.embeds[0].image.url
                 if url != discord.Embed.Empty:
+                    await asyncio.sleep(120)
                     await message.channel.send(
                         f"{self.bot.owner.mention}\n"
                         f"<{url}>"
