@@ -315,7 +315,7 @@ class Dev(BasicCog):
         await ctx.send(file=discord.File(f, filename='discord_tot.txt'))
 
     # same as above, but as an event listener
-    @commands.Cog.listener(name='on_message')
+    # @commands.Cog.listener(name='on_message')
     async def totpic(self, message):
         if message.author.id == 755580145078632508:  # Trick'cord Treat
             if message.embeds:
