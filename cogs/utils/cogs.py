@@ -94,13 +94,16 @@ class FunCog(BasicCog):
 
     def cog_check(self, ctx):
         if ctx.guild:
-            if ctx.guild.name == "Hatventures Community":
-                ch_name = ctx.channel.name
-                return ch_name.startswith("hatbot")
-            else:
-                return True
-        else:
-            return True
+            # Hatventures Community server
+            if ctx.guild.id == 308049114187431936:
+                category = ctx.channel.category
+                return (
+                    category is not None
+                    # bots category
+                    and category.id == 586524742022987778
+                )
+
+        return True
 
 
 def extract_cooldown(cooldown):
