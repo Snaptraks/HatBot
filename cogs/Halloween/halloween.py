@@ -102,6 +102,9 @@ class Halloween(FunCog):
     def __init__(self, bot):
         super().__init__(bot)
         self.halloween_day = get_next_halloween()
+        # due to TZ
+        self.event_start = self.halloween_day - timedelta(hours=12)
+        self.event_end = self.halloween_day + timedelta(hours=36)
 
         with open('cogs/Halloween/halloween_names.json', 'r') as f:
             names = json.load(f)
@@ -118,10 +121,7 @@ class Halloween(FunCog):
         self.halloweenify.start()
 
     def cog_check(self, ctx):
-        halloween_before = self.halloween_day - timedelta(hours=12)
-        halloween_after = self.halloween_day + timedelta(hours=36)
-        # due to TZ
-        is_halloween = halloween_before < datetime.utcnow() < halloween_after
+        is_halloween = self.event_start < datetime.utcnow() < self.event_end
 
         return super().cog_check(ctx) and is_halloween
 
@@ -182,7 +182,7 @@ class Halloween(FunCog):
                 "Here are some free ones to get you started. "
                 "Happy trick-or-treating!"
             )
-            await discord.utils.sleep_until(self.halloween_day)
+            await discord.utils.sleep_until(self.event_start)
             announcement_message = await self.channel.send(content)
             self.announcement_ids = (
                 announcement_message.channel.id,
