@@ -55,14 +55,13 @@ class GiveCandyMenu(_MenuUtils, menus.MenuPages):
         """Start the menu and return the amount of candy to give."""
 
         await self.start(ctx, wait=True)
-        return self.source._to_give
+        return self.to_give
 
 
 class GiveCandySource(menus.ListPageSource):
     """Page source to format the give candy menu."""
 
     def __init__(self, entries):
-        self._to_give = {e[0]: 0 for e in entries}
         super().__init__(entries, per_page=1)
 
     async def format_page(self, menu, page):
