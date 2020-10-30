@@ -372,7 +372,8 @@ class Halloween(FunCog):
         pass
 
     @commands.cooldown(1, TRICK_DELAY, commands.BucketType.member)
-    @commands.command(name='trickortreat', aliases=['tot'])
+    @commands.command(name='trickortreat', aliases=['tot'],
+                      invoke_without_command=True, cooldown_after_parsing=True)
     async def trick_or_treat(self, ctx):
         """Get a candy, or a trick!"""
 
