@@ -31,11 +31,15 @@ class CooldownMenu(menus.Menu):
     async def on_hourglass(self, payload):
         """Send the remaining time to the author."""
 
+        delete_after = 10
         retry_after = timedelta(seconds=self.error.retry_after)
-        await self.ctx.author.send(
+        await self.ctx.send(
             f"{self.error_message}, "
-            f"wait for {pretty_print_timedelta(retry_after)}."
+            f"wait for {pretty_print_timedelta(retry_after)}.",
+            delete_after=delete_after,
         )
+
+        await asyncio.sleep(delete_after)
 
         self.stop()
 
