@@ -1,5 +1,5 @@
-from .christmas import Christmas
+from .giveaways import Giveaways
 
 
 def setup(bot):
-    bot.add_cog(Christmas(bot))
+    bot.add_cog(Giveaways(bot))
