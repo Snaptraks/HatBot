@@ -172,7 +172,7 @@ class Giveaways(BasicCog):
 
         await self.bot.db.commit()
 
-    @_create_tables.after_loop
+    # @_create_tables.after_loop
     async def _insert_fake_games(self):
         await self.bot.db.executemany(
             """
