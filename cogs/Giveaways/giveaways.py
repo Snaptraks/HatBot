@@ -1,4 +1,5 @@
 from datetime import datetime, timedelta
+import json
 
 import discord
 from discord.ext import commands, tasks
@@ -51,8 +52,28 @@ class Giveaways(BasicCog):
 
         pass
 
-    # @commands.is_owner()
+    @giveaway.command(name="add")
+    @commands.is_owner()
+    async def giveaway_add(self, ctx):
+        """Add a list of games to the DB.
+        The command expects a .json file to be attached to the message.
+        """
+
+        file = ctx.message.attachments[0]
+        content = await file.read()
+        data = json.loads(content)
+        await self._insert_games(data)
+        await ctx.send("Games were added to the DB!")
+
+    @giveaway_add.error
+    async def giveaway_add_error(self, ctx, error):
+        """Error handler for the giveaway add command."""
+
+        await ctx.send(f"There was an error:\n{error}")
+        raise error
+
     @giveaway.group(name="remaining", invoke_without_command=True)
+    @commands.is_owner()
     async def giveaway_remaining(self, ctx):
         """Count of the remaining available games for the giveaway."""
 
@@ -61,6 +82,7 @@ class Giveaways(BasicCog):
         await ctx.send(f"{len(remaining)} remaining games.")
 
     @giveaway_remaining.command(name="list")
+    @commands.is_owner()
     async def giveaway_remaining_list(self, ctx):
         """List of the remaining available games for the giveaway."""
 
@@ -72,8 +94,8 @@ class Giveaways(BasicCog):
             f"```\n{remaining_str}\n```"
         )
 
-    @has_role_or_above('Mod')
     @giveaway.command(name='start')
+    @has_role_or_above('Mod')
     async def giveaway_start(self, ctx):
         """Start one giveaway event."""
 
@@ -291,6 +313,19 @@ class Giveaways(BasicCog):
             await self._edit_game_given(row['game_id'], True)
 
         return row
+
+    async def _insert_games(self, list_of_games):
+        """Add a list of games and keys to the DB."""
+
+        await self.bot.db.executemany(
+            """
+            INSERT OR IGNORE INTO giveaways_game(key, title, url)
+            VALUES (:key,
+                    :title,
+                    :url)
+            """,
+            list_of_games
+        )
 
     async def _edit_game_given(self, game_id, given):
         """Mark the game as given (or not, if no one wins it)."""
