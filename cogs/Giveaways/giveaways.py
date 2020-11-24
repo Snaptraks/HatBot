@@ -9,8 +9,8 @@ from . import menus
 from ..utils.checks import has_role_or_above
 from ..utils.cogs import BasicCog
 
-# GIVEAWAY_TIME = timedelta(hours=24)
-GIVEAWAY_TIME = timedelta(seconds=15)
+GIVEAWAY_TIME = timedelta(hours=24)
+# GIVEAWAY_TIME = timedelta(seconds=15)
 
 
 class Giveaways(BasicCog):
