@@ -1,3 +1,4 @@
+from collections import Counter
 from datetime import datetime, timedelta
 import json
 
@@ -72,27 +73,23 @@ class Giveaways(BasicCog):
         await ctx.send(f"There was an error:\n{error}")
         raise error
 
-    @giveaway.group(name="remaining", invoke_without_command=True)
-    @commands.is_owner()
+    @giveaway.command(name="remaining")
+    @has_role_or_above('Mod')
     async def giveaway_remaining(self, ctx):
-        """Count of the remaining available games for the giveaway."""
-
-        remaining = await self._get_remaining()
-
-        await ctx.send(f"{len(remaining)} remaining games.")
-
-    @giveaway_remaining.command(name="list")
-    @commands.is_owner()
-    async def giveaway_remaining_list(self, ctx):
         """List of the remaining available games for the giveaway."""
 
         remaining = await self._get_remaining()
-        remaining_str = '\n'.join([g['title'] for g in remaining])
+        remaining_titles = Counter([g['title'] for g in remaining])
 
-        await ctx.send(
-            f"{len(remaining)} remaining games:\n"
-            f"```\n{remaining_str}\n```"
+        menu = menus.GameListMenu(
+            source=menus.GameListSource(
+                entries=list(remaining_titles.items()),
+                per_page=10,
+            ),
+            clear_reactions_after=True,
         )
+
+        await menu.start(ctx)
 
     @giveaway.command(name='start')
     @has_role_or_above('Mod')

@@ -3,6 +3,7 @@ from discord.ext import menus
 
 
 GIFT_EMOJI = '\U0001F381'
+EMBED_COLOR = 0xB3000C
 
 
 class GiveawayMenu(menus.Menu):
@@ -17,7 +18,7 @@ class GiveawayMenu(menus.Menu):
                                     f"({self.giveaway_data['url']})")
         self.embed = discord.Embed(
             title="Giveaway!",
-            color=0xB3000C,
+            color=EMBED_COLOR,
             description=(
                 "We are giving away "
                 f"{self.game_title_and_link}\n"
@@ -168,3 +169,33 @@ class GiveawayMenu(menus.Menu):
         )
 
         await self.bot.db.commit()
+
+
+class GameListMenu(menus.MenuPages):
+    """Menu to list the remaining games."""
+
+
+class GameListSource(menus.ListPageSource):
+    """PageSource for the GameListMenu."""
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        self.count = sum([e[1] for e in self.entries])
+
+    async def format_page(self, menu, page):
+        """Format the remaining games nicely."""
+
+        content = "\n".join(
+            [f"`{p[1]} x` {p[0]}" for p in page]
+        )
+
+        embed = discord.Embed(
+            title=f"{self.count} Remaining Games",
+            color=EMBED_COLOR,
+            description=content,
+        ).set_footer(
+            text=f"Page {menu.current_page + 1}/{self.get_max_pages()}",
+        )
+
+        return embed
