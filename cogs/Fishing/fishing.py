@@ -296,6 +296,7 @@ class Fishing(FunCog):
             raise error
 
     @fish.command(name="inventory", aliases=["inv", "bag", "sell"])
+    @commands.max_concurency(1, commands.BucketType.user)
     async def fish_inventory(self, ctx):
         """Look at your fishing inventory.
         Also allows you to sell the fish you previously saved.
@@ -343,6 +344,9 @@ class Fishing(FunCog):
             inv_msg = await ctx.send(embed=embed)
             await asyncio.sleep(delay)
             await ctx.channel.delete_messages([ctx.message, inv_msg])
+
+        elif isinstance(error, commands.MaxConcurrencyReached):
+            await ctx.send("Your inventory is already opened.")
 
         else:
             raise error
