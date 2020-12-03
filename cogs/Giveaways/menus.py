@@ -123,6 +123,7 @@ class GiveawayMenu(menus.Menu):
                 SELECT *
                   FROM giveaways_entry
                  WHERE giveaway_id = :giveaway_id
+                 ORDER BY RANDOM()
                 """,
                 {
                     'giveaway_id': self.giveaway_data['giveaway_id'],
