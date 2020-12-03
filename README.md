@@ -38,27 +38,18 @@ You can also run the bot inside a docker container, if you prefer. I have includ
 
 * (Optional, if you want to move the image to another machine)
 ```
-docker build \
-   --file .docker/Dockerfile \
-   --tag discordbot \
-   .
+docker-compose build
 ```
 * (Optional, save the image to disk)
 ```
-docker save --output discordbot.tar discordbot
+docker save --output hatbot.tar hatbot
 ```
-* (Optional) Move the image to your prefered machine, as well as the ``.docker/``  subfolder.
+* (Optional) Move the image to your prefered machine, as well as the ``docker-compose.yml`` file.
 * (Optional, on the other machine to load the image there)
 ```
-docker load --input discordbot.tar
+docker load --input hatbot.tar
 ```
 * [Build the image if not already built and] Start the bot, creating the necessary volumes for the database.
 ```
-docker-compose \
-   --project-name hatbot \
-   --file .docker/docker-compose.yml \
-   --env-file .docker/hatbot/.env \
-   up \
-   --build \
-   --detatch
+docker-compose up -d
 ```

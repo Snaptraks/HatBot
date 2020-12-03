@@ -16,4 +16,4 @@ RUN mkdir db
 
 COPY . .
 
-CMD ["git", "pull"]
+CMD ["python", "HatBot.py"]

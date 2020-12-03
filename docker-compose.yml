@@ -1,0 +1,9 @@
+version: "3.8"
+services:
+    bot:
+        build: .
+        image: hatbot:latest
+        container_name: hatbot
+        restart: always
+        volumes:
+            - "./db:/db"
