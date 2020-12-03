@@ -296,7 +296,7 @@ class Fishing(FunCog):
             raise error
 
     @fish.command(name="inventory", aliases=["inv", "bag", "sell"])
-    @commands.max_concurency(1, commands.BucketType.user)
+    @commands.max_concurrency(1, commands.BucketType.user)
     async def fish_inventory(self, ctx):
         """Look at your fishing inventory.
         Also allows you to sell the fish you previously saved.
