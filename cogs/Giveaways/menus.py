@@ -124,6 +124,7 @@ class GiveawayMenu(menus.Menu):
                   FROM giveaways_entry
                  WHERE giveaway_id = :giveaway_id
                  ORDER BY RANDOM()
+                 LIMIT 1
                 """,
                 {
                     'giveaway_id': self.giveaway_data['giveaway_id'],
