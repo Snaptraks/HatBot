@@ -118,8 +118,18 @@ class Admin(BasicCog):
                 # Dev cog not loaded
                 return
 
+        commit_or_merge = (
+            "Please commit your changes or "
+            "stash them before you merge."
+        )
+
         if stdout.startswith("Already up to date."):
             return await ctx.send(stdout)
+
+        elif commit_or_merge in stderr:
+            stdout, stderr = await self.cog_dev.run_process("git fetch")
+            stdout, stderr = await self.cog_dev.run_process("git reset --hard")
+            stdout, stderr = await self.cog_dev.run_process("git pull")
 
         else:
             paginator = format_shell_output(stdout, stderr)
