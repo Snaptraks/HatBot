@@ -19,8 +19,14 @@ class Giveaways(BasicCog):
 
     def __init__(self, bot):
         super().__init__(bot)
+        self._tasks = {}
         self._create_tables.start()
         self.reload_menus.start()
+
+    def cog_unload(self):
+        # cancel giveaways tasks when unloading to prevent duplicates
+        for t in self._tasks.values():
+            t.cancel()
 
     @tasks.loop(count=1)
     async def reload_menus(self):
@@ -29,12 +35,13 @@ class Giveaways(BasicCog):
         giveaways = await self._get_giveaways()
 
         for giveaway in giveaways:
+            giveaway_id = giveaway['giveaway_id']
             channel = (self.bot.get_channel(giveaway['channel_id'])
                        or await self.bot.fetch_channel(giveaway['channel_id']))
             message = await channel.fetch_message(giveaway['message_id'])
             ctx = await self.bot.get_context(message)
 
-            self.bot.loop.create_task(
+            self._tasks[giveaway_id] = self.bot.loop.create_task(
                 self.giveaway_task(
                     ctx,
                     giveaway_data=giveaway,
@@ -104,7 +111,7 @@ class Giveaways(BasicCog):
         giveaway_id = await self._create_giveaway(game['game_id'])
         giveaway_data = await self._get_giveaway(giveaway_id)
 
-        self.bot.loop.create_task(
+        self._tasks[giveaway_id] = self.bot.loop.create_task(
             self.giveaway_task(
                 ctx,
                 giveaway_data=giveaway_data,
