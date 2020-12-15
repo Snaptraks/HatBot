@@ -131,15 +131,14 @@ class Admin(BasicCog):
             stdout, stderr = await self.cog_dev.run_process("git reset --hard")
             stdout, stderr = await self.cog_dev.run_process("git pull")
 
-        else:
-            paginator = format_shell_output(stdout, stderr)
+        paginator = format_shell_output(stdout, stderr)
 
-            menu = MenuPages(
-                source=ShellOutputSource(paginator.pages),
-                clear_reactions_after=True,
-            )
+        menu = MenuPages(
+            source=ShellOutputSource(paginator.pages),
+            clear_reactions_after=True,
+        )
 
-            await menu.start(ctx)
+        await menu.start(ctx)
 
     @cogs_load.after_invoke
     @cogs_unload.after_invoke
