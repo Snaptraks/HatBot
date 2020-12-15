@@ -8,8 +8,8 @@ RUN echo "deb http://httpredir.debian.org/debian buster main contrib non-free" >
 
 RUN apt-get update \
     && apt-get install -y --no-install-recommends git ttf-mscorefonts-installer \
-    apt-get purge -y --auto-remove && \
-    rm -rf /var/lib/apt/lists/*
+    && apt-get purge -y --auto-remove \
+    && rm -rf /var/lib/apt/lists/*
 
 WORKDIR .
 
