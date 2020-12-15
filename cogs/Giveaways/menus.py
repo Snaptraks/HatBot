@@ -56,8 +56,9 @@ class GiveawayMenu(menus.Menu):
 
         else:
             self.embed.description = (
-                f"{self.winner.mention} won the giveaway for "
-                f"{self.game_title_and_link}. Congrats to them!"
+                f"{self.winner.display_name} ({self.winner.mention}) "
+                f"won the giveaway for {self.game_title_and_link}."
+                " Congrats to them!"
             )
             await self.message.edit(embed=self.embed)
 
