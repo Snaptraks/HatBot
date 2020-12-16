@@ -70,8 +70,10 @@ class GiveawayMenu(menus.Menu):
             self.winner = None
 
         else:
-            self.winner = (self.bot.get_user(entry['user_id'])
-                           or await self.bot.fetch_user(entry['user_id']))
+            self.winner = (
+                self.ctx.guild.get_member(entry['user_id'])
+                or await self.ctx.guild.fetch_member(entry['user_id'])
+            )
 
         super().stop()
         return self.winner
