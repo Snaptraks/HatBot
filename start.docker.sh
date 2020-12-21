@@ -1,4 +1,4 @@
-#! /bin/bash
+#!/bin/bash
 
 # Sync with GitHub repo
 git fetch --all
