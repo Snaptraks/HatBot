@@ -331,6 +331,8 @@ class Giveaways(BasicCog):
             list_of_games
         )
 
+        await self.bot.db.commit()
+
     async def _edit_game_given(self, game_id, given):
         """Mark the game as given (or not, if no one wins it)."""
 
