@@ -24,6 +24,6 @@ RUN mkdir db
 COPY . .
 
 # give permission to execute start script
-RUN chmod +x start.docker.sh
+RUN chmod +x start.sh
 
 CMD ["./start.sh"]
