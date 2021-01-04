@@ -26,4 +26,4 @@ COPY . .
 # give permission to execute start script
 RUN chmod +x start.docker.sh
 
-CMD ["./start.docker.sh"]
+CMD ["./start.sh"]
