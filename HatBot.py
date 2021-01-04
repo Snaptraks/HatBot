@@ -119,7 +119,6 @@ if __name__ == '__main__':
         'cogs.Fishing',
         'cogs.Fun',
         'cogs.Git',
-        'cogs.Giveaways',
         'cogs.Help',
         'cogs.HVC',
         'cogs.Info',
