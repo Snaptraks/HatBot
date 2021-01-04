@@ -36,6 +36,7 @@ With all this in mind, to run the bot locally and help with the development, you
 ### Running inside a docker container
 You can also run the bot inside a docker container, if you prefer. I have included the necessary files to create your image and start the container, all you need is run the commands inside the project's folder:
 
+* Create a ``start.sh`` script with the commands you want to be run (see ``start.sh.example``)
 * (Optional, if you want to move the image to another machine)
 ```
 docker-compose build
