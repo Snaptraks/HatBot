@@ -220,8 +220,8 @@ class Fun(BasicCog):
     async def bonk_error(self, ctx, error):
         "Error handler for the bonk command."""
 
-        if isinstance(error, commands.MemberNotFound):
-            await ctx.send(error)
+        if isinstance(error, (commands.MemberNotFound,
+                              commands.MissingRequiredArgument)):
 
         else:
             raise error
