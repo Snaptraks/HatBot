@@ -66,7 +66,7 @@ class Responses(BasicCog):
                 mentions = json.load(f)['mentions']
             out = np.random.choice(mentions)
             await self.send_typing_delay(message.channel)
-            await message.channel.send(out)
+            await message.reply(out)
 
     @commands.Cog.listener(name="on_message")
     async def hello_there(self, message):
@@ -85,7 +85,7 @@ class Responses(BasicCog):
                 meme = discord.File(np.random.choice(pics))
                 await self.send_typing_delay(message.channel)
                 # await self.channel_msg.send(file=meme)
-                await message.channel.send(file=meme)
+                await message.reply(file=meme)
                 self.hello_there_params['last_time'] = datetime.utcnow()
 
     @commands.Cog.listener(name='on_message')
@@ -160,7 +160,7 @@ class Responses(BasicCog):
 
                     content = f'{prefix} **{out_content}**'
                     await self.send_typing_delay(channel)
-                    await channel.send(content)
+                    await message.reply(content)
                     # print('Sent they_said at i={} ({})'.format(i, out_content))
                     return
 
