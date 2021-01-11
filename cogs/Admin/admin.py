@@ -45,12 +45,12 @@ class Admin(BasicCog):
             else:
                 ip_address = "Could not get external IP"
 
-        await ctx.send(f"`{ip_address}`")
+        await ctx.reply(f"`{ip_address}`")
 
     @external_ip.error
     async def ip_error(self, ctx, error):
         if isinstance(error, commands.PrivateMessageOnly):
-            await ctx.send(error)
+            await ctx.reply(error)
 
         else:
             raise error
@@ -60,7 +60,7 @@ class Admin(BasicCog):
         """List current active cogs."""
 
         content = f"Active Cogs:\n`{', '.join(self.bot.cogs.keys())}`"
-        await ctx.send(content)
+        await ctx.reply(content)
 
     @cogs.command(name="load", aliases=["l"])
     async def cogs_load(self, ctx, module):
@@ -124,7 +124,7 @@ class Admin(BasicCog):
         )
 
         if stdout.startswith("Already up to date."):
-            return await ctx.send(stdout)
+            return await ctx.reply(stdout)
 
         elif commit_or_merge in stderr:
             stdout, stderr = await self.cog_dev.run_process("git fetch")
@@ -170,7 +170,7 @@ class Admin(BasicCog):
         exc = f"{type(error).__name__}: {error}"
         print("Failed to reload some extension.")
         await ctx.message.add_reaction("\N{CROSS MARK}")
-        await ctx.send(exc)  # because there is lots of info
+        await ctx.reply(exc)  # because there is lots of info
         raise error
 
     @commands.command()
@@ -183,7 +183,7 @@ class Admin(BasicCog):
             f"I have been online for {uptime_.days} days! "
             f"(Since {self.bot.boot_time:%c})"
         )
-        await ctx.send(content)
+        await ctx.reply(content)
 
     @commands.command()
     async def susay(self, ctx, channel: discord.TextChannel, *, message: str):

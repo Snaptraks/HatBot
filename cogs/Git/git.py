@@ -21,10 +21,10 @@ class Git(BasicCog):
         """Print the link for the GitHub repository."""
 
         if ctx.invoked_subcommand is None:
-            await ctx.send(self.repo_url)
+            await ctx.reply(self.repo_url)
 
     @github.command(name='issues')
     async def github_issues(self, ctx):
         """Print the link to the Issues page of the repository."""
 
-        await ctx.send(self.repo_url + "/issues")
+        await ctx.reply(self.repo_url + "/issues")

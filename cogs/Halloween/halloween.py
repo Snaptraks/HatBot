@@ -135,10 +135,10 @@ class Halloween(FunCog):
             await ctx.message.add_reaction('\U0000231B')  # :hourglass:
 
         elif isinstance(error, commands.MissingRequiredArgument):
-            await ctx.send(error)
+            await ctx.reply(error)
 
         elif isinstance(error, NotEnoughCandyError):
-            await ctx.send(error)
+            await ctx.reply(error)
 
         else:
             raise error
@@ -305,7 +305,7 @@ class Halloween(FunCog):
             text="Happy Halloween!"
         )
 
-        await ctx.send(embed=embed)
+        await ctx.reply(embed=embed)
 
     @commands.command()
     @commands.check(curse_check)
@@ -348,7 +348,7 @@ class Halloween(FunCog):
                 f"now **{new_nickname}**! Happy Halloween :jack_o_lantern:"
             )
 
-        await ctx.send(content)
+        await ctx.reply(content)
         await self.wait_and_revert(target, old_nickname, delay=10 * 60)
 
     @commands.command()
@@ -394,7 +394,7 @@ class Halloween(FunCog):
                 f"**{new_nickname}**! Happy Halloween! :jack_o_lantern:"
             )
 
-            await ctx.send(f'{prefix}{suffix}')
+            await ctx.reply(f'{prefix}{suffix}')
             await self.wait_and_revert(ctx.author, old_nickname)
 
         else:
@@ -402,7 +402,7 @@ class Halloween(FunCog):
             candy_id, candy = get_random_candy()
             suffix = f"I have some candy! Happy Halloween! {candy}"
 
-            await ctx.send(f'{prefix}{suffix}')
+            await ctx.reply(f'{prefix}{suffix}')
             await self._give_candy(ctx.author, candy_id)
 
     @commands.cooldown(1, TRICK_DELAY, commands.BucketType.member)
@@ -421,7 +421,7 @@ class Halloween(FunCog):
             ":jack_o_lantern:"
         )
 
-        await ctx.send(content)
+        await ctx.reply(content)
         await self.wait_and_revert(ctx.author, old_nickname)
 
     async def change_nickname(self, member):

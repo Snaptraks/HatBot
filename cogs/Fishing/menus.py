@@ -33,7 +33,7 @@ class CooldownMenu(menus.Menu):
 
         delete_after = 10
         retry_after = timedelta(seconds=self.error.retry_after)
-        await self.ctx.send(
+        await self.ctx.reply(
             f"{self.error_message}, "
             f"wait for {pretty_print_timedelta(retry_after)}.",
             delete_after=delete_after,

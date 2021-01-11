@@ -23,7 +23,7 @@ class Fun(BasicCog):
     async def ping(self, ctx):
         """Reply with Pong!"""
 
-        await ctx.send(":ping_pong: Pong!")
+        await ctx.reply(":ping_pong: Pong!")
 
     @commands.command()
     async def marco(self, ctx):
@@ -31,9 +31,9 @@ class Fun(BasicCog):
 
         r = np.random.randint(100)
         if r == 0:  # tags xplio/polo
-            await ctx.send(":water_polo: <@239215575576870914>!")
+            await ctx.reply(":water_polo: <@239215575576870914>!")
         else:
-            await ctx.send(":water_polo: Polo!")
+            await ctx.reply(":water_polo: Polo!")
 
     @commands.command()
     async def roll(self, ctx, dice="1d6"):
@@ -42,7 +42,7 @@ class Fun(BasicCog):
         try:
             rolls, limit = map(int, dice.lower().split('d'))
         except Exception:
-            await ctx.send("Format has to be in NdN!")
+            await ctx.reply("Format has to be in NdN!")
             return
         results = np.random.randint(1, limit + 1, size=rolls)
         if rolls == 1 or rolls > 10:
@@ -50,7 +50,7 @@ class Fun(BasicCog):
         else:
             outstr = " + ".join(str(r) for r in results)
             outstr += " = " + str(results.sum())
-        await ctx.send(f":game_die: {outstr}")
+        await ctx.reply(f":game_die: {outstr}")
 
     @commands.command(name='8ball')
     async def _8ball(self, ctx, *question):
@@ -70,7 +70,7 @@ class Fun(BasicCog):
                     out_ans = "I'm sorry, what is the question?"
 
                 await asyncio.sleep(1.5)
-                await ctx.send(f":8ball: {out_ans}")
+                await ctx.reply(f":8ball: {out_ans}")
 
             else:
                 # sends a fun picture!
@@ -85,7 +85,7 @@ class Fun(BasicCog):
                 img = await self.bot.loop.run_in_executor(
                     None, self._make_8ball_figure)
 
-                await ctx.send(file=img)
+                await ctx.reply(file=img)
 
     @commands.command(aliases=["hugs"])
     async def hug(self, ctx, *, huggie: Union[discord.Member, str] = None):
@@ -93,7 +93,7 @@ class Fun(BasicCog):
 
         embed = await self._action_embed('hug', ctx.author, huggie)
 
-        await ctx.send(embed=embed)
+        await ctx.reply(embed=embed)
 
     @commands.command()
     async def slap(self, ctx, *, slappie: Union[discord.Member, str] = None):
@@ -101,7 +101,7 @@ class Fun(BasicCog):
 
         embed = await self._action_embed('slap', ctx.author, slappie)
 
-        await ctx.send(embed=embed)
+        await ctx.reply(embed=embed)
 
     @commands.command(aliases=["votekick"])
     async def kick(self, ctx, *, kickie: Union[discord.Member, str] = None):
@@ -109,7 +109,7 @@ class Fun(BasicCog):
 
         embed = await self._action_embed('kick', ctx.author, kickie)
 
-        await ctx.send(embed=embed)
+        await ctx.reply(embed=embed)
 
     async def _action_embed(self, action: str, author: discord.Member,
                             destination: Union[discord.Member, str]):
@@ -163,7 +163,7 @@ class Fun(BasicCog):
         """Send the French Walrus emoji from 2020's April Fools."""
 
         emoji = self.bot.get_emoji(694918585486671962)
-        await ctx.send(emoji)
+        await ctx.reply(emoji)
 
     def _make_8ball_figure(self):
         # needed files
@@ -188,14 +188,14 @@ class Fun(BasicCog):
     @commands.command(hidden=True)
     @commands.cooldown(1, 3600, commands.BucketType.guild)
     async def play(self, ctx):
-        await ctx.send(
+        await ctx.reply(
             f"This ain't fucking Twitch, {ctx.author.display_name}."
         )
 
     @play.error
     async def play_error(self, ctx, error):
         if isinstance(error, commands.CommandOnCooldown):
-            await ctx.send("I do not know of a command like that...")
+            await ctx.reply("I do not know of a command like that...")
 
     @commands.command()
     async def bonk(self, ctx, member: discord.Member, *, text=None):
@@ -214,7 +214,7 @@ class Fun(BasicCog):
         out = await self.bot.loop.run_in_executor(
             None, self.bonkify, avatar, text)
 
-        await ctx.send(file=discord.File(out, filename="bonk.png"))
+        await ctx.reply(file=discord.File(out, filename="bonk.png"))
 
     @bonk.error
     async def bonk_error(self, ctx, error):
@@ -222,6 +222,7 @@ class Fun(BasicCog):
 
         if isinstance(error, (commands.MemberNotFound,
                               commands.MissingRequiredArgument)):
+            await ctx.reply(error)
 
         else:
             raise error

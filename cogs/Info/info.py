@@ -94,7 +94,7 @@ class Info(BasicCog):
         )
         embed.timestamp = datetime.utcnow()
 
-        await ctx.send(embed=embed)
+        await ctx.reply(embed=embed)
 
     @commands.command()
     async def time(self, ctx, tz_abr="UTC"):
@@ -129,7 +129,7 @@ class Info(BasicCog):
         offset = TZ['OFFSET']
 
         content = f"{emoji} It is {now} {tz_abr} ({tz_name}, {offset})."
-        await ctx.send(content)
+        await ctx.reply(content)
 
     @commands.command(aliases=["pfp"])
     async def avatar(self, ctx, *, member: discord.Member = None):
@@ -150,4 +150,4 @@ class Info(BasicCog):
                 data = io.BytesIO(await resp.content.read())
         file = discord.File(data, filename=f'{member.id}{extension}')
 
-        await ctx.send(file=file)
+        await ctx.reply(file=file)

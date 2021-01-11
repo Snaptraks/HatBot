@@ -74,7 +74,7 @@ class Reminders(BasicCog):
 
         reminder = await self._save_reminder(ctx)
 
-        await ctx.send(
+        await ctx.reply(
             "Ok! Here is your reminder:",
             embed=make_reminder_embed(reminder, ctx.author),
         )
@@ -89,13 +89,13 @@ class Reminders(BasicCog):
         Does not handle for subcommands.
         """
         if isinstance(error, commands.BadArgument):
-            await ctx.send(error)
+            await ctx.reply(error)
 
         elif isinstance(error, commands.MissingRequiredArgument):
-            await ctx.send(f"You are missing argument {error.param.name}")
+            await ctx.reply(f"You are missing argument {error.param.name}")
 
         elif isinstance(error, commands.ConversionError):
-            await ctx.send(
+            await ctx.reply(
                 "I am sorry, there was an error. "
                 "Maybe try a shorter amount of time?"
             )
@@ -106,18 +106,18 @@ class Reminders(BasicCog):
     @commands.is_owner()
     async def remind_active(self, ctx):
         if self._reminders_task.done():
-            await ctx.send(
+            await ctx.reply(
                 "Task is done with exception: "
                 f"{self._reminders_task.exception()}"
             )
             self._reminders_task.print_stack()
         else:
-            await ctx.send(self._reminders_task)
+            await ctx.reply(self._reminders_task)
 
     @remind.command(name="next", aliases=["n"])
     @commands.is_owner()
     async def remind_next(self, ctx):
-        await ctx.send(dict(self._next_reminder))
+        await ctx.reply(dict(self._next_reminder))
 
     @remind.command(name="list")
     async def remind_list(self, ctx):
@@ -131,7 +131,7 @@ class Reminders(BasicCog):
                 title=f"Reminders for {ctx.author.display_name}",
                 description="No active reminders",
             )
-            await ctx.send(embed=embed)
+            await ctx.reply(embed=embed)
             return
 
         menu = menus.ReminderMenu(

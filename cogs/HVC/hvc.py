@@ -28,7 +28,7 @@ class HVC(BasicCog):
             inline=False,
         )
         embed.set_thumbnail(url=config.hvc_ts['icon'])
-        await ctx.send(embed=embed)
+        await ctx.reply(embed=embed)
 
     @commands.command(aliases=["mc", "map", "ip"])
     async def minecraft(self, ctx):
@@ -74,7 +74,7 @@ class HVC(BasicCog):
 
         embed.set_thumbnail(url=config.hvc_mc['icon'])
 
-        await ctx.send(embed=embed)
+        await ctx.reply(embed=embed)
 
     @commands.command()
     async def ttt(self, ctx):
@@ -101,4 +101,4 @@ class HVC(BasicCog):
             f"steam://connect/{config.capgun_ttt.ip}/"
             f"{config.capgun_ttt.password}"
         )
-        await ctx.send(content=link, embed=embed)
+        await ctx.reply(content=link, embed=embed)
