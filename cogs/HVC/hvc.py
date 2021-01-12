@@ -52,7 +52,7 @@ class HVC(BasicCog):
             inline=True
         )
         try:
-            status = server.status()
+            status = await server.async_status()
             embed.add_field(
                 name="Version",
                 value=status.version.name,
