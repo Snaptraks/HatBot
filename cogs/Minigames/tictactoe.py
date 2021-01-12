@@ -79,7 +79,7 @@ class TicTacToe:
         tokens = [emoji.TicTacToe.O.value, emoji.TicTacToe.X.value]
         hint_message = "Please wait, setting things up..."
         self.update_embed(hint_message, player)
-        self.message_game = await self.ctx.send(embed=self.embed)
+        self.message_game = await self.ctx.reply(embed=self.embed)
         for pos in self.emoji_positions:
             await self.message_game.add_reaction(pos)
 

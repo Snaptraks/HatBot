@@ -60,16 +60,14 @@ class ACNH(BasicCog):
             if message.guild.id != 489435669215707148:  # Les GrandMasters
                 return
 
-        ctx = await self.bot.get_context(message)
-
-        if ctx.me.mentioned_in(message) \
+        if message.guild.me.mentioned_in(message) \
                 and not message.author.bot \
                 and not message.mention_everyone \
                 and not message.content.startswith(self.bot.command_prefix):
 
             content = np.random.choice(self.quotes)
-            await self.send_typing_delay(ctx.channel)
-            await ctx.send(content)
+            await self.send_typing_delay(message.channel)
+            await message.reply(content)
 
     @commands.group(invoke_without_command=True)
     async def acnh(self, ctx):
@@ -100,7 +98,7 @@ class ACNH(BasicCog):
 
         embed = menus.make_profile_embed(member, profile_data, thumbnail_url)
 
-        await ctx.send(embed=embed, file=resident_picture)
+        await ctx.reply(embed=embed, file=resident_picture)
 
     @acnh.command(name="creators", aliases=["creator", "designs", "design"])
     async def acnh_creators(self, ctx):
@@ -109,7 +107,7 @@ class ACNH(BasicCog):
         embed = await self._make_codes_embed(
             ctx, 'creator_id', "Creator IDs")
 
-        await ctx.send(embed=embed)
+        await ctx.reply(embed=embed)
 
     @acnh.command(name="dreams", aliases=["dream"])
     async def acnh_dreams(self, ctx):
@@ -118,7 +116,7 @@ class ACNH(BasicCog):
         embed = await self._make_codes_embed(
             ctx, 'dream_address', "Dream Addresses")
 
-        await ctx.send(embed=embed)
+        await ctx.reply(embed=embed)
 
     @acnh.command(name="friends", aliases=["friend"])
     async def acnh_friends(self, ctx):
@@ -127,7 +125,7 @@ class ACNH(BasicCog):
         embed = await self._make_codes_embed(
             ctx, 'friend_code', "Friend Codes")
 
-        await ctx.send(embed=embed)
+        await ctx.reply(embed=embed)
 
     @acnh.command(name="form")
     @commands.dm_only()
@@ -162,13 +160,13 @@ class ACNH(BasicCog):
 
         await self._save_profile_data(ctx.author, profile_data)
 
-        await ctx.send("I successfully saved your information! Thank you!")
+        await ctx.reply("I successfully saved your information! Thank you!")
 
     @acnh_form.error
     async def acnh_form_error(self, ctx, error):
         """Error handler for the form filing process."""
 
-        await ctx.send(
+        await ctx.reply(
             "There was an error filling out the form. "
             "Do not forget to copy-paste the form in full before "
             "filling it out! (You can leave sections empty though)"
@@ -187,13 +185,13 @@ class ACNH(BasicCog):
 
         await self._save_profile_picture(ctx.author, picture)
 
-        await ctx.send("I successfully saved your picture! Thank you!")
+        await ctx.reply("I successfully saved your picture! Thank you!")
 
     @acnh_picture.error
     async def acnh_picture_error(self, ctx, error):
         """Error handler for the acnh_picture command."""
 
-        await ctx.send(f"There was an error:\n{error}")
+        await ctx.reply(f"There was an error:\n{error}")
 
     @acnh.command(name="register")
     async def acnh_register(self, ctx):
@@ -206,7 +204,7 @@ class ACNH(BasicCog):
                 "profile card, shall we? I will ask you a few questions."
             )
         except discord.Forbidden:
-            await ctx.send("I cannot send you private messages... :(")
+            await ctx.reply("I cannot send you private messages... :(")
             return
 
         with open(os.path.join(

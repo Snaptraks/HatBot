@@ -24,7 +24,7 @@ class Roles(BasicCog):
         content += "\n".join([f"{blue_dia} {r}" for r in available])
         content += f"\nFor example: `!join {np.random.choice(available)}`"
 
-        await ctx.send(content)
+        await ctx.reply(content)
 
     # TODO: merge the join/leave commands to avoid duplicate code
     @commands.command()
@@ -43,7 +43,7 @@ class Roles(BasicCog):
             await ctx.author.add_roles(role)
             content = f"You joined the {role.name} role! :smile:"
 
-        bot_msg = await ctx.send(content)
+        bot_msg = await ctx.reply(content)
         await asyncio.sleep(30)
         await ctx.channel.delete_messages([ctx.message, bot_msg])
 
@@ -63,7 +63,7 @@ class Roles(BasicCog):
             await ctx.author.remove_roles(role)
             content = f"You left the {role} role! :frowning:"
 
-        bot_msg = await ctx.send(content)
+        bot_msg = await ctx.reply(content)
         await asyncio.sleep(30)
         await ctx.channel.delete_messages([ctx.message, bot_msg])
 
@@ -73,7 +73,7 @@ class Roles(BasicCog):
         """Error handling for the join and leave commands."""
 
         if isinstance(error, commands.BadArgument):
-            bot_msg = await ctx.send("I did not find that role, I'm sorry!")
+            bot_msg = await ctx.reply("I did not find that role, I'm sorry!")
             await asyncio.sleep(30)
             await ctx.channel.delete_messages([ctx.message, bot_msg])
         else:

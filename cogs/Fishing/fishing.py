@@ -197,7 +197,7 @@ class Fishing(FunCog):
                 "You have already tried to fish recently").start(ctx)
 
         elif isinstance(error, (IsStunnedError, OpenedInventoryError)):
-            await ctx.send(error)
+            await ctx.reply(error)
 
         else:
             raise error
@@ -228,7 +228,7 @@ class Fishing(FunCog):
             "and cannot go fishing!"
         )
 
-        await ctx.send(content)
+        await ctx.reply(content)
 
     @fish.command(name="card")
     async def fish_card(self, ctx, *, member: discord.Member = None):
@@ -267,7 +267,7 @@ class Fishing(FunCog):
             value=f"{exp:.3f} exp",
         )
 
-        await ctx.send(embed=embed)
+        await ctx.reply(embed=embed)
 
     @fish.command(name='exptop')
     async def fish_exptop(self, ctx):
@@ -290,7 +290,7 @@ class Fishing(FunCog):
         """Error handling for the fish_exptop command."""
 
         if isinstance(error, FishTopNoEntriesError):
-            await ctx.send(error)
+            await ctx.reply(error)
 
         else:
             raise error
@@ -341,12 +341,12 @@ class Fishing(FunCog):
                 color=EMBED_COLOR,
             )
             delay = 3 * 60
-            inv_msg = await ctx.send(embed=embed)
+            inv_msg = await ctx.reply(embed=embed)
             await asyncio.sleep(delay)
             await ctx.channel.delete_messages([ctx.message, inv_msg])
 
         elif isinstance(error, commands.MaxConcurrencyReached):
-            await ctx.send("Your inventory is already opened.")
+            await ctx.reply("Your inventory is already opened.")
 
         else:
             raise error
@@ -360,7 +360,7 @@ class Fishing(FunCog):
             member = ctx.author
 
         embed, file = await self._build_journal_embed(member)
-        message = await ctx.send(embed=embed, file=file)
+        message = await ctx.reply(embed=embed, file=file)
         journal = menus.JournalMenu(message)
 
         await journal.start(ctx)
@@ -370,7 +370,7 @@ class Fishing(FunCog):
         """Error handling for the fish_journal command."""
 
         if isinstance(error, commands.BadArgument):
-            await ctx.send(error)
+            await ctx.reply(error)
 
         else:
             raise error
@@ -380,7 +380,7 @@ class Fishing(FunCog):
         """Global fishing log."""
 
         embed, file = await self._build_journal_embed()
-        message = await ctx.send(embed=embed, file=file)
+        message = await ctx.reply(embed=embed, file=file)
         journal = menus.JournalMenu(message)
 
         await journal.start(ctx)
@@ -410,7 +410,7 @@ class Fishing(FunCog):
             "and cannot go fishing!"
         )
 
-        await ctx.send(content)
+        await ctx.reply(content)
 
     @fish_bomb.error
     @fish_slap.error
@@ -425,7 +425,7 @@ class Fishing(FunCog):
             ).start(ctx)
 
         elif isinstance(error, commands.MissingRequiredArgument):
-            await ctx.send(
+            await ctx.reply(
                 f"You need to specify someone to {ctx.command.name}.")
 
         elif isinstance(error, (
@@ -433,7 +433,7 @@ class Fishing(FunCog):
                 NoFishError,
                 OpenedInventoryError,
         )):
-            await ctx.send(error)
+            await ctx.reply(error)
 
         else:
             raise error
@@ -459,7 +459,7 @@ class Fishing(FunCog):
         """Error handling for the fish_top command."""
 
         if isinstance(error, FishTopNoEntriesError):
-            await ctx.send(error)
+            await ctx.reply(error)
 
         else:
             raise error
@@ -498,7 +498,7 @@ class Fishing(FunCog):
         confirm = await menus.TradeConfirm(confirm_msg).prompt(other_ctx)
 
         if confirm:
-            await ctx.send("Trade accepted.", delete_after=5 * 60)
+            await ctx.reply("Trade accepted.", delete_after=5 * 60)
             # start both menus and then transfer the fish
             author_menu = menus.TradeMenu(
                 source=menus.TradeSource(
@@ -526,7 +526,7 @@ class Fishing(FunCog):
             to_trade = [t.result() for t in done]
             to_trade = {t[0].id: t[1] for t in to_trade}
             if None in to_trade.values():
-                await ctx.send("Trade cancelled.", delete_after=5 * 60)
+                await ctx.reply("Trade cancelled.", delete_after=5 * 60)
                 return
 
             # proceed to trade
@@ -534,10 +534,10 @@ class Fishing(FunCog):
             other_trade = other_inventory[to_trade[other_member.id]]
             await self._trade_fish(author_trade, other_trade)
 
-            await ctx.send("Trade successful!", delete_after=5 * 60)
+            await ctx.reply("Trade successful!", delete_after=5 * 60)
 
         else:
-            await ctx.send("Trade denied.", delete_after=5 * 60)
+            await ctx.reply("Trade denied.", delete_after=5 * 60)
 
     @fish_trade.before_invoke
     async def fish_trade_before(self, ctx):
@@ -562,13 +562,13 @@ class Fishing(FunCog):
         if isinstance(error, commands.MaxConcurrencyReached):
             name = error.per.name
             suffix = f"for this {name}" if name != "default" else "globally"
-            await ctx.send(f"This command is already running {suffix}.")
+            await ctx.reply(f"This command is already running {suffix}.")
 
         elif isinstance(error, commands.MissingRequiredArgument):
-            await ctx.send("You need to specify a member to trade with.")
+            await ctx.reply("You need to specify a member to trade with.")
 
         elif isinstance(error, (commands.BadArgument, NoFishError)):
-            await ctx.send(error)
+            await ctx.reply(error)
 
         else:
             raise error
@@ -577,7 +577,7 @@ class Fishing(FunCog):
     async def weather(self, ctx):
         """Check today's weather."""
 
-        await ctx.send(f"The weather currently is {self.weather}")
+        await ctx.reply(f"The weather currently is {self.weather}")
 
     @weather.command(name='set')
     @commands.is_owner()
@@ -585,7 +585,7 @@ class Fishing(FunCog):
         """Set the weather to the given state (positive integer)."""
 
         self.weather = Weather(state)
-        await ctx.send(f"Weather set to {self.weather}")
+        await ctx.reply(f"Weather set to {self.weather}")
 
     def _build_journal_from_rows(self, rows):
         """Convert a list of Rows to a defaultdict of Counters."""

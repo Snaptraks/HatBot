@@ -100,7 +100,7 @@ class Dev(BasicCog):
         try:
             exec(to_compile, env)
         except Exception as e:
-            return await ctx.send(f"```py\n{e.__class__.__name__}: {e}\n```")
+            return await ctx.reply(f"```py\n{e.__class__.__name__}: {e}\n```")
 
         func = env['func']
         try:
@@ -108,7 +108,7 @@ class Dev(BasicCog):
                 ret = await func()
         except Exception:
             value = stdout.getvalue()
-            await ctx.send(f"```py\n{value}{traceback.format_exc()}\n```")
+            await ctx.reply(f"```py\n{value}{traceback.format_exc()}\n```")
         else:
             value = stdout.getvalue()
             try:
@@ -118,10 +118,10 @@ class Dev(BasicCog):
 
             if ret is None:
                 if value:
-                    await ctx.send(f"```py\n{value}\n```")
+                    await ctx.reply(f"```py\n{value}\n```")
             else:
                 self._last_result = ret
-                await ctx.send(f"```py\n{value}{ret}\n```")
+                await ctx.reply(f"```py\n{value}{ret}\n```")
 
     @commands.command()
     @commands.max_concurrency(1, commands.BucketType.channel)
@@ -138,7 +138,7 @@ class Dev(BasicCog):
             '_': None,
         }
 
-        await ctx.send(
+        await ctx.reply(
             "Enter code to execute or evaluate. "
             "`exit()` or `quit` to exit."
         )
@@ -156,13 +156,13 @@ class Dev(BasicCog):
                     timeout=10.0 * 60.0
                 )
             except asyncio.TimeoutError:
-                await ctx.send("Exiting REPL session.")
+                await ctx.reply("Exiting REPL session.")
                 break
 
             cleaned = self.cleanup_code(response.content)
 
             if cleaned in ("quit", "exit", "exit()"):
-                await ctx.send("Exiting.")
+                await response.reply("Exiting.")
                 return None
 
             executor = exec
@@ -179,7 +179,7 @@ class Dev(BasicCog):
                 try:
                     code = compile(cleaned, "<repl session>", "exec")
                 except SyntaxError as e:
-                    await ctx.send(self.get_syntax_error(e))
+                    await response.reply(self.get_syntax_error(e))
                     continue
 
             variables['message'] = response
@@ -206,20 +206,20 @@ class Dev(BasicCog):
             try:
                 if fmt is not None:
                     if len(fmt) > 2000:
-                        await ctx.send("Content too big to be printed.")
+                        await response.reply("Content too big to be printed.")
                     else:
-                        await ctx.send(fmt)
+                        await response.reply(fmt)
             except discord.Forbidden:
                 pass
             except discord.HTTPException as e:
-                await ctx.send(f"Unexpected error: `{e}`")
+                await response.reply(f"Unexpected error: `{e}`")
 
     @repl.error
     async def repl_error(self, ctx, error):
         """Error hangling for the repl command."""
 
         if isinstance(error, commands.MaxConcurrencyReached):
-            await ctx.send(
+            await ctx.reply(
                 "Already running a REPL session. "
                 "Exit it with `exit` or `quit`."
             )
@@ -259,7 +259,7 @@ class Dev(BasicCog):
                 )
             )
             embed.colour = discord.Colour.red()
-            await ctx.send(embed=embed)
+            await ctx.reply(embed=embed)
             return
 
         if len(characters) > 25:
@@ -268,7 +268,7 @@ class Dev(BasicCog):
                 colour=discord.Colour.red(),
             )
 
-            await ctx.send(embed=embed)
+            await ctx.reply(embed=embed)
             return
 
         def get_info(char):
@@ -294,4 +294,4 @@ class Dev(BasicCog):
                 inline=False,
             )
 
-        await ctx.send(embed=embed)
+        await ctx.reply(embed=embed)

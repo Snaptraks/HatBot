@@ -155,7 +155,7 @@ class Announcements(BasicCog):
                     "message with me."
                 )
 
-            await ctx.send(content)
+            await ctx.reply(content)
 
     @birthday.command(name="register")
     @commands.dm_only()
@@ -195,7 +195,7 @@ class Announcements(BasicCog):
         else:  # no
             content = "To enter again, just send the command again!"
 
-        await ctx.send(content)
+        await ctx.reply(content)
 
     @birthday_register.error
     async def birthday_register_error(self, ctx, error):
@@ -207,13 +207,13 @@ class Announcements(BasicCog):
         elif isinstance(error, commands.MissingRequiredArgument) \
                 or isinstance(error.original, ValueError):
 
-            await ctx.send(
+            await ctx.reply(
                 "Please enter your birthday in a "
                 "`DD/MM/YYYY` format."
             )
 
         elif isinstance(error.original, AlreadyRegistered):
-            await ctx.send(
+            await ctx.reply(
                 "You already have a birthday registered "
                 f"(**{error.original.date.strftime('%d of %B')}**)! "
                 f"Contact {self.bot.owner.mention} to change it."
@@ -251,7 +251,7 @@ class Announcements(BasicCog):
         the confirmation message.
         """
         await self._delete_birthday(user)
-        await ctx.send(f"Successfully removed birthday for {user}")
+        await ctx.reply(f"Successfully removed birthday for {user}")
 
     @tasks.loop(count=1)
     async def _create_tables(self):

@@ -165,7 +165,7 @@ class Poll(BasicCog):
                     data=json.dumps(data),
                     headers={"Content Type": "application/json"}) as resp:
                 rjson = await resp.json()
-                await ctx.send("https://strawpoll.me/" + str(rjson["id"]))
+                await ctx.reply("https://strawpoll.me/" + str(rjson["id"]))
 
         except discord.errors.HTTPException:
             return "Please make sure you are using the format 'strawpoll {title} [Option1] [Option2] [Option 3]'"

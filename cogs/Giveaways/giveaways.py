@@ -71,13 +71,13 @@ class Giveaways(BasicCog):
         content = await file.read()
         data = json.loads(content)
         await self._insert_games(data)
-        await ctx.send("Games were added to the DB!")
+        await ctx.reply("Games were added to the DB!")
 
     @giveaway_add.error
     async def giveaway_add_error(self, ctx, error):
         """Error handler for the giveaway add command."""
 
-        await ctx.send(f"There was an error:\n{error}")
+        await ctx.reply(f"There was an error:\n{error}")
         raise error
 
     @giveaway.command(name="remaining")
@@ -105,7 +105,7 @@ class Giveaways(BasicCog):
 
         game = await self._get_random_game()
         if game is None:
-            await ctx.send("No more games!")
+            await ctx.reply("No more games!")
             return
 
         giveaway_id = await self._create_giveaway(game['game_id'])

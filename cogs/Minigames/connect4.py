@@ -105,7 +105,7 @@ class Connect4:
         tokens = [emoji.Connect4.RED.value, emoji.Connect4.BLUE.value]
         hint_message = "Please wait, setting things up..."
         self.update_embed(hint_message, player)
-        self.message_game = await self.ctx.send(embed=self.embed)
+        self.message_game = await self.ctx.reply(embed=self.embed)
         for number in self.emoji_numbers:
             await self.message_game.add_reaction(number)
 

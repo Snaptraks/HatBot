@@ -36,11 +36,11 @@ class Moderation(BasicCog):
 
         if guild_permissions.kick_members:
             # do not mute someone who has permissions to kick members
-            await ctx.send(f"Cannot mute {escaped_name} due to roles.")
+            await ctx.reply(f"Cannot mute {escaped_name} due to roles.")
 
         elif member.bot:
             # do not mute bots
-            await ctx.send(f"Cannot mute {escaped_name} (is a bot).")
+            await ctx.reply(f"Cannot mute {escaped_name} (is a bot).")
 
         else:
             overwrite = discord.PermissionOverwrite(
@@ -85,7 +85,7 @@ class Moderation(BasicCog):
         """Handle errors."""
 
         if isinstance(error, commands.MissingRequiredArgument):
-            await ctx.send("You need to provide someone to mute.")
+            await ctx.reply("You need to provide someone to mute.")
 
         elif isinstance(error, commands.BadArgument):
-            await ctx.send("Unknown member.")
+            await ctx.reply("Unknown member.")

@@ -14,7 +14,7 @@ class DidYouMeanMenu(menus.Menu):
         super().__init__(*args, **kwargs)
 
     async def send_initial_message(self, ctx, channel):
-        return await ctx.send(
+        return await ctx.reply(
             f'Did you mean ``{self.ctx.prefix}{self.maybe_cmd.name}``?')
 
     @menus.button(GREEN_CHECK_EMOJI)

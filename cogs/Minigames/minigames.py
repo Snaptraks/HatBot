@@ -36,10 +36,10 @@ class Minigames(FunCog):
             pass
 
         elif isinstance(error, commands.MissingRequiredArgument):
-            await ctx.send("You need another player to play that game.")
+            await ctx.reply("You need another player to play that game.")
 
         elif isinstance(error, commands.BadArgument):
-            await ctx.send(error)
+            await ctx.reply(error)
 
         else:
             raise error
@@ -127,33 +127,33 @@ class Minigames(FunCog):
         bot_choice_message = f"I choose {bot_choice}! {options_emoji[i]}"
 
         if player_choice in options_text:
-            await ctx.send(bot_choice_message)
+            await ctx.reply(bot_choice_message)
 
         player_win_message = "You won! :cry:"
         bot_win_message = "You lose! :stuck_out_tongue_closed_eyes:"
 
         # Now to work out who won"
         if player_choice == bot_choice:
-            await ctx.send("It's a draw!")
+            await ctx.reply("It's a draw!")
         elif (player_choice == "rock") and (bot_choice == "scissors"):
-            await ctx.send(player_win_message)
+            await ctx.reply(player_win_message)
         elif (player_choice == "rock") and (bot_choice == "paper"):
-            await ctx.send(bot_win_message)
+            await ctx.reply(bot_win_message)
         elif (player_choice == "paper") and (bot_choice == "rock"):
-            await ctx.send(player_win_message)
+            await ctx.reply(player_win_message)
         elif (player_choice == "paper") and (bot_choice == "scissors"):
-            await ctx.send(bot_win_message)
+            await ctx.reply(bot_win_message)
         elif (player_choice == "scissors") and (bot_choice == "paper"):
-            await ctx.send(player_win_message)
+            await ctx.reply(player_win_message)
         elif (player_choice == "scissors") and (bot_choice == "rock"):
-            await ctx.send(bot_win_message)
+            await ctx.reply(bot_win_message)
         # Easter eggs!
         elif player_choice == "spock":
-            await ctx.send("Live long and prosper :vulcan:")
+            await ctx.reply("Live long and prosper :vulcan:")
         elif player_choice == "dynamite" or player_choice == "tnt":
-            await ctx.send(bot_choice_message)
-            await ctx.send("No wait that's cheati.. :fire: :fire: :fire:")
+            await ctx.reply(bot_choice_message)
+            await ctx.reply("No wait that's cheati.. :fire: :fire: :fire:")
         elif player_choice == "lizard":
-            await ctx.send(":lizard:")
+            await ctx.reply(":lizard:")
         else:
-            await ctx.send("Wait, that's not a valid move!")
+            await ctx.reply("Wait, that's not a valid move!")

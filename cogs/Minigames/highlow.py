@@ -48,7 +48,7 @@ class HighLow:
         self.prev_card = self.deck.pop_card()
 
         self.update_embed("Please wait, setting things up...", hide_next=True)
-        self.message_game = await self.ctx.send(embed=self.embed)
+        self.message_game = await self.ctx.reply(embed=self.embed)
 
         def check(reaction, user):
             valid = user == self.ctx.author \

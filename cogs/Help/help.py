@@ -103,7 +103,7 @@ class Help(commands.Cog):
                 await menu.start(ctx)
 
             else:
-                await ctx.send("I do not know of a command like that...")
+                await ctx.reply("I do not know of a command like that...")
 
         elif (ctx.command is not None
                 and not hasattr(ctx.command, 'on_error')):

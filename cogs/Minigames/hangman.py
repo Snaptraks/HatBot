@@ -70,7 +70,7 @@ class Hangman:
 
         hint_message = "Guess the word! Enter a letter to begin."
         self.update_embed(hint_message)
-        self.message_game = await self.ctx.send(embed=self.embed)
+        self.message_game = await self.ctx.reply(embed=self.embed)
 
         while self.chances > 0 and not self.won:
 

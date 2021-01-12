@@ -100,13 +100,14 @@ if __name__ == '__main__':
 
     # TODO: Filter out intents that are not needed
     intents = discord.Intents.all()
+    allowed_mentions = discord.AllowedMentions(replied_user=False)
 
     bot = MyBot(
         description="HatBot by Snaptraks#2606",
         command_prefix="!",
         help_command=commands.DefaultHelpCommand(dm_help=True),
         intents=intents,
-        chunk_guilds_at_startup=True,
+        allowed_mentions=allowed_mentions,
         db_name='db/HatBot.db',
     )
 
