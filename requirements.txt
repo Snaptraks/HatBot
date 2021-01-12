@@ -4,5 +4,5 @@ git+git://github.com/Rapptz/discord-ext-menus.git
 fuzzywuzzy==0.18.0
 matplotlib==3.3.2
 mcstatus==4.1.0
-numpy==1.19.2
+numpy==1.19.5
 pillow==8.1.0
