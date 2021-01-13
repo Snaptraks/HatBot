@@ -1,7 +1,7 @@
 aiosqlite==0.16.0
 discord.py==1.6.0
 git+git://github.com/Rapptz/discord-ext-menus.git
-git+git://github.com/Snaptraks/wolframalpha-async.git
+git+git://github.com/Snaptraks/aiowolframalpha.git
 fuzzywuzzy==0.18.0
 matplotlib==3.3.3
 mcstatus==4.1.0
