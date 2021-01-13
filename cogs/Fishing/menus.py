@@ -63,7 +63,7 @@ class FishingConfirm(_MenuUtils, menus.Menu):
                 f"or sell it {EXPERIENCE_EMOJI} for experience?"
             ),
         )
-        return await channel.send(embed=self.embed)
+        return await ctx.reply(embed=self.embed)
 
     @menus.button(INVENTORY_EMOJI)
     async def on_keep(self, payload):
@@ -279,7 +279,7 @@ class TradeConfirm(_MenuUtils, menus.Menu):
         self.result = None
 
     async def send_initial_message(self, ctx, channel):
-        return await channel.send(self.msg)
+        return await ctx.reply(self.msg)
 
     @menus.button("\N{WHITE HEAVY CHECK MARK}")
     async def do_confirm(self, payload):

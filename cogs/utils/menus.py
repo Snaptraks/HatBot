@@ -13,6 +13,14 @@ class Middle(menus.Position):
 class _MenuUtils:
     """Base class for useful methods on Menus."""
 
+    async def send_initial_message(self, ctx, channel):
+        """Overwrite the default implementation to .reply to the
+        invokation command message.
+        """
+        page = await self._source.get_page(0)
+        kwargs = await self._get_kwargs_from_page(page)
+        return await ctx.reply(**kwargs)
+
     def should_add_reactions(self):
         """Always show buttons, even when there is only one page."""
 
