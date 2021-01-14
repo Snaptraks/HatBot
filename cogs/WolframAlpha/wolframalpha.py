@@ -1,6 +1,7 @@
 import io
 import discord
 from discord.ext import commands
+import aiowolframalpha
 
 import config
 
@@ -8,9 +9,51 @@ import config
 class WolframAlpha(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
+        self.wolfram_client = aiowolframalpha.Client(
+            config.wolfram_alpha_api,
+            session=self.bot.http_session,
+        )
 
     @commands.group(aliases=["wa"], invoke_without_command=True)
     async def wolfram(self, ctx, *, query):
+        """Wolfram|Alpha query command.
+        Return the data in a nicely formatted Embed.
+        """
+        embed = discord.Embed(
+            title="Wolfram|Alpha",
+            description=f"Results for query ``{query}``",
+            color=0xdd1100,
+        )
+
+        async with ctx.typing():
+            result = await self.wolfram_client.query(query)
+
+            for pod in result.pods:
+                value = []
+
+                for subpod in pod.subpods:
+                    image = next(subpod.img)
+
+                    plaintext = subpod.plaintext
+                    if plaintext is not None:
+                        value.append(f"• {plaintext}")
+
+                    elif (embed.image.url == discord.Embed.Empty
+                          and image is not None):
+                        embed.set_image(
+                            url=image.src,
+                        )
+
+                value = discord.utils.escape_markdown("\n".join(value))
+                if value:
+                    if len(value) > 1024:
+                        value = "Too long to display."
+                    embed.add_field(
+                        name=pod.title,
+                        value=value,
+                    )
+
+            await ctx.reply(embed=embed)
 
     @wolfram.command(name="simple", aliases=["s"])
     async def wolfram_simple(self, ctx, *, query):
