@@ -98,7 +98,7 @@ class HVC(BasicCog):
 
         # link = "steam://connect/{ip}/{password}".format(**config.capgun_ttt)
         link = (
-            f"steam://connect/{config.capgun_ttt.ip}/"
-            f"{config.capgun_ttt.password}"
+            f"steam://connect/{config.capgun_ttt['ip']}/"
+            f"{config.capgun_ttt['password']}"
         )
         await ctx.reply(content=link, embed=embed)
