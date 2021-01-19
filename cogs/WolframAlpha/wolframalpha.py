@@ -6,6 +6,10 @@ import aiowolframalpha
 import config
 
 
+class QueryError(commands.CommandError):
+    pass
+
+
 class WolframAlpha(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
@@ -27,6 +31,10 @@ class WolframAlpha(commands.Cog):
 
         async with ctx.typing():
             result = await self.wolfram_client.query(query)
+
+            if result.success == "false":
+                raise QueryError(
+                    "The query failed. Maybe try a different query?")
 
             for pod in result.pods:
                 value = []
@@ -70,10 +78,14 @@ class WolframAlpha(commands.Cog):
     async def wolfram_error(self, ctx, error):
         """Error handler for the wolfram command."""
 
-        if isinstance(error, commands.MissingRequiredArgument):
+        error = getattr(error, "original", error)
+
+        if isinstance(error, (commands.MissingRequiredArgument,
+                              QueryError)):
             await ctx.reply(error)
 
         else:
+            await ctx.reply("Something went wrong!")
             raise error
 
     async def get_wolfram_simple_query(self, query):
@@ -100,4 +112,5 @@ class WolframAlpha(commands.Cog):
                 return result
 
             else:
-                resp.raise_for_status()
+                raise QueryError(
+                    "The query failed. Maybe try a different query?")
