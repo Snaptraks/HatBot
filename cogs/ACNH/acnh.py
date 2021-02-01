@@ -60,6 +60,9 @@ class ACNH(BasicCog):
             if message.guild.id != 489435669215707148:  # Les GrandMasters
                 return
 
+        else:
+            return
+
         if message.guild.me.mentioned_in(message) \
                 and not message.author.bot \
                 and not message.mention_everyone \
