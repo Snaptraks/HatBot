@@ -294,4 +294,14 @@ class Dev(BasicCog):
                 inline=False,
             )
 
+        string_literals = "\n".join([
+            rf"`\N{{{unicodedata.name(char, '')}}}`"
+            for char in characters])
+
+        embed.add_field(
+            name="String Literals",
+            value=string_literals,
+            inline=False,
+        )
+
         await ctx.reply(embed=embed)
