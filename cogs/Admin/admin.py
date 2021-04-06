@@ -30,7 +30,7 @@ class Admin(BasicCog):
     async def kill(self, ctx):
         """Stop the bot. Does not restart it."""
 
-        await self.bot.logout()
+        await self.bot.close()
 
     @commands.command(name='eip')
     @commands.dm_only()
