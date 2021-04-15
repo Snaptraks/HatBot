@@ -40,7 +40,7 @@ class HVC(BasicCog):
             title="Minecraft Server",
             description="Official Hatventures Community Minecraft server",
             colour=0x5A894D,
-            url=None)
+        )
         embed.add_field(
             name="IP",
             value=config.hvc_mc['ip_name'],
