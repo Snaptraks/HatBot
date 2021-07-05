@@ -6,4 +6,4 @@ fuzzywuzzy==0.18.0
 matplotlib==3.4.2
 mcstatus==6.2.0
 numpy==1.21.0
-pillow==8.2.0
+pillow==8.3.0
