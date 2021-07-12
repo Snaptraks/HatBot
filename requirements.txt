@@ -4,6 +4,6 @@ git+git://github.com/Rapptz/discord-ext-menus.git
 git+git://github.com/Snaptraks/aiowolframalpha.git
 fuzzywuzzy==0.18.0
 matplotlib==3.4.2
-mcstatus==6.2.0
+mcstatus==6.4.0
 numpy==1.21.0
 pillow==8.3.1
