@@ -3,7 +3,7 @@ discord.py==1.7.3
 git+git://github.com/Rapptz/discord-ext-menus.git
 git+git://github.com/Snaptraks/aiowolframalpha.git
 fuzzywuzzy==0.18.0
-matplotlib==3.4.3
+matplotlib==3.5.0
 mcstatus==6.5.0
 numpy==1.21.4
 pillow==8.4.0
