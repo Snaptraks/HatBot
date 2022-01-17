@@ -5,5 +5,5 @@ git+git://github.com/Snaptraks/aiowolframalpha.git
 fuzzywuzzy==0.18.0
 matplotlib==3.5.1
 mcstatus==8.0.0
-numpy==1.22.0
+numpy==1.22.1
 pillow==9.0.0
