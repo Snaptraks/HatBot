@@ -1,4 +1,4 @@
-aiosqlite==0.17.0
+aiosqlite==0.18.0
 discord.py==1.7.3
 git+git://github.com/Rapptz/discord-ext-menus.git
 git+git://github.com/Snaptraks/aiowolframalpha.git
