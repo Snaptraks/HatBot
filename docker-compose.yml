@@ -1,13 +1,13 @@
 version: "3.8"
 
 services:
-    bot:
-        build: .
-        image: hatbot:latest
-        container_name: hatbot
-        restart: always
-        volumes:
-            - hatbot-db:/db
+  bot:
+    build: .
+    image: hatbot:latest
+    container_name: hatbot
+    restart: always
+    volumes:
+      - hatbot-db:/db
 
 volumes:
-    hatbot-db:
+  hatbot-db:
