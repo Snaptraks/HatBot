@@ -1,17 +1,17 @@
-FROM python:3.9-slim
+FROM python:3.11-slim
+
+RUN apt-get update && apt-get install -y wget
 
 # additional repositories for fonts
-RUN echo "deb http://httpredir.debian.org/debian buster main contrib non-free" > /etc/apt/sources.list \
-    && echo "deb http://httpredir.debian.org/debian buster-updates main contrib non-free" >> /etc/apt/sources.list \
-    && echo "deb http://security.debian.org/ buster/updates main contrib non-free" >> /etc/apt/sources.list \
-    && echo "ttf-mscorefonts-installer msttcorefonts/accepted-mscorefonts-eula select true" | debconf-set-selections
+RUN wget https://gist.githubusercontent.com/hakerdefo/5e1f51fa93ff37871b9ff738b05ba30f/raw/7b5a0ff76b7f963c52f2b33baa20d8c4033bce4d/sources.list -O /etc/apt/sources.list
+# RUN sed -i'.bak' 's/$/ contrib/' /etc/apt/sources.list
 
 RUN apt-get update \
     && apt-get install -y --no-install-recommends git ttf-mscorefonts-installer \
     && apt-get purge -y --auto-remove \
     && rm -rf /var/lib/apt/lists/*
 
-WORKDIR .
+WORKDIR /bot
 
 ENV PYTHONUNBUFFERED 1
 
@@ -26,4 +26,4 @@ COPY . .
 # give permission to execute start script
 RUN chmod +x start.sh
 
-CMD ["./start.sh"]
+CMD ["python", "HatBot.py"]

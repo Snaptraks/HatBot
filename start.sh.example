@@ -1,4 +1,0 @@
-#!/bin/bash
-
-# Start the bot
-python HatBot.py
