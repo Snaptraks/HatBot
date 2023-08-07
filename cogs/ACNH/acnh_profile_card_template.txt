@@ -1,7 +1,0 @@
-resident_name: $resident_name
-island_name: $island_name
-hemisphere: $hemisphere
-native_fruit: $native_fruit
-friend_code: $friend_code
-creator_id: $creator_id
-dream_address: $dream_address
