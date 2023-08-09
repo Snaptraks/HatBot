@@ -34,7 +34,7 @@ class Month(Enum):
     December = 12
 
 
-def get_next_birthday(date: datetime.date) -> datetime.date:
+def get_next_birthday(date: datetime.date) -> datetime.datetime:
     """Return a date object for the next birthday."""
 
     now = discord.utils.utcnow()
