@@ -70,7 +70,7 @@ class Announcements(commands.Cog):
         with the command `!birthday register <DD/MM/YYYY>`.
         """
         birthdays = await self._get_today_birthday()
-        LOGGER.debug(f"Found {len(birthdays)} for today")
+        LOGGER.debug(f"Found {len(birthdays)} birthdays for today")
 
         if len(birthdays) != 0:
             for bday in birthdays:
