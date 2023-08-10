@@ -29,7 +29,7 @@ class Presence(commands.Cog):
         activity_type = activity_dict["activitytype"]
         activity_name = activity_dict["name"]
         activity = discord.Activity(
-            type=discord.ActivityType.try_value(activity_type),
+            type=discord.ActivityType(activity_type),
             name=activity_name,
         )
 
