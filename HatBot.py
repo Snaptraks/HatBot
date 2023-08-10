@@ -19,11 +19,8 @@ def main() -> None:
         "cogs.Announcements",
         "cogs.Presence",
         "snapcogs.Admin",
-        # "snapcogs.Poll",
-        # "snapcogs.Fun",
         "snapcogs.Information",
         "snapcogs.Tips",
-        # "snapcogs.Timestamps",
     ]
 
     bot = Bot(
