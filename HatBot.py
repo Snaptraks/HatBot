@@ -33,7 +33,7 @@ def main() -> None:
         startup_extensions=startup_extensions,
     )
 
-    bot.run(config.snapbot_token, log_level=logging.WARNING)
+    bot.run(config.hatbot_token, log_level=logging.WARNING)
 
 
 if __name__ == "__main__":
