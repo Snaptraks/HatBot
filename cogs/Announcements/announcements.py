@@ -186,7 +186,8 @@ class Announcements(commands.Cog):
         if isinstance(error, app_commands.MissingPermissions):
             await interaction.response.send_message(
                 "You are missing permissions for this command "
-                f"({', '.join(error.missing_permissions)})"
+                f"({', '.join(error.missing_permissions)})",
+                ephemeral=True,
             )
 
         else:
