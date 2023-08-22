@@ -1,0 +1,6 @@
+.docker/
+db/
+tests
+*.db
+*/__pycache__/*
+*.png
