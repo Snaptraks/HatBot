@@ -21,7 +21,6 @@ def main() -> None:
         "cogs.Presence",
         "snapcogs.Admin",
         "snapcogs.Information",
-        "snapcogs.Tips",
     ]
 
     bot = Bot(
