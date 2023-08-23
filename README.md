@@ -24,12 +24,24 @@ Nevertheless, to run the bot you will need Python 3.11+ and the packages from `r
 With all this in mind, to run the bot locally and help with the development, you will need a few things. Assuming your Python environment is correctly set up:
 
 1. [Create a bot account](https://discordpy.readthedocs.io/en/latest/discord.html#creating-a-bot-account).
-2. Copy your secret token in a file named `config.py` under `hatbot_token` (see `config.py.example` for more details). The rest of the configuration file is not necessary to run the bot and should not prevent it from running.
+2. Copy your secret token in a file named `config.py` under `hatbot_token` (see `config.py.example` for more details).
 3. [Invite the bot to your server](https://discordpy.readthedocs.io/en/latest/discord.html#inviting-your-bot). I recommend creating a dedicated Discord server for this, so that you are 100% sure to have total control over it.
 4. Start the bot with `python HatBot.py` from a terminal (might work with other methods but it has not been tested).
-5. Once the bot is on the server, you can enter commands and interact with it. If you modify a [Cog](https://discordpy.readthedocs.io/en/latest/ext/commands/cogs.html), you can stop the bot (Ctrl + C in the terminal) and restart it like in step 4.
+5. Once the bot is on the server, you can enter commands and interact with it. If you modify the code (either the main HatBot.py file or code inside a [Cog](https://discordpy.readthedocs.io/en/latest/ext/commands/cogs.html)), you can stop the bot (Ctrl + C in the terminal) and restart it like in step 4.
 
 ### Running inside a docker container
 You can also run the bot inside a docker container, if you prefer. I have included the necessary files to create your image and start the container, all you need is run the commands inside the project's folder:
 
-< work in progress >
+```
+docker compose up
+```
+
+This should take care of creating the necessary images, volumes, and container for the bot to function properl.
+
+If you want to run the bot in detached mode, allowing you to close the terminal once started, you can use the `--detach / -d` flag and have the process run in the background:
+
+```
+docker compose up -d
+```
+
+The `restart: always` specification in the `docker-compose.yml` file will allow the bot to restart even in the event of a crash.
