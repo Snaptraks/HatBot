@@ -224,7 +224,7 @@ class Announcements(commands.Cog):
 
         else:
             next_birthday = get_next_birthday(birthday_date)
-            content = f"Keeping your birthday. See you in {relative_dt(next_birthday)}!"
+            content = f"Keeping your birthday. See you {relative_dt(next_birthday)}!"
 
         await confirm.interaction.response.send_message(content, ephemeral=True)
 
