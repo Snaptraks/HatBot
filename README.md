@@ -15,7 +15,7 @@ You can help contributing to HatBot by forking the repository and creating pull 
 For more details check `CONTRIBUTING.md`.
 
 ### License
-This repository is provided for education purposes, and community contributions only. Please do not create personal instances of the bot with this code without explicit written permission from me (Snaptraks#2606 on Discord).
+This repository is provided for education purposes, and community contributions only. Please do not create personal instances of the bot with this code without explicit written permission from me (`snaptraks` on Discord).
 
 ### Requirements
 Nevertheless, to run the bot you will need Python 3.11+ and the packages from `requirements.txt`.
@@ -29,8 +29,8 @@ With all this in mind, to run the bot locally and help with the development, you
 4. Start the bot with `python HatBot.py` from a terminal (might work with other methods but it has not been tested).
 5. Once the bot is on the server, you can enter commands and interact with it. If you modify the code (either the main HatBot.py file or code inside a [Cog](https://discordpy.readthedocs.io/en/latest/ext/commands/cogs.html)), you can stop the bot (Ctrl + C in the terminal) and restart it like in step 4.
 
-### Running inside a docker container
-You can also run the bot inside a docker container, if you prefer. I have included the necessary files to create your image and start the container, all you need is run the commands inside the project's folder:
+### Running inside a Docker container
+You can also run the bot inside a Docker container, if you prefer. I have included the necessary files to create your image and start the container, all you need is run the commands inside the project's folder:
 
 ```
 docker compose up
@@ -45,3 +45,5 @@ docker compose up -d
 ```
 
 The `restart: always` specification in the `docker-compose.yml` file will allow the bot to restart even in the event of a crash.
+
+You can stop the bot with the command `docker compose down` from the project's folder.
