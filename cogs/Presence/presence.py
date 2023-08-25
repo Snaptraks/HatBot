@@ -1,17 +1,27 @@
-import json
+from pathlib import Path
 import random
+import tomllib
 
 import discord
 from discord.ext import commands, tasks
 
 
+PATH = Path(__file__).parent
+
+
+def load_activities() -> list[discord.CustomActivity]:
+    with open(PATH / "activities.toml", "rb") as f:
+        data = tomllib.load(f)
+
+    activities = [discord.CustomActivity(name=name) for name in data["activities"]]
+
+    return activities
+
+
 class Presence(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
-
-        with open("cogs/Presence/presence.json", "r") as f:
-            self.activities = json.load(f)
-
+        self.activities = load_activities()
         self.change_presence.start()
 
     async def cog_unload(self):
@@ -25,15 +35,7 @@ class Presence(commands.Cog):
     async def change_presence(self):
         """Change the Bot's presence periodically with a random activity."""
 
-        activity_dict = random.choice(self.activities)
-        activity_type = activity_dict["activitytype"]
-        activity_name = activity_dict["name"]
-        activity = discord.Activity(
-            type=discord.ActivityType(activity_type),
-            name=activity_name,
-        )
-
-        await self.bot.change_presence(activity=activity)
+        await self.bot.change_presence(activity=random.choice(self.activities))
 
     @change_presence.before_loop
     async def change_presence_before(self):
