@@ -91,7 +91,7 @@ class Announcements(commands.Cog):
         LOGGER.debug(f"Celebrating {member}'s birthday")
         embed = discord.Embed(
             description=(
-                f"# Happy Birthday {member.mention}!\n"
+                f"# Happy Birthday {member.display_name} ({member.mention})!\n"
                 f"It is a very special day! Let's all wish them a happy birthday!"
             ),
             color=0xFFD700,
