@@ -20,6 +20,7 @@ def main() -> None:
         "cogs.Avatar",
         "cogs.Presence",
         "snapcogs.Admin",
+        "snapcogs.Fun",
         "snapcogs.Information",
     ]
 
