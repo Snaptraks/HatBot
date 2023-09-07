@@ -29,7 +29,7 @@ def main() -> None:
         command_prefix=commands.when_mentioned_or("!"),
         intents=intents,
         allowed_mentions=allowed_mentions,
-        db_name="db/HatBot.db",
+        db_name="/db/HatBot.db",
         startup_extensions=startup_extensions,
     )
 
