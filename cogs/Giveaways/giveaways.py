@@ -1,6 +1,8 @@
 from collections import Counter
 from datetime import datetime, timedelta
 import json
+import logging
+from pathlib import Path
 
 import discord
 from discord.ext import commands, tasks
@@ -9,6 +11,13 @@ from . import menus
 
 from ..utils.checks import has_role_or_above
 from ..utils.cogs import BasicCog
+
+
+from snapcogs.utils.db import read_sql_query
+
+
+LOGGER = logging.getLogger(__name__)
+SQL = Path(__file__).parent / "sql"
 
 GIVEAWAY_TIME = timedelta(hours=24)
 # GIVEAWAY_TIME = timedelta(seconds=15)
@@ -35,10 +44,11 @@ class Giveaways(BasicCog):
         giveaways = await self._get_giveaways()
 
         for giveaway in giveaways:
-            giveaway_id = giveaway['giveaway_id']
-            channel = (self.bot.get_channel(giveaway['channel_id'])
-                       or await self.bot.fetch_channel(giveaway['channel_id']))
-            message = await channel.fetch_message(giveaway['message_id'])
+            giveaway_id = giveaway["giveaway_id"]
+            channel = self.bot.get_channel(
+                giveaway["channel_id"]
+            ) or await self.bot.fetch_channel(giveaway["channel_id"])
+            message = await channel.fetch_message(giveaway["message_id"])
             ctx = await self.bot.get_context(message)
 
             self._tasks[giveaway_id] = self.bot.loop.create_task(
@@ -81,12 +91,12 @@ class Giveaways(BasicCog):
         raise error
 
     @giveaway.command(name="remaining")
-    @has_role_or_above('Mod')
+    @has_role_or_above("Mod")
     async def giveaway_remaining(self, ctx):
         """List of the remaining available games for the giveaway."""
 
         remaining = await self._get_remaining()
-        remaining_titles = Counter([g['title'] for g in remaining])
+        remaining_titles = Counter([g["title"] for g in remaining])
 
         menu = menus.GameListMenu(
             source=menus.GameListSource(
@@ -98,8 +108,8 @@ class Giveaways(BasicCog):
 
         await menu.start(ctx)
 
-    @giveaway.command(name='start')
-    @has_role_or_above('Mod')
+    @giveaway.command(name="start")
+    @has_role_or_above("Mod")
     async def giveaway_start(self, ctx):
         """Start one giveaway event."""
 
@@ -108,7 +118,7 @@ class Giveaways(BasicCog):
             await ctx.reply("No more games!")
             return
 
-        giveaway_id = await self._create_giveaway(game['game_id'])
+        giveaway_id = await self._create_giveaway(game["game_id"])
         giveaway_data = await self._get_giveaway(giveaway_id)
 
         self._tasks[giveaway_id] = self.bot.loop.create_task(
@@ -124,17 +134,17 @@ class Giveaways(BasicCog):
         Will send the message in the channel where `!giveaway start`
         was invoked.
         """
-        game = kwargs.get('giveaway_data')
+        game = kwargs.get("giveaway_data")
         menu = menus.GiveawayMenu(**kwargs)
         await menu.start(ctx)
 
-        await discord.utils.sleep_until(game['trigger_at'])
+        await discord.utils.sleep_until(game["trigger_at"])
         winner = await menu.stop()
 
         if winner is None:
             # If list is empty, remove key from steam_keys_given
             # and delete the giveaway
-            await self._edit_game_given(game['game_id'], False)
+            await self._edit_game_given(game["game_id"], False)
             return
 
         try:
@@ -155,75 +165,33 @@ class Giveaways(BasicCog):
     async def _create_tables(self):
         """Create the necessary tables if they do not exist."""
 
-        await self.bot.db.execute(
-            """
-            CREATE TABLE IF NOT EXISTS giveaways_game(
-                game_id INTEGER NOT NULL PRIMARY KEY,
-                given   INTEGER DEFAULT 0,
-                key     TEXT    NOT NULL,
-                title   TEXT    NOT NULL,
-                url     TEXT    NOT NULL,
-                UNIQUE (key)
-            )
-            """
-        )
-
-        await self.bot.db.execute(
-            """
-            CREATE TABLE IF NOT EXISTS giveaways_giveaway(
-                giveaway_id INTEGER   NOT NULL PRIMARY KEY,
-                channel_id  INTEGER,
-                created_at  TIMESTAMP,
-                is_done     INTEGER   DEFAULT 0,
-                game_id     INTEGER   NOT NULL,
-                message_id  INTEGER,
-                trigger_at  TIMESTAMP NOT NULL,
-                FOREIGN KEY (game_id)
-                    REFERENCES giveaways_game (game_id)
-            )
-            """
-        )
-
-        await self.bot.db.execute(
-            """
-            CREATE TABLE IF NOT EXISTS giveaways_entry(
-                giveaway_id INTEGER NOT NULL,
-                user_id     INTEGER NOT NULL,
-                FOREIGN KEY (giveaway_id)
-                    REFERENCES giveaways_giveaway (giveaway_id)
-                UNIQUE (giveaway_id, user_id)
-            )
-            """
-        )
+        await self.bot.db.execute(read_sql_query(SQL / "create_game_table.sql"))
+        await self.bot.db.execute(read_sql_query(SQL / "create_giveaway_table.sql"))
+        await self.bot.db.execute(read_sql_query(SQL / "create_entry_table.sql"))
 
         await self.bot.db.commit()
 
     # @_create_tables.after_loop
     async def _insert_fake_games(self):
         await self.bot.db.executemany(
-            """
-            INSERT OR IGNORE INTO giveaways_game(key, title, url)
-            VALUES (:key,
-                    :title,
-                    :url)
-            """,
+            read_sql_query(SQL / "insert_games.sql"),
             [
-                {
-                    'key': '12345-12345-12345',
-                    'title': 'game name here',
-                    'url': 'https://store.steampowered.com',
-                },
-                {
-                    'key': 'ABCDE-ABCDE-ABCDE',
-                    'title': 'another game',
-                    'url': 'https://store.steampowered.com',
-                },
-                {
-                    'key': '12345-GHJKL-54321',
-                    'title': 'one more for the trip',
-                    'url': 'https://store.steampowered.com'
-                },
-            ]
+                dict(
+                    key="12345-12345-12345",
+                    title="game name here",
+                    url="https://store.steampowered.com",
+                ),
+                dict(
+                    key="ABCDE-ABCDE-ABCDE",
+                    title="another game",
+                    url="https://store.steampowered.com",
+                ),
+                dict(
+                    key="12345-GHJKL-54321",
+                    title="one more for the trip",
+                    url="https://store.steampowered.com",
+                ),
+            ],
         )
 
         await self.bot.db.commit()
@@ -232,15 +200,11 @@ class Giveaways(BasicCog):
         """Create the DB entry for the giveaway."""
 
         async with self.bot.db.execute(
-                """
-                INSERT INTO giveaways_giveaway (game_id, trigger_at)
-                VALUES (:game_id,
-                        :trigger_at)
-                """,
-                {
-                    'game_id': game_id,
-                    'trigger_at': datetime.utcnow() + GIVEAWAY_TIME,
-                }
+            read_sql_query(SQL / "create_giveaway.sql"),
+            dict(
+                game_id=game_id,
+                trigger_at=datetime.utcnow() + GIVEAWAY_TIME,
+            ),
         ) as c:
             giveaway_id = c.lastrowid
 
@@ -252,47 +216,30 @@ class Giveaways(BasicCog):
         """Get the data on the giveaway from the DB."""
 
         async with self.bot.db.execute(
-                """
-                SELECT *
-                  FROM giveaways_giveaway AS giveaway
-                       INNER JOIN giveaways_game AS game
-                       ON giveaway.game_id = game.game_id
-                 WHERE giveaway_id = :giveaway_id
-                """,
-                {
-                    'giveaway_id': giveaway_id,
-                }
+            read_sql_query(SQL / "get_giveaway.sql"),
+            dict(
+                giveaway_id=giveaway_id,
+            ),
         ) as c:
             row = await c.fetchone()
 
         return row
 
-    async def _get_giveaways(self):
+    async def _get_ongoing_giveaways(self):
         """Return the list of giveaways that are not done yet."""
 
         async with self.bot.db.execute(
-                """
-                SELECT *
-                  FROM giveaways_giveaway AS giveaway
-                       INNER JOIN giveaways_game AS game
-                       ON giveaway.game_id = game.game_id
-                 WHERE is_done = 0
-                """
+            read_sql_query(SQL / "get_ongoing_giveaways.sql")
         ) as c:
             rows = await c.fetchall()
 
         return rows
 
-    async def _get_remaining(self):
+    async def _get_remaining_games(self):
         """Return the list of remaining games."""
 
         async with self.bot.db.execute(
-                """
-                SELECT *
-                  FROM giveaways_game
-                 WHERE given = 0
-                 ORDER BY title ASC
-                """
+            read_sql_query(SQL / "get_remaining_games.sql")
         ) as c:
             rows = await c.fetchall()
 
@@ -303,18 +250,12 @@ class Giveaways(BasicCog):
         If None is returned, it means there are no available games yet.
         """
         async with self.bot.db.execute(
-                """
-                SELECT *
-                  FROM giveaways_game
-                 WHERE given = 0
-                 ORDER BY RANDOM()
-                 LIMIT 1
-                """
+            read_sql_query(SQL / "get_random_game.sql")
         ) as c:
             row = await c.fetchone()
 
         if row:
-            await self._edit_game_given(row['game_id'], True)
+            await self._edit_game_given(row["game_id"], True)
 
         return row
 
@@ -322,13 +263,8 @@ class Giveaways(BasicCog):
         """Add a list of games and keys to the DB."""
 
         await self.bot.db.executemany(
-            """
-            INSERT OR IGNORE INTO giveaways_game(key, title, url)
-            VALUES (:key,
-                    :title,
-                    :url)
-            """,
-            list_of_games
+            read_sql_query(SQL / "insert_games.sql"),
+            list_of_games,
         )
 
         await self.bot.db.commit()
@@ -337,15 +273,11 @@ class Giveaways(BasicCog):
         """Mark the game as given (or not, if no one wins it)."""
 
         await self.bot.db.execute(
-            """
-            UPDATE giveaways_game
-               SET given = :given
-             WHERE game_id = :game_id
-            """,
+            read_sql_query(SQL / "edit_game_given.sql"),
             {
-                'game_id': game_id,
-                'given': int(given),
-            }
+                "game_id": game_id,
+                "given": int(given),
+            },
         )
 
         await self.bot.db.commit()
