@@ -1,5 +1,6 @@
+from snapcogs import Bot
 from .giveaways import Giveaways
 
 
-def setup(bot):
-    bot.add_cog(Giveaways(bot))
+async def setup(bot: Bot):
+    await bot.add_cog(Giveaways(bot))

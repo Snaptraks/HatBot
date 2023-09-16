@@ -5,43 +5,43 @@ import logging
 from pathlib import Path
 
 import discord
+from discord import app_commands
 from discord.ext import commands, tasks
 
-from . import menus
-
 from ..utils.checks import has_role_or_above
-from ..utils.cogs import BasicCog
 
-
+from snapcogs import Bot
 from snapcogs.utils.db import read_sql_query
 
 
 LOGGER = logging.getLogger(__name__)
 SQL = Path(__file__).parent / "sql"
 
-GIVEAWAY_TIME = timedelta(hours=24)
-# GIVEAWAY_TIME = timedelta(seconds=15)
+# GIVEAWAY_TIME = timedelta(hours=24)
+GIVEAWAY_TIME = timedelta(seconds=15)
 
 
-class Giveaways(BasicCog):
+class Giveaways(commands.Cog):
     """Cog for giving away games back to the community."""
 
-    def __init__(self, bot):
-        super().__init__(bot)
+    def __init__(self, bot: Bot):
+        self.bot = bot
         self._tasks = {}
-        self._create_tables.start()
-        self.reload_menus.start()
 
-    def cog_unload(self):
+    async def cog_load(self):
+        await self._create_tables()
+        # await self.reload_menus()
+
+    async def cog_unload(self):
         # cancel giveaways tasks when unloading to prevent duplicates
         for t in self._tasks.values():
             t.cancel()
 
-    @tasks.loop(count=1)
     async def reload_menus(self):
         """Reload menus upon startup."""
 
-        giveaways = await self._get_giveaways()
+        await self.bot.wait_until_ready()
+        giveaways = await self._get_ongoing_giveaways()
 
         for giveaway in giveaways:
             giveaway_id = giveaway["giveaway_id"]
@@ -59,10 +59,6 @@ class Giveaways(BasicCog):
                     timeout=None,
                 )
             )
-
-    @reload_menus.before_loop
-    async def reload_menus_before(self):
-        await self.bot.wait_until_ready()
 
     @commands.group(aliases=["ga"])
     async def giveaway(self, ctx):
@@ -95,7 +91,7 @@ class Giveaways(BasicCog):
     async def giveaway_remaining(self, ctx):
         """List of the remaining available games for the giveaway."""
 
-        remaining = await self._get_remaining()
+        remaining = await self._get_remaining_games()
         remaining_titles = Counter([g["title"] for g in remaining])
 
         menu = menus.GameListMenu(
@@ -161,7 +157,6 @@ class Giveaways(BasicCog):
                 f"**{game['title']}** with key ||{game['key']}||."
             )
 
-    @tasks.loop(count=1)
     async def _create_tables(self):
         """Create the necessary tables if they do not exist."""
 
