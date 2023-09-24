@@ -1,21 +1,28 @@
+from pathlib import Path
+
 import discord
 from discord.ext import menus
 
+from snapcogs.utils.db import read_sql_query
 
-GIFT_EMOJI = '\U0001F381'
+
+GIFT_EMOJI = "\U0001F381"
 EMBED_COLOR = 0xB3000C
+
+SQL = Path(__file__).parent / "sql"
 
 
 class GiveawayMenu(menus.Menu):
     """Menu for the Giveaway registration."""
 
     def __init__(self, *args, **kwargs):
-        self.giveaway_data = kwargs.pop('giveaway_data')
+        self.giveaway_data = kwargs.pop("giveaway_data")
         super().__init__(*args, **kwargs)
 
-        giveaway_end = self.giveaway_data['trigger_at']
-        self.game_title_and_link = (f"[**{self.giveaway_data['title']}**]"
-                                    f"({self.giveaway_data['url']})")
+        giveaway_end = self.giveaway_data["trigger_at"]
+        self.game_title_and_link = (
+            f"[**{self.giveaway_data['title']}**]" f"({self.giveaway_data['url']})"
+        )
         self.embed = discord.Embed(
             title="Giveaway!",
             color=EMBED_COLOR,
@@ -23,7 +30,7 @@ class GiveawayMenu(menus.Menu):
                 "We are giving away "
                 f"{self.game_title_and_link}\n"
                 f"React with {GIFT_EMOJI} to enter!"
-            )
+            ),
         ).set_footer(
             text=f"This giveaway ends at {giveaway_end.strftime('%c UTC')}",
         )
@@ -70,10 +77,9 @@ class GiveawayMenu(menus.Menu):
             self.winner = None
 
         else:
-            self.winner = (
-                self.ctx.guild.get_member(entry['user_id'])
-                or await self.ctx.guild.fetch_member(entry['user_id'])
-            )
+            self.winner = self.ctx.guild.get_member(
+                entry["user_id"]
+            ) or await self.ctx.guild.fetch_member(entry["user_id"])
 
         super().stop()
         return self.winner
@@ -88,15 +94,11 @@ class GiveawayMenu(menus.Menu):
         """Add the entry to the DB."""
 
         await self.bot.db.execute(
-            """
-            INSERT OR IGNORE INTO giveaways_entry
-            VALUES (:giveaway_id,
-                    :user_id)
-            """,
+            read_sql_query(SQL / "add_entry.sql"),
             {
-                'giveaway_id': self.giveaway_data['giveaway_id'],
-                'user_id': user_id,
-            }
+                "giveaway_id": self.giveaway_data["giveaway_id"],
+                "user_id": user_id,
+            },
         )
 
         await self.bot.db.commit()
@@ -105,14 +107,10 @@ class GiveawayMenu(menus.Menu):
         """Return the list of entries for the giveaway."""
 
         async with self.bot.db.execute(
-                """
-                SELECT *
-                  FROM giveaways_entry
-                 WHERE giveaway_id = :giveaway_id
-                """,
-                {
-                    'giveaway_id': self.giveaway_data['giveaway_id'],
-                }
+            read_sql_query(SQL / "get_entries.sql"),
+            {
+                "giveaway_id": self.giveaway_data["giveaway_id"],
+            },
         ) as c:
             rows = await c.fetchall()
 
@@ -122,16 +120,10 @@ class GiveawayMenu(menus.Menu):
         """Return one random entry for the giveaway."""
 
         async with self.bot.db.execute(
-                """
-                SELECT *
-                  FROM giveaways_entry
-                 WHERE giveaway_id = :giveaway_id
-                 ORDER BY RANDOM()
-                 LIMIT 1
-                """,
-                {
-                    'giveaway_id': self.giveaway_data['giveaway_id'],
-                }
+            read_sql_query(SQL / "get_random_winner.sql"),
+            {
+                "giveaway_id": self.giveaway_data["giveaway_id"],
+            },
         ) as c:
             row = await c.fetchone()
 
@@ -142,19 +134,13 @@ class GiveawayMenu(menus.Menu):
         containing the Menu.
         """
         await self.bot.db.execute(
-            """
-            UPDATE giveaways_giveaway
-               SET channel_id = :channel_id,
-                   created_at = :created_at,
-                   message_id = :message_id
-             WHERE giveaway_id = :giveaway_id
-            """,
+            read_sql_query(SQL / "update_giveaway.sql"),
             {
-                'giveaway_id': self.giveaway_data['giveaway_id'],
-                'channel_id': self.message.channel.id,
-                'created_at': self.message.created_at,
-                'message_id': self.message.id
-            }
+                "giveaway_id": self.giveaway_data["giveaway_id"],
+                "channel_id": self.message.channel.id,
+                "created_at": self.message.created_at,
+                "message_id": self.message.id,
+            },
         )
 
         await self.bot.db.commit()
@@ -163,14 +149,10 @@ class GiveawayMenu(menus.Menu):
         """Mark the giveaway as done."""
 
         await self.bot.db.execute(
-            """
-            UPDATE giveaways_giveaway
-               SET is_done = 1
-             WHERE giveaway_id = :giveaway_id
-            """,
+            read_sql_query(SQL / "end_giveaway.sql"),
             {
-                'giveaway_id': self.giveaway_data['giveaway_id'],
-            }
+                "giveaway_id": self.giveaway_data["giveaway_id"],
+            },
         )
 
         await self.bot.db.commit()
@@ -191,9 +173,7 @@ class GameListSource(menus.ListPageSource):
     async def format_page(self, menu, page):
         """Format the remaining games nicely."""
 
-        content = "\n".join(
-            [f"`{p[1]} x` {p[0]}" for p in page]
-        )
+        content = "\n".join([f"`{p[1]} x` {p[0]}" for p in page])
 
         embed = discord.Embed(
             title=f"{self.count} Remaining Games",

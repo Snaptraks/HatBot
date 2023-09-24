@@ -24,8 +24,15 @@ GIVEAWAY_TIME = timedelta(seconds=15)
 class Giveaways(commands.Cog):
     """Cog for giving away games back to the community."""
 
+    giveaway = app_commands.Group(
+        name="giveaway",
+        description="Commands to manage the games giveaway",
+        default_permissions=discord.Permissions(mention_everyone=True),
+    )
+
     def __init__(self, bot: Bot):
         self.bot = bot
+        self.persistent_views_loaded = False
         self._tasks = {}
 
     async def cog_load(self):
@@ -36,6 +43,12 @@ class Giveaways(commands.Cog):
         # cancel giveaways tasks when unloading to prevent duplicates
         for t in self._tasks.values():
             t.cancel()
+
+    @commands.Cog.listener()
+    async def on_ready(self):
+        if not self.persistent_views_loaded:
+            # await self.reload_menus()
+            self.persistent_views_loaded = True
 
     async def reload_menus(self):
         """Reload menus upon startup."""
@@ -60,15 +73,27 @@ class Giveaways(commands.Cog):
                 )
             )
 
+    @giveaway.command(name="add")
+    async def giveaway_add(self, interaction: discord.Interaction):
+        ...
+
+    @giveaway.command(name="remaining")
+    async def giveaway_remaining(self, interaction: discord.Interaction):
+        ...
+
+    @giveaway.command(name="start")
+    async def giveaway_start(self, interaction: discord.Interaction):
+        ...
+
     @commands.group(aliases=["ga"])
-    async def giveaway(self, ctx):
+    async def old_giveaway(self, ctx):
         """Commands to control the giveaways."""
 
         pass
 
-    @giveaway.command(name="add")
+    @old_giveaway.command(name="add")
     @commands.is_owner()
-    async def giveaway_add(self, ctx):
+    async def old_giveaway_add(self, ctx):
         """Add a list of games to the DB.
         The command expects a .json file to be attached to the message.
         """
@@ -80,15 +105,15 @@ class Giveaways(commands.Cog):
         await ctx.reply("Games were added to the DB!")
 
     @giveaway_add.error
-    async def giveaway_add_error(self, ctx, error):
+    async def old_giveaway_add_error(self, ctx, error):
         """Error handler for the giveaway add command."""
 
         await ctx.reply(f"There was an error:\n{error}")
         raise error
 
-    @giveaway.command(name="remaining")
+    @old_giveaway.command(name="remaining")
     @has_role_or_above("Mod")
-    async def giveaway_remaining(self, ctx):
+    async def old_giveaway_remaining(self, ctx):
         """List of the remaining available games for the giveaway."""
 
         remaining = await self._get_remaining_games()
@@ -104,9 +129,9 @@ class Giveaways(commands.Cog):
 
         await menu.start(ctx)
 
-    @giveaway.command(name="start")
+    @old_giveaway.command(name="start")
     @has_role_or_above("Mod")
-    async def giveaway_start(self, ctx):
+    async def old_giveaway_start(self, ctx):
         """Start one giveaway event."""
 
         game = await self._get_random_game()
@@ -125,7 +150,7 @@ class Giveaways(commands.Cog):
             )
         )
 
-    async def giveaway_task(self, ctx, **kwargs):
+    async def old_giveaway_task(self, ctx, **kwargs):
         """Start one giveaway task.
         Will send the message in the channel where `!giveaway start`
         was invoked.
