@@ -1,4 +1,5 @@
 from collections import Counter
+from dataclasses import dataclass
 from datetime import datetime, timedelta
 import json
 import logging
@@ -6,12 +7,12 @@ from pathlib import Path
 
 import discord
 from discord import app_commands
-from discord.ext import commands, tasks
-
-from ..utils.checks import has_role_or_above
+from discord.ext import commands
 
 from snapcogs import Bot
 from snapcogs.utils.db import read_sql_query
+
+from . import views
 
 
 LOGGER = logging.getLogger(__name__)
@@ -19,6 +20,28 @@ SQL = Path(__file__).parent / "sql"
 
 # GIVEAWAY_TIME = timedelta(hours=24)
 GIVEAWAY_TIME = timedelta(seconds=15)
+EMBED_COLOR = 0xB3000C
+
+
+@dataclass
+class Game:
+    game_id: int
+    given: bool
+    key: str
+    title: str
+    url: str
+
+
+@dataclass
+class Giveaway:
+    giveaway_id: int
+    channel_id: int
+    created_at: datetime
+    game: Game
+    game_id: int
+    is_done: bool
+    message_id: int
+    trigger_at: datetime
 
 
 class Giveaways(commands.Cog):
@@ -38,6 +61,7 @@ class Giveaways(commands.Cog):
     async def cog_load(self):
         await self._create_tables()
         # await self.reload_menus()
+        # await self._insert_fake_games()
 
     async def cog_unload(self):
         # cancel giveaways tasks when unloading to prevent duplicates
@@ -73,6 +97,11 @@ class Giveaways(commands.Cog):
                 )
             )
 
+    async def save_presistent_view(
+        self, view: views.GiveawayView, message: discord.InteractionMessage
+    ) -> None:
+        ...
+
     @giveaway.command(name="add")
     async def giveaway_add(self, interaction: discord.Interaction):
         ...
@@ -83,7 +112,40 @@ class Giveaways(commands.Cog):
 
     @giveaway.command(name="start")
     async def giveaway_start(self, interaction: discord.Interaction):
-        ...
+        """Start one giveaway event."""
+
+        game = await self._get_random_game()
+        if game is None:
+            await interaction.response.send_message(
+                "No more games! Sorry!", ephemeral=True
+            )
+            return
+
+        LOGGER.debug(f"Giving game {game}")
+        giveaway_id = await self._create_giveaway(game.game_id)
+        if giveaway_id is None:
+            raise ValueError("Giveaway ID cannot be None!")
+
+        giveaway = await self._get_giveaway(giveaway_id)
+        if giveaway is None:
+            raise ValueError(f"Giveaway with ID {giveaway_id} does not exist!")
+
+        view = views.GiveawayView()
+        ends_in = discord.utils.format_dt(giveaway.trigger_at, style="R")
+        embed = discord.Embed(
+            color=EMBED_COLOR,
+            description=(
+                "# Giveaway!\n"
+                "## We are giving away "
+                f"[{game.title}]({game.url}).\n"
+                "## Press the button to enter!\n"
+                f"This giveaway ends {ends_in}"
+            ),
+        )
+        await interaction.response.send_message(embed=embed, view=view)
+        message = await interaction.original_response()
+
+        await self.save_presistent_view(view, message)
 
     @commands.group(aliases=["ga"])
     async def old_giveaway(self, ctx):
@@ -112,7 +174,7 @@ class Giveaways(commands.Cog):
         raise error
 
     @old_giveaway.command(name="remaining")
-    @has_role_or_above("Mod")
+    # @has_role_or_above("Mod")
     async def old_giveaway_remaining(self, ctx):
         """List of the remaining available games for the giveaway."""
 
@@ -130,7 +192,7 @@ class Giveaways(commands.Cog):
         await menu.start(ctx)
 
     @old_giveaway.command(name="start")
-    @has_role_or_above("Mod")
+    # @has_role_or_above("Mod")
     async def old_giveaway_start(self, ctx):
         """Start one giveaway event."""
 
@@ -143,7 +205,7 @@ class Giveaways(commands.Cog):
         giveaway_data = await self._get_giveaway(giveaway_id)
 
         self._tasks[giveaway_id] = self.bot.loop.create_task(
-            self.giveaway_task(
+            self.old_giveaway_task(
                 ctx,
                 giveaway_data=giveaway_data,
                 timeout=None,
@@ -216,14 +278,14 @@ class Giveaways(commands.Cog):
 
         await self.bot.db.commit()
 
-    async def _create_giveaway(self, game_id):
+    async def _create_giveaway(self, game_id: int) -> int | None:
         """Create the DB entry for the giveaway."""
 
         async with self.bot.db.execute(
             read_sql_query(SQL / "create_giveaway.sql"),
             dict(
                 game_id=game_id,
-                trigger_at=datetime.utcnow() + GIVEAWAY_TIME,
+                trigger_at=discord.utils.utcnow() + GIVEAWAY_TIME,
             ),
         ) as c:
             giveaway_id = c.lastrowid
@@ -232,7 +294,7 @@ class Giveaways(commands.Cog):
 
         return giveaway_id
 
-    async def _get_giveaway(self, giveaway_id):
+    async def _get_giveaway(self, giveaway_id: int) -> Giveaway | None:
         """Get the data on the giveaway from the DB."""
 
         async with self.bot.db.execute(
@@ -241,9 +303,25 @@ class Giveaways(commands.Cog):
                 giveaway_id=giveaway_id,
             ),
         ) as c:
-            row = await c.fetchone()
+            giveaway_row = await c.fetchone()
 
-        return row
+        if giveaway_row is None:
+            # exit early if giveaway doesn't exist
+            return None
+
+        async with self.bot.db.execute(
+            read_sql_query(SQL / "get_game.sql"),
+            dict(
+                game_id=giveaway_row["game_id"],
+            ),
+        ) as c:
+            game_row = await c.fetchone()
+
+        if game_row is not None:
+            game = Game(**game_row)
+            return Giveaway(**dict(giveaway_row), game=game)
+        else:
+            return None
 
     async def _get_ongoing_giveaways(self):
         """Return the list of giveaways that are not done yet."""
@@ -265,7 +343,7 @@ class Giveaways(commands.Cog):
 
         return rows
 
-    async def _get_random_game(self):
+    async def _get_random_game(self) -> Game | None:
         """Return a random game that is not given yet.
         If None is returned, it means there are no available games yet.
         """
@@ -276,8 +354,9 @@ class Giveaways(commands.Cog):
 
         if row:
             await self._edit_game_given(row["game_id"], True)
-
-        return row
+            return Game(**row)
+        else:
+            return None
 
     async def _insert_games(self, list_of_games):
         """Add a list of games and keys to the DB."""
