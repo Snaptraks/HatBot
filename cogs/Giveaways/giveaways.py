@@ -1,9 +1,7 @@
+import asyncio
 from collections import Counter
-from dataclasses import dataclass
-from datetime import datetime, timedelta
 import json
 import logging
-from pathlib import Path
 
 import discord
 from discord import app_commands
@@ -13,35 +11,10 @@ from snapcogs import Bot
 from snapcogs.utils.db import read_sql_query
 
 from . import views
+from .base import EMBED_COLOR, GIVEAWAY_TIME, SQL, Game, Giveaway
 
 
 LOGGER = logging.getLogger(__name__)
-SQL = Path(__file__).parent / "sql"
-
-# GIVEAWAY_TIME = timedelta(hours=24)
-GIVEAWAY_TIME = timedelta(seconds=15)
-EMBED_COLOR = 0xB3000C
-
-
-@dataclass
-class Game:
-    game_id: int
-    given: bool
-    key: str
-    title: str
-    url: str
-
-
-@dataclass
-class Giveaway:
-    giveaway_id: int
-    channel_id: int
-    created_at: datetime
-    game: Game
-    game_id: int
-    is_done: bool
-    message_id: int
-    trigger_at: datetime
 
 
 class Giveaways(commands.Cog):
@@ -68,6 +41,19 @@ class Giveaways(commands.Cog):
         for t in self._tasks.values():
             t.cancel()
 
+    async def interaction_check(self, interaction: discord.Interaction) -> bool:
+        """Check to make sure commands for this Cog are only run in servers we want."""
+
+        name = getattr(interaction.command, "qualified_name", "Unknown")
+        LOGGER.debug(f"Running check for interaction {name}")
+        guild_ids = {
+            308049114187431936,  # HVC
+            588171715960635393,  # BTS
+        }
+        if interaction.guild is None:
+            return False
+        return interaction.guild.id in guild_ids
+
     @commands.Cog.listener()
     async def on_ready(self):
         if not self.persistent_views_loaded:
@@ -89,7 +75,7 @@ class Giveaways(commands.Cog):
             ctx = await self.bot.get_context(message)
 
             self._tasks[giveaway_id] = self.bot.loop.create_task(
-                self.giveaway_task(
+                self.old_giveaway_task(
                     ctx,
                     giveaway_data=giveaway,
                     message=message,
@@ -97,10 +83,90 @@ class Giveaways(commands.Cog):
                 )
             )
 
-    async def save_presistent_view(
-        self, view: views.GiveawayView, message: discord.InteractionMessage
+    async def giveaway_task(
+        self,
+        interaction: discord.Interaction,
+        giveaway: Giveaway,
+        initial: bool = False,
     ) -> None:
-        ...
+        """Main task that handles the giveaways."""
+
+        ends_in = discord.utils.format_dt(giveaway.trigger_at, style="R")
+        ends_at = discord.utils.format_dt(giveaway.trigger_at, style="t")
+        game_title_link = f"[{giveaway.game.title}]({giveaway.game.url})"
+        if initial:
+            # send initial message
+            embed = discord.Embed(
+                color=EMBED_COLOR,
+                description=(
+                    "# Giveaway!\n"
+                    f"### We are giving away {game_title_link}.\n"
+                    "### Press the button to enter!\n"
+                    f"This giveaway ends at {ends_at} ({ends_in})"
+                ),
+            )
+
+            view = views.GiveawayView(self.bot, giveaway)
+            await interaction.response.send_message(embed=embed, view=view)
+            message = await interaction.original_response()
+            await self._save_presistent_view(view, message)
+            await self._update_giveaway(giveaway, message)
+
+        else:
+            view: views.GiveawayView = ...
+            message: discord.InteractionMessage = ...
+            # here we must get the view object and do other stuff?
+
+        await discord.utils.sleep_until(giveaway.trigger_at)
+        view.stop()
+        winner = await self._get_random_winner(giveaway)
+
+        if winner is None:
+            LOGGER.info(f"No winner for {giveaway}, marking game as still available.")
+            await self._edit_game_given(giveaway.game, False)
+            embed = discord.Embed(
+                color=EMBED_COLOR,
+                description=(
+                    "# Better luck next time!\n"
+                    f"No one entered the giveaway for {game_title_link}.\n"
+                    "The prize goes back in the pool."
+                ),
+            )
+
+        else:
+            LOGGER.info(f"Sending game key for {giveaway.game.title} to {winner}")
+            try:
+                # sending message to winner
+                await winner.send(
+                    f"Congratulations! You won the giveaway for "
+                    f"**{giveaway.game.title}**!\n"
+                    f"Your Steam key is ||{giveaway.game.key}|| ."
+                )
+            except discord.Forbidden:
+                # cannot send to winner, sending message to bot owner
+                LOGGER.info(
+                    f"Could not send message to {winner}, sending to bot owner."
+                )
+                app_info = await self.bot.application_info()
+                await app_info.owner.send(
+                    f"Could not DM {winner.display_name} "
+                    f"({winner.mention}). They won the giveaway for "
+                    f"**{giveaway.game.title}** with key ||{giveaway.game.key}||."
+                )
+
+            embed = discord.Embed(
+                color=EMBED_COLOR,
+                description=(
+                    f"# Congratulations! \N{PARTY POPPER}\n"
+                    f"### {winner.display_name} ({winner.mention}) "
+                    f"won the giveaway for {game_title_link}.\n"
+                    "### Congrats to them!\n"
+                    f"This giveaway ended {ends_in}."
+                ),
+            )
+
+        await message.edit(embed=embed, view=None)
+        await self._end_giveaway(giveaway)
 
     @giveaway.command(name="add")
     async def giveaway_add(self, interaction: discord.Interaction):
@@ -130,22 +196,13 @@ class Giveaways(commands.Cog):
         if giveaway is None:
             raise ValueError(f"Giveaway with ID {giveaway_id} does not exist!")
 
-        view = views.GiveawayView()
-        ends_in = discord.utils.format_dt(giveaway.trigger_at, style="R")
-        embed = discord.Embed(
-            color=EMBED_COLOR,
-            description=(
-                "# Giveaway!\n"
-                "## We are giving away "
-                f"[{game.title}]({game.url}).\n"
-                "## Press the button to enter!\n"
-                f"This giveaway ends {ends_in}"
-            ),
+        self._tasks[giveaway.giveaway_id] = asyncio.create_task(
+            self.giveaway_task(
+                interaction=interaction,
+                giveaway=giveaway,
+                initial=True,
+            )
         )
-        await interaction.response.send_message(embed=embed, view=view)
-        message = await interaction.original_response()
-
-        await self.save_presistent_view(view, message)
 
     @commands.group(aliases=["ga"])
     async def old_giveaway(self, ctx):
@@ -250,6 +307,8 @@ class Giveaways(commands.Cog):
         await self.bot.db.execute(read_sql_query(SQL / "create_game_table.sql"))
         await self.bot.db.execute(read_sql_query(SQL / "create_giveaway_table.sql"))
         await self.bot.db.execute(read_sql_query(SQL / "create_entry_table.sql"))
+        await self.bot.db.execute(read_sql_query(SQL / "create_view_table.sql"))
+        await self.bot.db.execute(read_sql_query(SQL / "create_component_table.sql"))
 
         await self.bot.db.commit()
 
@@ -353,7 +412,8 @@ class Giveaways(commands.Cog):
             row = await c.fetchone()
 
         if row:
-            await self._edit_game_given(row["game_id"], True)
+            LOGGER.warn("Marking game as given disabled!")
+            # await self._edit_game_given(row["game_id"], True)  # disable for testing
             return Game(**row)
         else:
             return None
@@ -368,14 +428,86 @@ class Giveaways(commands.Cog):
 
         await self.bot.db.commit()
 
-    async def _edit_game_given(self, game_id, given):
+    async def _edit_game_given(self, game: Game, given: bool):
         """Mark the game as given (or not, if no one wins it)."""
 
         await self.bot.db.execute(
             read_sql_query(SQL / "edit_game_given.sql"),
             {
-                "game_id": game_id,
-                "given": int(given),
+                "game_id": game.game_id,
+                "given": given,
+            },
+        )
+
+        await self.bot.db.commit()
+
+    async def _get_random_winner(self, giveaway: Giveaway) -> discord.User | None:
+        """Return one random entry for the giveaway."""
+
+        async with self.bot.db.execute(
+            read_sql_query(SQL / "get_random_winner.sql"),
+            {"giveaway_id": giveaway.giveaway_id},
+        ) as c:
+            row = await c.fetchone()
+
+        if row is None:
+            return None
+
+        winner = self.bot.get_user(row["user_id"]) or await self.bot.fetch_user(
+            row["user_id"]
+        )
+        return winner
+
+    async def _save_presistent_view(
+        self, view: views.GiveawayView, message: discord.InteractionMessage
+    ) -> None:
+        LOGGER.debug("Saving View data.")
+        assert message.guild is not None
+        row = await self.bot.db.execute_insert(
+            read_sql_query(SQL / "save_view.sql"),
+            dict(
+                guild_id=message.guild.id,
+                message_id=message.id,
+            ),
+        )
+        assert row is not None
+        view_id: int = row[0]
+
+        await self.bot.db.executemany(
+            read_sql_query(SQL / "save_component.sql"),
+            [
+                dict(component_id=v, name=k, view_id=view_id)
+                for k, v in view.components_id.items()
+            ],
+        )
+
+        await self.bot.db.commit()
+
+    async def _update_giveaway(
+        self, giveaway: Giveaway, message: discord.InteractionMessage
+    ) -> None:
+        """Update the DB entry with the info from the message
+        containing the View.
+        """
+        await self.bot.db.execute(
+            read_sql_query(SQL / "update_giveaway.sql"),
+            {
+                "giveaway_id": giveaway.giveaway_id,
+                "channel_id": message.channel.id,
+                "created_at": message.created_at,
+                "message_id": message.id,
+            },
+        )
+
+        await self.bot.db.commit()
+
+    async def _end_giveaway(self, giveaway: Giveaway):
+        """Mark the giveaway as done."""
+
+        await self.bot.db.execute(
+            read_sql_query(SQL / "end_giveaway.sql"),
+            {
+                "giveaway_id": giveaway.giveaway_id,
             },
         )
 
