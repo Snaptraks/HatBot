@@ -1,5 +1,7 @@
+import logging
 from secrets import token_hex
 
+import aiosqlite
 import discord
 from discord import ui
 
@@ -9,13 +11,16 @@ from snapcogs.utils.db import read_sql_query
 from .base import SQL, Giveaway
 
 
+LOGGER = logging.getLogger(__name__)
+
+
 class GiveawayView(ui.View):
     def __init__(
         self,
         bot: Bot,
         giveaway: Giveaway,
         *,
-        components_id: dict[str, str] | None = None
+        components_id: dict[str, str] | None = None,
     ):
         # do stuff here?
         super().__init__(timeout=None)
@@ -40,12 +45,19 @@ class GiveawayView(ui.View):
         self,
         interaction: discord.Interaction,
     ) -> None:
-        await self._add_entry(interaction.user)
-        await interaction.response.send_message(
-            "Thank you for entering the giveaway!", ephemeral=True
-        )
+        try:
+            await self._add_entry(interaction.user)
+        except aiosqlite.IntegrityError:
+            content = "You already entered this giveaway!"
+        else:
+            content = (
+                "You're entered and all set! "
+                "Good luck \N{HAND WITH INDEX AND MIDDLE FINGERS CROSSED}"
+            )
 
-    async def _add_entry(self, user: discord.User | discord.Member):
+        await interaction.response.send_message(content, ephemeral=True)
+
+    async def _add_entry(self, user: discord.User | discord.Member) -> None:
         """Add the entry to the DB."""
 
         await self.bot.db.execute(
@@ -55,5 +67,6 @@ class GiveawayView(ui.View):
                 "user_id": user.id,
             },
         )
+        LOGGER.debug(f"Entry for {self.giveaway} added for {user}.")
 
         await self.bot.db.commit()

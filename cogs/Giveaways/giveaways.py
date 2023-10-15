@@ -10,8 +10,8 @@ from discord.ext import commands
 from snapcogs import Bot
 from snapcogs.utils.db import read_sql_query
 
-from . import views
 from .base import EMBED_COLOR, GIVEAWAY_TIME, SQL, Game, Giveaway
+from .views import GiveawayView
 
 
 LOGGER = logging.getLogger(__name__)
@@ -33,8 +33,6 @@ class Giveaways(commands.Cog):
 
     async def cog_load(self):
         await self._create_tables()
-        # await self.reload_menus()
-        # await self._insert_fake_games()
 
     async def cog_unload(self):
         # cancel giveaways tasks when unloading to prevent duplicates
@@ -57,8 +55,19 @@ class Giveaways(commands.Cog):
     @commands.Cog.listener()
     async def on_ready(self):
         if not self.persistent_views_loaded:
-            # await self.reload_menus()
+            await self.load_ongoing_giveaways()
             self.persistent_views_loaded = True
+
+    async def load_ongoing_giveaways(self) -> None:
+        for giveaway in await self._get_ongoing_giveaways():
+            LOGGER.debug(f"Loading view for message {giveaway.message_id}")
+
+            self._tasks[giveaway.giveaway_id] = asyncio.create_task(
+                self.giveaway_task(
+                    interaction=None,
+                    giveaway=giveaway,
+                )
+            )
 
     async def reload_menus(self):
         """Reload menus upon startup."""
@@ -85,37 +94,38 @@ class Giveaways(commands.Cog):
 
     async def giveaway_task(
         self,
-        interaction: discord.Interaction,
+        *,
+        interaction: discord.Interaction | None,
         giveaway: Giveaway,
-        initial: bool = False,
     ) -> None:
         """Main task that handles the giveaways."""
 
         ends_in = discord.utils.format_dt(giveaway.trigger_at, style="R")
-        ends_at = discord.utils.format_dt(giveaway.trigger_at, style="t")
+        ends_at = discord.utils.format_dt(giveaway.trigger_at, style="F")
         game_title_link = f"[{giveaway.game.title}]({giveaway.game.url})"
-        if initial:
+        if interaction is not None:
             # send initial message
             embed = discord.Embed(
                 color=EMBED_COLOR,
                 description=(
-                    "# Giveaway!\n"
+                    "# Hatventures Game Giveaway!\n"
                     f"### We are giving away {game_title_link}.\n"
                     "### Press the button to enter!\n"
                     f"This giveaway ends at {ends_at} ({ends_in})"
                 ),
             )
 
-            view = views.GiveawayView(self.bot, giveaway)
+            view = GiveawayView(self.bot, giveaway)
             await interaction.response.send_message(embed=embed, view=view)
             message = await interaction.original_response()
             await self._save_presistent_view(view, message)
             await self._update_giveaway(giveaway, message)
 
         else:
-            view: views.GiveawayView = ...
-            message: discord.InteractionMessage = ...
-            # here we must get the view object and do other stuff?
+            view = await self._get_view(giveaway)
+            self.bot.add_view(view, message_id=giveaway.message_id)
+            channel = self.bot.get_partial_messageable(giveaway.channel_id)
+            message = channel.get_partial_message(giveaway.message_id)
 
         await discord.utils.sleep_until(giveaway.trigger_at)
         view.stop()
@@ -200,7 +210,6 @@ class Giveaways(commands.Cog):
             self.giveaway_task(
                 interaction=interaction,
                 giveaway=giveaway,
-                initial=True,
             )
         )
 
@@ -382,15 +391,32 @@ class Giveaways(commands.Cog):
         else:
             return None
 
-    async def _get_ongoing_giveaways(self):
+    async def _get_ongoing_giveaways(self) -> list[Giveaway]:
         """Return the list of giveaways that are not done yet."""
 
         async with self.bot.db.execute(
             read_sql_query(SQL / "get_ongoing_giveaways.sql")
         ) as c:
-            rows = await c.fetchall()
+            giveaway_rows = await c.fetchall()
 
-        return rows
+        giveaway_rows = list(giveaway_rows)
+        if len(giveaway_rows) == 0:
+            # exit early if no ongoing giveaways
+            return []
+
+        giveaways: list[Giveaway] = []
+        for row in giveaway_rows:
+            async with self.bot.db.execute(
+                read_sql_query(SQL / "get_game.sql"),
+                dict(game_id=row["game_id"]),
+            ) as c:
+                game_row = await c.fetchone()
+
+            if game_row is not None:
+                game = Game(**game_row)
+                giveaways.append(Giveaway(**dict(row), game=game))
+
+        return giveaways
 
     async def _get_remaining_games(self):
         """Return the list of remaining games."""
@@ -459,7 +485,7 @@ class Giveaways(commands.Cog):
         return winner
 
     async def _save_presistent_view(
-        self, view: views.GiveawayView, message: discord.InteractionMessage
+        self, view: GiveawayView, message: discord.InteractionMessage
     ) -> None:
         LOGGER.debug("Saving View data.")
         assert message.guild is not None
@@ -512,3 +538,27 @@ class Giveaways(commands.Cog):
         )
 
         await self.bot.db.commit()
+
+    async def _get_view(self, giveaway: Giveaway) -> GiveawayView:
+        async with self.bot.db.execute(
+            read_sql_query(SQL / "get_view.sql"),
+            dict(message_id=giveaway.message_id),
+        ) as c:
+            view_row = await c.fetchone()
+
+        if view_row is None:
+            raise ValueError(f"No view attached to message {giveaway.message_id}.")
+
+        components_id = {
+            component["name"]: component["component_id"]
+            for component in await self._get_components(view_row["view_id"])
+        }
+
+        return GiveawayView(self.bot, giveaway, components_id=components_id)
+
+    async def _get_components(self, view_id: int) -> list[dict[str, str]]:
+        rows = await self.bot.db.execute_fetchall(
+            read_sql_query(SQL / "get_components.sql"),
+            dict(view_id=view_id),
+        )
+        return [dict(row) for row in rows]
