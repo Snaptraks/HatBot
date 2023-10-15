@@ -10,7 +10,7 @@ from discord.ext import commands
 from snapcogs import Bot
 from snapcogs.utils.db import read_sql_query
 
-from .base import EMBED_COLOR, GIVEAWAY_TIME, SQL, Game, Giveaway
+from .base import EMBED_COLOR, GIVEAWAY_TIME, HVC_STAFF_ROLES, SQL, Game, Giveaway
 from .views import GiveawayView
 
 
@@ -183,10 +183,39 @@ class Giveaways(commands.Cog):
         ...
 
     @giveaway.command(name="remaining")
-    async def giveaway_remaining(self, interaction: discord.Interaction):
-        ...
+    @app_commands.checks.has_any_role(*HVC_STAFF_ROLES)
+    async def giveaway_remaining(self, interaction: discord.Interaction, page: int = 1):
+        """List the remaining games for the giveaway."""
+
+        remaining_games = await self._get_remaining_games()
+        games_counter = Counter([game.title for game in remaining_games])
+        per_page = 15
+
+        content = [
+            f"`{amount:2d} x` {title}" for title, amount in games_counter.items()
+        ]
+        max_pages = len(content) // per_page + 1
+
+        if page > max_pages:
+            page = max_pages
+        if page < 1:
+            page = 1
+
+        embed = discord.Embed(
+            title=(
+                f"{sum(games_counter.values())} Remaining Games / "
+                f"{len(games_counter)} Individual Titles"
+            ),
+            color=EMBED_COLOR,
+            description="\n".join(content[(page - 1) * per_page : page * per_page]),
+        ).set_footer(
+            text=f"Page {page}/{max_pages}",
+        )
+
+        await interaction.response.send_message(embed=embed, ephemeral=True)
 
     @giveaway.command(name="start")
+    @app_commands.checks.has_any_role(*HVC_STAFF_ROLES)
     async def giveaway_start(self, interaction: discord.Interaction):
         """Start one giveaway event."""
 
@@ -418,7 +447,7 @@ class Giveaways(commands.Cog):
 
         return giveaways
 
-    async def _get_remaining_games(self):
+    async def _get_remaining_games(self) -> list[Game]:
         """Return the list of remaining games."""
 
         async with self.bot.db.execute(
@@ -426,7 +455,7 @@ class Giveaways(commands.Cog):
         ) as c:
             rows = await c.fetchall()
 
-        return rows
+        return [Game(**row) for row in rows]
 
     async def _get_random_game(self) -> Game | None:
         """Return a random game that is not given yet.
