@@ -14,7 +14,7 @@ LOGGER = logging.getLogger(__name__)
 PATH = Path(__file__).parent
 
 # We do not care about the year of the event (they repeat every year)
-# But we chose a leap year, to allow for February 29 as avalid date.
+# But we chose a leap year, to allow for February 29 as a valid date.
 YEAR = 2020
 
 # Format used to parse dates
