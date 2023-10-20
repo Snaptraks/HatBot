@@ -71,29 +71,6 @@ class Giveaways(commands.Cog):
                 )
             )
 
-    async def reload_menus(self):
-        """Reload menus upon startup."""
-
-        await self.bot.wait_until_ready()
-        giveaways = await self._get_ongoing_giveaways()
-
-        for giveaway in giveaways:
-            giveaway_id = giveaway["giveaway_id"]
-            channel = self.bot.get_channel(
-                giveaway["channel_id"]
-            ) or await self.bot.fetch_channel(giveaway["channel_id"])
-            message = await channel.fetch_message(giveaway["message_id"])
-            ctx = await self.bot.get_context(message)
-
-            self._tasks[giveaway_id] = self.bot.loop.create_task(
-                self.old_giveaway_task(
-                    ctx,
-                    giveaway_data=giveaway,
-                    message=message,
-                    timeout=None,
-                )
-            )
-
     async def giveaway_task(
         self,
         *,
@@ -259,103 +236,6 @@ class Giveaways(commands.Cog):
                 giveaway=giveaway,
             )
         )
-
-    @commands.group(aliases=["ga"])
-    async def old_giveaway(self, ctx):
-        """Commands to control the giveaways."""
-
-        pass
-
-    @old_giveaway.command(name="add")
-    @commands.is_owner()
-    async def old_giveaway_add(self, ctx):
-        """Add a list of games to the DB.
-        The command expects a .json file to be attached to the message.
-        """
-
-        file = ctx.message.attachments[0]
-        content = await file.read()
-        data = json.loads(content)
-        await self._insert_games(data)
-        await ctx.reply("Games were added to the DB!")
-
-    @giveaway_add.error
-    async def old_giveaway_add_error(self, ctx, error):
-        """Error handler for the giveaway add command."""
-
-        await ctx.reply(f"There was an error:\n{error}")
-        raise error
-
-    @old_giveaway.command(name="remaining")
-    # @has_role_or_above("Mod")
-    async def old_giveaway_remaining(self, ctx):
-        """List of the remaining available games for the giveaway."""
-
-        remaining = await self._get_remaining_games()
-        remaining_titles = Counter([g["title"] for g in remaining])
-
-        menu = menus.GameListMenu(
-            source=menus.GameListSource(
-                entries=list(remaining_titles.items()),
-                per_page=10,
-            ),
-            clear_reactions_after=True,
-        )
-
-        await menu.start(ctx)
-
-    @old_giveaway.command(name="start")
-    # @has_role_or_above("Mod")
-    async def old_giveaway_start(self, ctx):
-        """Start one giveaway event."""
-
-        game = await self._get_random_game()
-        if game is None:
-            await ctx.reply("No more games!")
-            return
-
-        giveaway_id = await self._create_giveaway(game["game_id"])
-        giveaway_data = await self._get_giveaway(giveaway_id)
-
-        self._tasks[giveaway_id] = self.bot.loop.create_task(
-            self.old_giveaway_task(
-                ctx,
-                giveaway_data=giveaway_data,
-                timeout=None,
-            )
-        )
-
-    async def old_giveaway_task(self, ctx, **kwargs):
-        """Start one giveaway task.
-        Will send the message in the channel where `!giveaway start`
-        was invoked.
-        """
-        game = kwargs.get("giveaway_data")
-        menu = menus.GiveawayMenu(**kwargs)
-        await menu.start(ctx)
-
-        await discord.utils.sleep_until(game["trigger_at"])
-        winner = await menu.stop()
-
-        if winner is None:
-            # If list is empty, remove key from steam_keys_given
-            # and delete the giveaway
-            await self._edit_game_given(game["game_id"], False)
-            return
-
-        try:
-            await winner.send(
-                f"Congratulations! You won the giveaway for "
-                f"**{game['title']}**!\n"
-                f"Your Steam key is ||{game['key']}|| ."
-            )
-        except discord.Forbidden:
-            app_info = await self.bot.application_info()
-            await app_info.owner.send(
-                f"Could not DM {winner.display_name} "
-                f"({winner.mention}). They won the giveaway for "
-                f"**{game['title']}** with key ||{game['key']}||."
-            )
 
     async def _create_tables(self):
         """Create the necessary tables if they do not exist."""
