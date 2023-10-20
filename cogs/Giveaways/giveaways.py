@@ -13,6 +13,8 @@ from snapcogs.utils.db import read_sql_query
 from .base import EMBED_COLOR, GIVEAWAY_TIME, HVC_STAFF_ROLES, SQL, Game, Giveaway
 from .views import GiveawayView
 
+from ..utils.checks import is_owner
+
 
 LOGGER = logging.getLogger(__name__)
 
@@ -179,8 +181,24 @@ class Giveaways(commands.Cog):
         await self._end_giveaway(giveaway)
 
     @giveaway.command(name="add")
-    async def giveaway_add(self, interaction: discord.Interaction):
-        ...
+    @is_owner()
+    async def giveaway_add(
+        self, interaction: discord.Interaction, attachment: discord.Attachment
+    ):
+        """Add game keys to the database for the giveaways.
+        A file must be attached to the command when running it.
+        This is an Owner Only command, as only the bot's owner can run it.
+        """
+        content = await attachment.read()
+        data: list[dict[str, str]] = json.loads(content)
+
+        LOGGER.debug(f"Adding {len(data)} games to the database.")
+        await self._insert_games(data)
+
+        await interaction.response.send_message(
+            f"Thank you! I received {len(data)} keys and updated the database.",
+            ephemeral=True,
+        )
 
     @giveaway.command(name="remaining")
     @app_commands.checks.has_any_role(*HVC_STAFF_ROLES)
@@ -391,6 +409,20 @@ class Giveaways(commands.Cog):
 
         return giveaway_id
 
+    async def _get_game(self, game_id: int) -> Game | None:
+        """Get a game by it's ID."""
+
+        async with self.bot.db.execute(
+            read_sql_query(SQL / "get_game.sql"),
+            dict(
+                game_id=game_id,
+            ),
+        ) as c:
+            row = await c.fetchone()
+
+        if row is not None:
+            return Game(**row)
+
     async def _get_giveaway(self, giveaway_id: int) -> Giveaway | None:
         """Get the data on the giveaway from the DB."""
 
@@ -406,16 +438,8 @@ class Giveaways(commands.Cog):
             # exit early if giveaway doesn't exist
             return None
 
-        async with self.bot.db.execute(
-            read_sql_query(SQL / "get_game.sql"),
-            dict(
-                game_id=giveaway_row["game_id"],
-            ),
-        ) as c:
-            game_row = await c.fetchone()
-
-        if game_row is not None:
-            game = Game(**game_row)
+        game = await self._get_game(giveaway_row["game_id"])
+        if game is not None:
             return Giveaway(**dict(giveaway_row), game=game)
         else:
             return None
@@ -435,14 +459,9 @@ class Giveaways(commands.Cog):
 
         giveaways: list[Giveaway] = []
         for row in giveaway_rows:
-            async with self.bot.db.execute(
-                read_sql_query(SQL / "get_game.sql"),
-                dict(game_id=row["game_id"]),
-            ) as c:
-                game_row = await c.fetchone()
+            game = await self._get_game(row["game_id"])
 
-            if game_row is not None:
-                game = Game(**game_row)
+            if game is not None:
                 giveaways.append(Giveaway(**dict(row), game=game))
 
         return giveaways
@@ -473,7 +492,7 @@ class Giveaways(commands.Cog):
         else:
             return None
 
-    async def _insert_games(self, list_of_games):
+    async def _insert_games(self, list_of_games: list[dict[str, str]]) -> None:
         """Add a list of games and keys to the DB."""
 
         await self.bot.db.executemany(
