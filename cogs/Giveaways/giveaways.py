@@ -248,31 +248,6 @@ class Giveaways(commands.Cog):
 
         await self.bot.db.commit()
 
-    # @_create_tables.after_loop
-    async def _insert_fake_games(self):
-        await self.bot.db.executemany(
-            read_sql_query(SQL / "insert_games.sql"),
-            [
-                dict(
-                    key="12345-12345-12345",
-                    title="game name here",
-                    url="https://store.steampowered.com",
-                ),
-                dict(
-                    key="ABCDE-ABCDE-ABCDE",
-                    title="another game",
-                    url="https://store.steampowered.com",
-                ),
-                dict(
-                    key="12345-GHJKL-54321",
-                    title="one more for the trip",
-                    url="https://store.steampowered.com",
-                ),
-            ],
-        )
-
-        await self.bot.db.commit()
-
     async def _create_giveaway(self, game_id: int) -> int | None:
         """Create the database entry for the giveaway."""
 
