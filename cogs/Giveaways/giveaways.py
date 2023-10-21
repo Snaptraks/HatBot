@@ -468,6 +468,8 @@ class Giveaways(commands.Cog):
         await self.bot.db.commit()
 
     async def _get_view(self, giveaway: Giveaway) -> GiveawayView:
+        """Get the View associated with the Giveaway."""
+
         async with self.bot.db.execute(
             read_sql_query(SQL / "get_view.sql"),
             dict(message_id=giveaway.message_id),
@@ -477,16 +479,16 @@ class Giveaways(commands.Cog):
         if view_row is None:
             raise ValueError(f"No view attached to message {giveaway.message_id}.")
 
-        components_id = {
-            component["name"]: component["component_id"]
-            for component in await self._get_components(view_row["view_id"])
-        }
+        components_id = await self._get_components_id(view_row["view_id"])
 
         return GiveawayView(self.bot, giveaway, components_id=components_id)
 
-    async def _get_components(self, view_id: int) -> list[dict[str, str]]:
+    async def _get_components_id(self, view_id: int) -> dict[str, str]:
+        """Get the dict of components ID for the View with view_id."""
+
         rows = await self.bot.db.execute_fetchall(
             read_sql_query(SQL / "get_components.sql"),
             dict(view_id=view_id),
         )
-        return [dict(row) for row in rows]
+        components_id = {row["name"]: row["component_id"] for row in rows}
+        return components_id
