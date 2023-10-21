@@ -237,7 +237,7 @@ class Giveaways(commands.Cog):
             )
         )
 
-    async def _create_tables(self):
+    async def _create_tables(self) -> None:
         """Create the necessary tables if they do not exist."""
 
         await self.bot.db.execute(read_sql_query(SQL / "create_game_table.sql"))
@@ -274,7 +274,7 @@ class Giveaways(commands.Cog):
         await self.bot.db.commit()
 
     async def _create_giveaway(self, game_id: int) -> int | None:
-        """Create the DB entry for the giveaway."""
+        """Create the database entry for the giveaway."""
 
         async with self.bot.db.execute(
             read_sql_query(SQL / "create_giveaway.sql"),
@@ -290,7 +290,7 @@ class Giveaways(commands.Cog):
         return giveaway_id
 
     async def _get_game(self, game_id: int) -> Game | None:
-        """Get a game by it's ID."""
+        """Return a Game by it's ID."""
 
         async with self.bot.db.execute(
             read_sql_query(SQL / "get_game.sql"),
@@ -304,7 +304,7 @@ class Giveaways(commands.Cog):
             return Game(**row)
 
     async def _get_giveaway(self, giveaway_id: int) -> Giveaway | None:
-        """Get the data on the giveaway from the DB."""
+        """Return the a Giveaway by it's ID."""
 
         async with self.bot.db.execute(
             read_sql_query(SQL / "get_giveaway.sql"),
@@ -373,7 +373,7 @@ class Giveaways(commands.Cog):
             return None
 
     async def _insert_games(self, list_of_games: list[dict[str, str]]) -> None:
-        """Add a list of games and keys to the DB."""
+        """Add a list of games and keys to the database."""
 
         await self.bot.db.executemany(
             read_sql_query(SQL / "insert_games.sql"),
@@ -382,7 +382,7 @@ class Giveaways(commands.Cog):
 
         await self.bot.db.commit()
 
-    async def _edit_game_given(self, game: Game, given: bool):
+    async def _edit_game_given(self, game: Game, given: bool) -> None:
         """Mark the game as given (or not, if no one wins it)."""
 
         await self.bot.db.execute(
@@ -415,7 +415,9 @@ class Giveaways(commands.Cog):
     async def _save_presistent_view(
         self, view: GiveawayView, message: discord.InteractionMessage
     ) -> None:
-        LOGGER.debug("Saving View data.")
+        """Save the information needed to reconstruct later to the database."""
+
+        LOGGER.debug(f"Saving View data for message {message.id}.")
         assert message.guild is not None
         row = await self.bot.db.execute_insert(
             read_sql_query(SQL / "save_view.sql"),
@@ -440,7 +442,7 @@ class Giveaways(commands.Cog):
     async def _update_giveaway(
         self, giveaway: Giveaway, message: discord.InteractionMessage
     ) -> None:
-        """Update the DB entry with the info from the message
+        """Update the database entry with the info from the message
         containing the View.
         """
         await self.bot.db.execute(
@@ -455,7 +457,7 @@ class Giveaways(commands.Cog):
 
         await self.bot.db.commit()
 
-    async def _end_giveaway(self, giveaway: Giveaway):
+    async def _end_giveaway(self, giveaway: Giveaway) -> None:
         """Mark the giveaway as done."""
 
         await self.bot.db.execute(
