@@ -7,7 +7,7 @@ services:
     container_name: hatbot
     restart: always
     volumes:
-      - hatbot-db:/db
+      - hatbot-db:/bot/db
 
 volumes:
   hatbot-db:
