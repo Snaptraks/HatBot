@@ -1,16 +1,23 @@
 import logging
+from pathlib import Path
+import tomllib
+from typing import Any
 
 import discord
 from discord.ext import commands
 from snapcogs import Bot
 
-import config
-
 LOGGER = logging.getLogger()
 LOGGER.setLevel(logging.INFO)
 
 
+def load_config(file_path: Path | str) -> dict[str, Any]:
+    with open(file_path, "rb") as f:
+        return tomllib.load(f)
+
+
 def main() -> None:
+    config = load_config("config.toml")
     intents = discord.Intents.default()
     intents.members = True
     allowed_mentions = discord.AllowedMentions(replied_user=False)
@@ -33,7 +40,7 @@ def main() -> None:
         startup_extensions=startup_extensions,
     )
 
-    bot.run(config.hatbot_token, log_level=logging.WARNING)
+    bot.run(config["hatbot_token"], log_level=logging.WARNING)
 
 
 if __name__ == "__main__":
