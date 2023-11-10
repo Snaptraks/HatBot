@@ -21,7 +21,7 @@ from .base import (
 )
 from .views import GiveawayView
 
-from ..utils.checks import is_owner
+from ..utils.checks import is_owner, NotOwner
 
 
 LOGGER = logging.getLogger(__name__)
@@ -191,6 +191,21 @@ class Giveaways(commands.Cog):
             f"Thank you! I received {len(data)} keys and updated the database.",
             ephemeral=True,
         )
+
+    @giveaway_add.error
+    async def giveaway_add_error(
+        self, interaction: discord.Interaction, error: app_commands.AppCommandError
+    ) -> None:
+        """Error handler for the giveaway add command."""
+
+        error = getattr(error, "original", error)
+
+        if isinstance(error, NotOwner):
+            await interaction.response.send_message(
+                "You cannot add games to the giveaway, but you can enter them!"
+            )
+        else:
+            interaction.extras["error_handled"] = False
 
     @giveaway.command(name="remaining")
     @app_commands.checks.has_any_role(*HVC_STAFF_ROLES)
