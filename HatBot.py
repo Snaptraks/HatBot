@@ -25,6 +25,7 @@ def main() -> None:
     startup_extensions = [
         "cogs.Announcements",
         "cogs.Avatar",
+        "cogs.Giveaways",
         "cogs.Presence",
         "snapcogs.Admin",
         "snapcogs.Fun",
