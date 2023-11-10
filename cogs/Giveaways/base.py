@@ -26,6 +26,10 @@ class Game:
     title: str
     url: str = field(repr=False)
 
+    @property
+    def title_link(self) -> str:
+        return f"[{self.title}]({self.url})"
+
 
 @dataclass
 class Giveaway:

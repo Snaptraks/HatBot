@@ -81,7 +81,7 @@ class Giveaways(commands.Cog):
 
         ends_in = discord.utils.format_dt(giveaway.trigger_at, style="R")
         ends_at = discord.utils.format_dt(giveaway.trigger_at, style="F")
-        game_title_link = f"[{giveaway.game.title}]({giveaway.game.url})"
+        game_title_link = giveaway.game.title_link
         if interaction is not None:
             # send initial message
             embed = discord.Embed(
