@@ -226,13 +226,15 @@ class Giveaways(commands.Cog):
         if page < 1:
             page = 1
 
+        i = (page - 1) * per_page
+        j = page * per_page
         embed = discord.Embed(
             title=(
                 f"{sum(games_counter.values())} Remaining Games / "
                 f"{len(games_counter)} Individual Titles"
             ),
             color=EMBED_COLOR,
-            description="\n".join(content[(page - 1) * per_page : page * per_page]),
+            description="\n".join(content[i:j]),
         ).set_footer(
             text=f"Page {page}/{max_pages}",
         )
