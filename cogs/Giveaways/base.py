@@ -17,6 +17,8 @@ HVC_STAFF_ROLES = [
     588846761758425089,  # BTS Discord Tech
 ]
 
+HVC_MC_SERVER_CHATTER = 561313326231978009  # #mc-server-chatter channel ID
+
 
 @dataclass
 class Game:

@@ -10,7 +10,15 @@ from discord.ext import commands
 from snapcogs import Bot
 from snapcogs.utils.db import read_sql_query
 
-from .base import EMBED_COLOR, GIVEAWAY_TIME, HVC_STAFF_ROLES, SQL, Game, Giveaway
+from .base import (
+    EMBED_COLOR,
+    GIVEAWAY_TIME,
+    HVC_STAFF_ROLES,
+    HVC_MC_SERVER_CHATTER,
+    SQL,
+    Game,
+    Giveaway,
+)
 from .views import GiveawayView
 
 from ..utils.checks import is_owner
@@ -152,6 +160,13 @@ class Giveaways(commands.Cog):
                     "### Congrats to them!\n"
                     f"This giveaway ended {ends_in}."
                 ),
+            )
+
+            # send to mc-server-chatter
+            mc_server_chatter = self.bot.get_partial_messageable(HVC_MC_SERVER_CHATTER)
+            await mc_server_chatter.send(
+                f"{winner.display_name} has won {giveaway.game.title} "
+                "on the Discord server! You should join for a chance to win too ;)"
             )
 
         await message.edit(embed=embed, view=None)
