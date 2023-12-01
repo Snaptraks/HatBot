@@ -5,8 +5,8 @@ from pathlib import Path
 
 SQL = Path(__file__).parent / "sql"
 
-# GIVEAWAY_TIME = timedelta(hours=24)
-GIVEAWAY_TIME = timedelta(seconds=60)
+GIVEAWAY_TIME = timedelta(hours=24)
+# GIVEAWAY_TIME = timedelta(seconds=60)
 EMBED_COLOR = 0xB3000C
 
 HVC_STAFF_ROLES = [
