@@ -170,6 +170,7 @@ class Giveaways(commands.Cog):
         await self._end_giveaway(giveaway)
 
     @giveaway.command(name="add")
+    @app_commands.describe(attachment="A JSON file with the games' info")
     @is_owner()
     async def giveaway_add(
         self, interaction: discord.Interaction, attachment: discord.Attachment
@@ -205,6 +206,7 @@ class Giveaways(commands.Cog):
             interaction.extras["error_handled"] = False
 
     @giveaway.command(name="remaining")
+    @app_commands.describe(page="Page number to display")
     @app_commands.checks.has_any_role(*HVC_STAFF_ROLES)
     async def giveaway_remaining(self, interaction: discord.Interaction, page: int = 1):
         """List the remaining games for the giveaway."""
@@ -370,8 +372,7 @@ class Giveaways(commands.Cog):
             row = await c.fetchone()
 
         if row:
-            LOGGER.warn("Marking game as given disabled!")
-            # await self._edit_game_given(row["game_id"], True)  # disable for testing
+            await self._edit_game_given(row["game_id"], True)
             return Game(**row)
         else:
             return None
