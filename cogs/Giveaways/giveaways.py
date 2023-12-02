@@ -133,7 +133,7 @@ class Giveaways(commands.Cog):
                 # sending message to winner
                 await winner.send(
                     f"Congratulations! You won the giveaway for "
-                    f"**{giveaway.game.title}**!\n"
+                    f"**{game_title_link}**!\n"
                     f"Your Steam key is ||{giveaway.game.key}|| ."
                 )
             except discord.Forbidden:
