@@ -2,6 +2,7 @@ import asyncio
 import json
 import logging
 from collections import Counter
+from datetime import date
 
 import discord
 from discord import app_commands
@@ -212,13 +213,14 @@ class Giveaways(commands.Cog):
         """List the remaining games for the giveaway."""
 
         remaining_games = await self._get_remaining_games()
+        n_remaining_games = len(remaining_games)
         games_counter = Counter([game.title for game in remaining_games])
         per_page = 15
 
-        content = [
+        games_list = [
             f"`{amount:2d} x` {title}" for title, amount in games_counter.items()
         ]
-        max_pages = len(content) // per_page + 1
+        max_pages = len(games_list) // per_page + 1
 
         if page > max_pages:
             page = max_pages
@@ -227,18 +229,27 @@ class Giveaways(commands.Cog):
 
         i = (page - 1) * per_page
         j = page * per_page
+        today = date.today()
+        dec_31 = date(today.year, 12, 31)
+        days_until_dec_31 = dec_31 - today
+        content = (
+            "## To give out all the games by December 31st, we need to give "
+            f"{n_remaining_games // days_until_dec_31.days} games per day!"
+        )
         embed = discord.Embed(
             title=(
-                f"{sum(games_counter.values())} Remaining Games / "
+                f"{n_remaining_games} Remaining Games / "
                 f"{len(games_counter)} Individual Titles"
             ),
             color=EMBED_COLOR,
-            description="\n".join(content[i:j]),
+            description="\n".join(games_list[i:j]),
         ).set_footer(
             text=f"Page {page}/{max_pages}",
         )
 
-        await interaction.response.send_message(embed=embed, ephemeral=True)
+        await interaction.response.send_message(
+            content=content, embed=embed, ephemeral=True
+        )
 
     @giveaway.command(name="start")
     @app_commands.checks.has_any_role(*HVC_STAFF_ROLES)
