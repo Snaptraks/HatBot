@@ -372,8 +372,9 @@ class Giveaways(commands.Cog):
             row = await c.fetchone()
 
         if row:
-            await self._edit_game_given(row["game_id"], True)
-            return Game(**row)
+            game = Game(**row)
+            await self._edit_game_given(game, True)
+            return game
         else:
             return None
 
