@@ -1,9 +1,9 @@
 import logging
 from pathlib import Path
-import tomllib
 from typing import Any
 
 import discord
+import tomllib
 from discord.ext import commands
 from snapcogs import Bot
 
@@ -41,7 +41,7 @@ def main() -> None:
         startup_extensions=startup_extensions,
     )
 
-    bot.run(config["hatbot_token"], log_level=logging.WARNING)
+    bot.run(config["hatbot_token"], log_level=logging.DEBUG)
 
 
 if __name__ == "__main__":
