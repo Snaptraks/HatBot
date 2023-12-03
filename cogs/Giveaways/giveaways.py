@@ -148,6 +148,10 @@ class Giveaways(commands.Cog):
                     f"({winner.mention}). They won the giveaway for "
                     f"**{giveaway.game.title}** with key ||{giveaway.game.key}||."
                 )
+            except Exception:
+                LOGGER.exception("There was an unhandled exception", exc_info=True)
+
+            LOGGER.info(f"Key sent to {winner}, editing original message")
 
             embed = discord.Embed(
                 color=EMBED_COLOR,
