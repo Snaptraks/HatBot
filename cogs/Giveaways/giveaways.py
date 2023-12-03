@@ -487,7 +487,7 @@ class Giveaways(commands.Cog):
                 "giveaway_id": giveaway.giveaway_id,
             },
         )
-
+        LOGGER.debug(f"Giveaway for {giveaway.game.title} ended")
         await self.bot.db.commit()
 
     async def _get_view(self, giveaway: Giveaway) -> GiveawayView:
