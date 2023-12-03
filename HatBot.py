@@ -8,7 +8,7 @@ from discord.ext import commands
 from snapcogs import Bot
 
 LOGGER = logging.getLogger()
-LOGGER.setLevel(logging.INFO)
+LOGGER.setLevel(logging.DEBUG)
 
 
 def load_config(file_path: Path | str) -> dict[str, Any]:
@@ -41,7 +41,7 @@ def main() -> None:
         startup_extensions=startup_extensions,
     )
 
-    bot.run(config["hatbot_token"], log_level=logging.DEBUG)
+    bot.run(config["hatbot_token"], log_level=logging.WARNING)
 
 
 if __name__ == "__main__":
