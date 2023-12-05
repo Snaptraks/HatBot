@@ -167,14 +167,14 @@ class Giveaways(commands.Cog):
                 "on the Discord server! You should join for a chance to win too ;)"
             )
 
+        await self._end_giveaway(giveaway)
+
         channel = self.bot.get_partial_messageable(giveaway.channel_id)
         message = channel.get_partial_message(giveaway.message_id)
         try:
             await message.edit(embed=embed, view=None)
         except Exception:
             LOGGER.exception("There was an unhandled exception", exc_info=True)
-
-        await self._end_giveaway(giveaway)
 
     @giveaway.command(name="add")
     @app_commands.describe(attachment="A JSON file with the games' info")
