@@ -106,6 +106,7 @@ class Giveaways(commands.Cog):
             original_message = await interaction.original_response()
             await self._save_presistent_view(view, original_message)
             await self._update_giveaway(giveaway, original_message)
+            giveaway = await self._get_giveaway(giveaway.giveaway_id)  # type:ignore
 
         else:
             view = await self._get_view(giveaway)
@@ -163,10 +164,13 @@ class Giveaways(commands.Cog):
 
             # send to mc-server-chatter
             mc_server_chatter = self.bot.get_partial_messageable(HVC_MC_SERVER_CHATTER)
-            await mc_server_chatter.send(
-                f"{winner.display_name} has won {giveaway.game.title} "
-                "on the Discord server! You should join for a chance to win too ;)"
-            )
+            try:
+                await mc_server_chatter.send(
+                    f"{winner.display_name} has won {giveaway.game.title} "
+                    "on the Discord server! You should join for a chance to win too ;)"
+                )
+            except Exception:
+                LOGGER.info("Could not send to mc-server-chatter")
 
         await self._end_giveaway(giveaway)
 
