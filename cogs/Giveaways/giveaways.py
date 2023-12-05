@@ -1,6 +1,7 @@
 import asyncio
 import json
 import logging
+import random
 from collections import Counter
 from datetime import date
 
@@ -422,13 +423,15 @@ class Giveaways(commands.Cog):
         """Return one random entry for the giveaway."""
 
         async with self.bot.db.execute(
-            read_sql_query(SQL / "get_random_winner.sql"),
+            read_sql_query(SQL / "get_giveaway_entries.sql"),
             {"giveaway_id": giveaway.giveaway_id},
         ) as c:
-            row = await c.fetchone()
+            rows = list(await c.fetchall())
 
-        if row is None:
+        if len(rows) == 0:
             return None
+
+        row = random.choice(rows)
 
         winner = self.bot.get_user(row["user_id"]) or await self.bot.fetch_user(
             row["user_id"]
