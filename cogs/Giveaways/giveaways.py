@@ -6,7 +6,7 @@ from collections import Counter
 from datetime import date
 
 import discord
-from discord import HTTPException, app_commands
+from discord import app_commands
 from discord.ext import commands
 from snapcogs import Bot
 from snapcogs.utils.db import read_sql_query
