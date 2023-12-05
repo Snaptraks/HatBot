@@ -102,15 +102,13 @@ class Giveaways(commands.Cog):
 
             view = GiveawayView(self.bot, giveaway)
             await interaction.response.send_message(embed=embed, view=view)
-            message = await interaction.original_response()
-            await self._save_presistent_view(view, message)
-            await self._update_giveaway(giveaway, message)
+            original_message = await interaction.original_response()
+            await self._save_presistent_view(view, original_message)
+            await self._update_giveaway(giveaway, original_message)
 
         else:
             view = await self._get_view(giveaway)
             self.bot.add_view(view, message_id=giveaway.message_id)
-            channel = self.bot.get_partial_messageable(giveaway.channel_id)
-            message = channel.get_partial_message(giveaway.message_id)
 
         await discord.utils.sleep_until(giveaway.trigger_at)
         view.stop()
@@ -169,11 +167,10 @@ class Giveaways(commands.Cog):
                 "on the Discord server! You should join for a chance to win too ;)"
             )
 
+        channel = self.bot.get_partial_messageable(giveaway.channel_id)
+        message = channel.get_partial_message(giveaway.message_id)
         try:
-            if interaction is not None:
-                await interaction.response.edit_message(embed=embed, view=None)
-            else:
-                message.edit(embed=embed, view=None)
+            await message.edit(embed=embed, view=None)
         except Exception:
             LOGGER.exception("There was an unhandled exception", exc_info=True)
 
