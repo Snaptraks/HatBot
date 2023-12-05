@@ -5,7 +5,7 @@ from collections import Counter
 from datetime import date
 
 import discord
-from discord import app_commands
+from discord import HTTPException, app_commands
 from discord.ext import commands
 from snapcogs import Bot
 from snapcogs.utils.db import read_sql_query
@@ -148,8 +148,6 @@ class Giveaways(commands.Cog):
                     f"({winner.mention}). They won the giveaway for "
                     f"**{giveaway.game.title}** with key ||{giveaway.game.key}||."
                 )
-            except Exception:
-                LOGGER.exception("There was an unhandled exception", exc_info=True)
 
             LOGGER.info(f"Key sent to {winner}, editing original message")
 
@@ -171,7 +169,14 @@ class Giveaways(commands.Cog):
                 "on the Discord server! You should join for a chance to win too ;)"
             )
 
-        await message.edit(embed=embed, view=None)
+        try:
+            if interaction is not None:
+                await interaction.response.edit_message(embed=embed, view=None)
+            else:
+                message.edit(embed=embed, view=None)
+        except Exception:
+            LOGGER.exception("There was an unhandled exception", exc_info=True)
+
         await self._end_giveaway(giveaway)
 
     @giveaway.command(name="add")
