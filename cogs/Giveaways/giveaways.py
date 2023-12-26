@@ -10,6 +10,7 @@ from discord import app_commands
 from discord.ext import commands
 from snapcogs import Bot
 from snapcogs.utils.db import read_sql_query
+from snapcogs.utils.views import Confirm
 
 from ..utils.checks import NotOwner, is_owner
 from .base import (
@@ -202,7 +203,31 @@ class Giveaways(commands.Cog):
             ephemeral=True,
         )
 
+    @giveaway.command(name="readd")
+    @app_commands.describe(key="Steam Key of the game to add back in the database.")
+    @is_owner()
+    async def giveaway_readd(self, interaction: discord.Interaction, key: str):
+        """Re-add a game key in the database for the giveaways.
+        The key must be a string as it is entered in the database.
+        It is useful when someone did not want the key, already had the game, and
+        wants to give it back.
+        This is an Owner Only command, as only the bot's owner can run it.
+        """
+
+        view = Confirm()
+        await interaction.response.send_message(
+            "Really add back the key?", view=view, ephemeral=True
+        )
+        await view.wait()
+
+        if view.value and view.interaction is not None:
+            await self._re_add_game_key(key)
+            await view.interaction.response.send_message(
+                "Adding back the key to the giveaway!", ephemeral=True
+            )
+
     @giveaway_add.error
+    @giveaway_readd.error
     async def giveaway_add_error(
         self, interaction: discord.Interaction, error: app_commands.AppCommandError
     ) -> None:
@@ -421,6 +446,16 @@ class Giveaways(commands.Cog):
             },
         )
 
+        await self.bot.db.commit()
+
+    async def _re_add_game_key(self, key: str) -> None:
+        """Mark the game key as not given."""
+
+        await self.bot.db.execute(
+            read_sql_query(SQL / "re-add_game_key.sql"),
+            {"key": key},
+        )
+        LOGGER.debug(f"Adding back key {key} to the giveaways.")
         await self.bot.db.commit()
 
     async def _get_random_winner(self, giveaway: Giveaway) -> discord.User | None:
