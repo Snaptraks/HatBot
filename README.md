@@ -36,7 +36,7 @@ You can also run the bot inside a Docker container, if you prefer. I have includ
 docker compose up
 ```
 
-This should take care of creating the necessary images, volumes, and container for the bot to function properl.
+This should take care of creating the necessary images, volumes, and container for the bot to function properly.
 
 If you want to run the bot in detached mode, allowing you to close the terminal once started, you can use the `--detach / -d` flag and have the process run in the background:
 
