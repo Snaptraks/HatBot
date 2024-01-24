@@ -8,7 +8,7 @@ from discord.ext import commands
 from snapcogs import Bot
 
 LOGGER = logging.getLogger()
-LOGGER.setLevel(logging.DEBUG)
+LOGGER.setLevel(logging.INFO)
 
 
 def load_config(file_path: Path | str) -> dict[str, Any]:
