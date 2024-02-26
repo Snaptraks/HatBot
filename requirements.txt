@@ -1,4 +1,4 @@
-aiosqlite==0.19.0
+aiosqlite==0.20.0
 discord.py==2.3.2
 matplotlib==3.8.3
 numpy==1.26.4
