@@ -73,6 +73,9 @@ class Announcements(commands.Cog):
         if len(birthdays) != 0:
             for bday in birthdays:
                 guild = self.bot.get_guild(bday["guild_id"])
+                if guild is None:
+                    # Bot left the guild maybe?
+                    continue
                 member = guild.get_member(bday["user_id"])
                 if member:
                     # if we bring back the Birthday role,
@@ -85,6 +88,11 @@ class Announcements(commands.Cog):
 
     async def birthday_task(self, member: discord.Member):
         """Task to send the birthday Embed to the member's guild's system channel."""
+        if member.guild.system_channel is None:
+            LOGGER.debug(
+                f"Guild {member.guild.name} ({member.guild.id}) has no system_channel."
+            )
+            return
 
         LOGGER.debug(f"Celebrating {member}'s birthday")
         embed = discord.Embed(
@@ -126,6 +134,12 @@ class Announcements(commands.Cog):
         day: app_commands.Range[int, 1, 31],
     ):
         """Register your birthday in this server."""
+
+        if isinstance(interaction.user, discord.User):
+            await interaction.response.send_message(
+                "Cannot register a birthday in direct messages."
+            )
+            return
 
         # save year as a leap year. no need for user year of birth!
         birthday_date = datetime.date(4, month.value, day)
@@ -194,6 +208,12 @@ class Announcements(commands.Cog):
     @birthday.command(name="delete")
     async def birthday_delete(self, interaction: discord.Interaction):
         """Delete a registered birthday."""
+
+        if isinstance(interaction.user, discord.User):
+            await interaction.response.send_message(
+                "Cannot delete a birthday in direct messages."
+            )
+            return
 
         birthday_date = await self._get_member_birthday(interaction.user)
         LOGGER.debug(f"Retreived birthday is {birthday_date}")
@@ -271,7 +291,8 @@ class Announcements(commands.Cog):
         ) as c:
             row = await c.fetchone()
 
-        return bool(row[0])
+        if row:
+            return bool(row[0])
 
     async def _save_birthday(self, member: discord.Member, birthday: datetime.date):
         """Save the birthday to the database."""
