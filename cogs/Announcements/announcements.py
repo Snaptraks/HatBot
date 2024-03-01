@@ -1,5 +1,6 @@
 import asyncio
 import datetime
+import itertools
 import logging
 import random
 from dataclasses import dataclass
@@ -9,6 +10,7 @@ from pathlib import Path
 import discord
 from discord import app_commands
 from discord.ext import commands, tasks
+from discord.utils import format_dt
 from snapcogs import Bot
 from snapcogs.utils import relative_dt
 from snapcogs.utils.db import read_sql_query
@@ -187,6 +189,59 @@ class Announcements(commands.Cog):
         else:
             interaction.extras["error_handled"] = False
 
+    @birthday.command(name="next")
+    async def birthday_next(self, interaction: discord.Interaction):
+        """Display the next birthday in the server."""
+
+        if interaction.guild is None:
+            await interaction.response.send_message(
+                "Cannot get a birthday in direct messages."
+            )
+            return
+
+        guild_birthdays = await self._get_guild_birthdays(interaction.guild)
+        next_guild_birthdays = sorted(
+            guild_birthdays, key=lambda x: get_next_occurence(x.birthday)
+        )
+        next_birthday_date, next_birthdays = next(
+            itertools.groupby(next_guild_birthdays, key=lambda x: x.birthday)
+        )
+        next_birthday = get_next_occurence(next_birthday_date)
+        next_birthday_members = [
+            interaction.guild.get_member(bday.user_id) for bday in next_birthdays
+        ]
+        LOGGER.debug(
+            f"Next birthday(s) on {next_birthday} for "
+            f"{len(next_birthday_members)} members"
+        )
+
+        embed = (
+            discord.Embed(
+                description="# Next Birthday Celebration",
+                color=EMBED_COLOR,
+            )
+            .add_field(
+                name="Members",
+                value="\n".join(
+                    [
+                        member.display_name
+                        for member in next_birthday_members
+                        if member is not None
+                    ]
+                ),
+            )
+            .add_field(
+                name="Date",
+                value=(
+                    f"{format_dt(next_birthday, style='D')} "
+                    f"({relative_dt(next_birthday)})"
+                ),
+                inline=False,
+            )
+        )
+
+        await interaction.response.send_message(embed=embed, ephemeral=True)
+
     @birthday.command(name="celebrate")
     @app_commands.checks.has_permissions(mention_everyone=True)
     @app_commands.describe(member="The person whose birthday is today!")
@@ -268,6 +323,16 @@ class Announcements(commands.Cog):
         await self.bot.db.execute(read_sql_query(SQL / "create_tables.sql"))
 
         await self.bot.db.commit()
+
+    async def _get_guild_birthdays(self, guild: discord.Guild) -> list[Birthday]:
+        """Get a guild's birthdays."""
+
+        rows = await self.bot.db.execute_fetchall(
+            read_sql_query(SQL / "get_guild_birthdays.sql"),
+            dict(guild_id=guild.id),
+        )
+
+        return [Birthday(**row) for row in rows]
 
     async def _get_member_birthday(self, member: discord.Member) -> Birthday | None:
         """Get a member's birthday."""
