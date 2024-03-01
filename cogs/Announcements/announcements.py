@@ -2,6 +2,7 @@ import asyncio
 import datetime
 import logging
 import random
+from dataclasses import dataclass
 from enum import Enum
 from pathlib import Path
 
@@ -15,6 +16,16 @@ from snapcogs.utils.views import confirm_prompt
 
 LOGGER = logging.getLogger(__name__)
 SQL = Path(__file__).parent / "sql"
+
+
+EMBED_COLOR = 0xFFD700
+
+
+@dataclass
+class Birthday:
+    birthday: datetime.date
+    guild_id: int
+    user_id: int
 
 
 class Month(Enum):
@@ -32,8 +43,8 @@ class Month(Enum):
     December = 12
 
 
-def get_next_birthday(date: datetime.date) -> datetime.datetime:
-    """Return a date object for the next birthday."""
+def get_next_occurence(date: datetime.date) -> datetime.datetime:
+    """Return a date object for the next occurence of the given birthday."""
 
     now = discord.utils.utcnow()
     bday = datetime.datetime(
@@ -72,11 +83,11 @@ class Announcements(commands.Cog):
 
         if len(birthdays) != 0:
             for bday in birthdays:
-                guild = self.bot.get_guild(bday["guild_id"])
+                guild = self.bot.get_guild(bday.guild_id)
                 if guild is None:
                     # Bot left the guild maybe?
                     continue
-                member = guild.get_member(bday["user_id"])
+                member = guild.get_member(bday.user_id)
                 if member:
                     # if we bring back the Birthday role,
                     # this needs to be called as a task
@@ -95,20 +106,22 @@ class Announcements(commands.Cog):
             return
 
         LOGGER.debug(f"Celebrating {member}'s birthday")
-        embed = discord.Embed(
-            description=(
-                f"# Happy Birthday {member.display_name} ({member.mention})!\n"
-                f"It is a very special day! Let's all wish them a happy birthday!"
-            ),
-            color=0xFFD700,
-        )
-        embed.set_thumbnail(url=member.display_avatar.url)
-        embed.set_footer(
-            text=(
-                "Want to celebrate your birthday too? "
-                "Register with /birthday register."
-            ),
-            icon_url="https://em-content.zobj.net/thumbs/160/twitter/351/information_2139-fe0f.png",  # noqa
+        embed = (
+            discord.Embed(
+                description=(
+                    f"# Happy Birthday {member.display_name} ({member.mention})!\n"
+                    f"It is a very special day! Let's all wish them a happy birthday!"
+                ),
+                color=EMBED_COLOR,
+            )
+            .set_thumbnail(url=member.display_avatar.url)
+            .set_footer(
+                text=(
+                    "Want to celebrate your birthday too? "
+                    "Register with /birthday register."
+                ),
+                icon_url="https://em-content.zobj.net/thumbs/160/twitter/351/information_2139-fe0f.png",  # noqa
+            )
         )
         message = await member.guild.system_channel.send(embed=embed)
         reactions = [
@@ -143,14 +156,14 @@ class Announcements(commands.Cog):
 
         # save year as a leap year. no need for user year of birth!
         birthday_date = datetime.date(4, month.value, day)
-        next_birthday = get_next_birthday(birthday_date)
+        next_occurence = get_next_occurence(birthday_date)
         LOGGER.debug(f"{interaction.user} registered birthday for {birthday_date}")
 
         await self._save_birthday(interaction.user, birthday_date)
 
         await interaction.response.send_message(
             f"Saved your birthday as {month.name} {day}. "
-            f"See you {relative_dt(next_birthday)}!",
+            f"See you {relative_dt(next_occurence)}!",
             ephemeral=True,
         )
 
@@ -207,7 +220,7 @@ class Announcements(commands.Cog):
 
     @birthday.command(name="delete")
     async def birthday_delete(self, interaction: discord.Interaction):
-        """Delete a registered birthday."""
+        """Delete your registered birthday."""
 
         if isinstance(interaction.user, discord.User):
             await interaction.response.send_message(
@@ -215,10 +228,10 @@ class Announcements(commands.Cog):
             )
             return
 
-        birthday_date = await self._get_member_birthday(interaction.user)
-        LOGGER.debug(f"Retreived birthday is {birthday_date}")
+        birthday = await self._get_member_birthday(interaction.user)
+        LOGGER.debug(f"Retreived birthday is {birthday}")
 
-        if birthday_date is None:
+        if birthday is None:
             await interaction.response.send_message(
                 "You did not register a birthday here, so nothing to delete!",
                 ephemeral=True,
@@ -237,12 +250,15 @@ class Announcements(commands.Cog):
             return
 
         if confirm.value:
+            LOGGER.debug(
+                f"Deleting birthday for {interaction.user} in {interaction.guild}"
+            )
             await self._delete_birthday(interaction.user)
             content = "Deleting your birthday!"
 
         else:
-            next_birthday = get_next_birthday(birthday_date)
-            content = f"Keeping your birthday. See you {relative_dt(next_birthday)}!"
+            next_occurence = get_next_occurence(birthday.birthday)
+            content = f"Keeping your birthday. See you {relative_dt(next_occurence)}!"
 
         await confirm.interaction.response.send_message(content, ephemeral=True)
 
@@ -253,9 +269,7 @@ class Announcements(commands.Cog):
 
         await self.bot.db.commit()
 
-    async def _get_member_birthday(
-        self, member: discord.Member
-    ) -> datetime.date | None:
+    async def _get_member_birthday(self, member: discord.Member) -> Birthday | None:
         """Get a member's birthday."""
 
         async with self.bot.db.execute(
@@ -264,25 +278,41 @@ class Announcements(commands.Cog):
         ) as c:
             row = await c.fetchone()
 
-        return row["birthday"] if row is not None else None
+        return Birthday(**row) if row is not None else None
 
-    async def _get_today_birthday(self):
+    async def _get_today_birthday(
+        self, guild: discord.Guild | None = None
+    ) -> list[Birthday]:
         """Return a list of today's birthdays.
         The list is empty is there is none.
         """
-        async with self.bot.db.execute("SELECT * FROM announcements_birthday") as c:
-            rows = await c.fetchall()
+        if guild is None:
+            rows = await self.bot.db.execute_fetchall(
+                "SELECT * FROM announcements_birthday"
+            )
+
+        else:
+            rows = await self.bot.db.execute_fetchall(
+                read_sql_query(SQL / "get_guild_birthdays.sql"),
+                dict(guild_id=guild.id),
+            )
 
         birthdays = []
         today = datetime.date.today()
         for row in rows:
-            date = row["birthday"]
-            if (date.day, date.month) == (today.day, today.month):
-                birthdays.append(row)
+            birthday = Birthday(**row)
+            if (
+                birthday.birthday.day,
+                birthday.birthday.month,
+            ) == (
+                today.day,
+                today.month,
+            ):
+                birthdays.append(birthday)
 
         return birthdays
 
-    async def _is_already_registered(self, member):
+    async def _is_already_registered(self, member: discord.Member) -> bool:
         """Verify if a member has registered a birthday already."""
 
         async with self.bot.db.execute(
@@ -293,6 +323,7 @@ class Announcements(commands.Cog):
 
         if row:
             return bool(row[0])
+        return False
 
     async def _save_birthday(self, member: discord.Member, birthday: datetime.date):
         """Save the birthday to the database."""
@@ -303,7 +334,7 @@ class Announcements(commands.Cog):
         )
         await self.bot.db.commit()
 
-    async def _delete_birthday(self, member):
+    async def _delete_birthday(self, member: discord.Member):
         """Remove the member's birthday from the database."""
 
         await self.bot.db.execute(
