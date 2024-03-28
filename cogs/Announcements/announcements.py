@@ -200,6 +200,13 @@ class Announcements(commands.Cog):
             return
 
         guild_birthdays = await self._get_guild_birthdays(interaction.guild)
+        # return early if there is no birthdays in the guild
+        if len(guild_birthdays) == 0:
+            await interaction.response.send_message(
+                "No birthdays registered here, sorry!",
+                ephemeral=True,
+            )
+            return
         next_guild_birthdays = sorted(
             guild_birthdays, key=lambda x: get_next_occurence(x.birthday)
         )
