@@ -288,6 +288,7 @@ class Giveaways(commands.Cog):
         )
 
     @giveaway.command(name="start")
+    @app_commands.checks.cooldown(10, 10 * 60, key=None)  # 10 calls per 10 mionutes
     @app_commands.checks.has_any_role(*HVC_STAFF_ROLES)
     async def giveaway_start(self, interaction: discord.Interaction):
         """Start one giveaway event."""
