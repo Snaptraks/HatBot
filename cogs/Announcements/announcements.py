@@ -89,11 +89,16 @@ class Announcements(commands.Cog):
                 if guild is None:
                     # Bot left the guild maybe?
                     continue
-                member = guild.get_member(bday.user_id)
-                if member:
+                try:
+                    member = await guild.fetch_member(bday.user_id)
+                    guild.get_member
                     # if we bring back the Birthday role,
                     # this needs to be called as a task
                     asyncio.create_task(self.birthday_task(member))
+                except discord.NotFound:
+                    LOGGER.error(
+                        f"Member {bday.user_id} was not found in guild {guild.id}."
+                    )
 
     @birthday_announcement.before_loop
     async def birthday_announcement_before(self):
@@ -215,7 +220,8 @@ class Announcements(commands.Cog):
         )
         next_birthday = get_next_occurence(next_birthday_date)
         next_birthday_members = [
-            interaction.guild.get_member(bday.user_id) for bday in next_birthdays
+            await interaction.guild.fetch_member(bday.user_id)
+            for bday in next_birthdays
         ]
         LOGGER.debug(
             f"Next birthday(s) on {next_birthday} for "
@@ -231,7 +237,7 @@ class Announcements(commands.Cog):
                 name="Members",
                 value="\n".join(
                     [
-                        member.display_name
+                        f"{member.display_name} ({member.mention})"
                         for member in next_birthday_members
                         if member is not None
                     ]
