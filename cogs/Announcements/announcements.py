@@ -78,7 +78,7 @@ class Announcements(commands.Cog):
     async def birthday_announcement(self):
         """Accounce the birthday of a member.
         Birthdays need to be registered by the member beforehand
-        with the command `!birthday register <DD/MM/YYYY>`.
+        with the `/birthday register` command.
         """
         birthdays = await self._get_today_birthday()
         LOGGER.debug(f"Found {len(birthdays)} birthdays for today")
