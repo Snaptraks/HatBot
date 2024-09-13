@@ -23,11 +23,11 @@ def main() -> None:
     allowed_mentions = discord.AllowedMentions(replied_user=False)
 
     startup_extensions = [
-        "cogs.Announcements",
         "cogs.Avatar",
         "cogs.Giveaways",
         "cogs.Presence",
         "snapcogs.Admin",
+        "snapcogs.Announcements",
         "snapcogs.Fun",
         "snapcogs.Information",
     ]
