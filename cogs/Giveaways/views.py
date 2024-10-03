@@ -1,15 +1,12 @@
 import logging
 from secrets import token_hex
 
-import aiosqlite
 import discord
 from discord import ui
-
 from snapcogs.bot import Bot
-from snapcogs.utils.db import read_sql_query
+from sqlalchemy.exc import IntegrityError
 
-from .base import SQL, Giveaway
-
+from .models import Entry, Giveaway
 
 LOGGER = logging.getLogger(__name__)
 
@@ -28,9 +25,9 @@ class GiveawayView(ui.View):
             components_id = {
                 "button": token_hex(16),
             }
-        self.components_id = components_id
         self.bot = bot
-        self.giveaway = giveaway
+        self.giveaway_id = giveaway.id
+        self.components_id = components_id
 
         enter_button = ui.Button(
             label="Enter!",
@@ -47,7 +44,7 @@ class GiveawayView(ui.View):
     ) -> None:
         try:
             await self._add_entry(interaction.user)
-        except aiosqlite.IntegrityError:
+        except IntegrityError:
             content = "You already entered this giveaway!"
         else:
             content = (
@@ -60,13 +57,12 @@ class GiveawayView(ui.View):
     async def _add_entry(self, user: discord.User | discord.Member) -> None:
         """Add the entry to the DB."""
 
-        await self.bot.db.execute(
-            read_sql_query(SQL / "add_entry.sql"),
-            {
-                "giveaway_id": self.giveaway.giveaway_id,
-                "user_id": user.id,
-            },
-        )
-        LOGGER.debug(f"Entry for {self.giveaway} added for {user}.")
-
-        await self.bot.db.commit()
+        LOGGER.debug(f"Saving entry for Giveaway {self.giveaway_id} for {user}.")
+        async with self.bot.db.session() as session:
+            async with session.begin():
+                session.add(
+                    Entry(
+                        user_id=user.id,
+                        giveaway_id=self.giveaway_id,
+                    )
+                )

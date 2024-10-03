@@ -1,4 +1,5 @@
 aiosqlite==0.20.0
 discord.py==2.4.0
 pillow==10.4.0
+SQLAlchemy[asyncio]==2.0.35
 git+https://github.com/Snaptraks/SnapCogs.git@master
