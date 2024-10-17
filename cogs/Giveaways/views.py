@@ -1,14 +1,20 @@
+from __future__ import annotations
+
 import logging
 from secrets import token_hex
+from typing import TYPE_CHECKING
 
 import discord
 from discord import ui
 from snapcogs.bot import Bot
 from sqlalchemy.exc import IntegrityError
 
-from .models import Entry, Giveaway
-
 LOGGER = logging.getLogger(__name__)
+
+
+if TYPE_CHECKING:
+    from .giveaways import Giveaways
+    from .models import Giveaway
 
 
 class GiveawayView(ui.View):
@@ -38,12 +44,18 @@ class GiveawayView(ui.View):
         enter_button.callback = self.on_enter
         self.add_item(enter_button)
 
+    @property
+    def cog(self) -> Giveaways:
+        cog = self.bot.get_cog("Giveaways")
+        assert cog is not None
+        return cog  # type: ignore
+
     async def on_enter(
         self,
         interaction: discord.Interaction,
     ) -> None:
         try:
-            await self._add_entry(interaction.user)
+            await self.cog._add_entry(interaction.user, self.giveaway_id)
         except IntegrityError:
             content = "You already entered this giveaway!"
         else:
@@ -52,17 +64,10 @@ class GiveawayView(ui.View):
                 "Good luck \N{HAND WITH INDEX AND MIDDLE FINGERS CROSSED}"
             )
 
-        await interaction.response.send_message(content, ephemeral=True)
+        assert interaction.message is not None
+        embed = interaction.message.embeds[0]
+        entries = await self.cog._count_entries(self.giveaway_id)
+        embed.set_footer(text=f"{entries} entries")
 
-    async def _add_entry(self, user: discord.User | discord.Member) -> None:
-        """Add the entry to the DB."""
-
-        LOGGER.debug(f"Saving entry for Giveaway {self.giveaway_id} for {user}.")
-        async with self.bot.db.session() as session:
-            async with session.begin():
-                session.add(
-                    Entry(
-                        user_id=user.id,
-                        giveaway_id=self.giveaway_id,
-                    )
-                )
+        await interaction.response.edit_message(embed=embed)
+        await interaction.followup.send(content, ephemeral=True)

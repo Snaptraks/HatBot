@@ -104,7 +104,7 @@ class Giveaways(commands.Cog):
                     "### Press the button to enter!\n"
                     f"This giveaway ends at {ends_at} ({ends_in})"
                 ),
-            )
+            ).set_footer(text="No entries yet")
 
             view = GiveawayView(self.bot, giveaway)
             await interaction.response.send_message(embed=embed, view=view)
@@ -172,7 +172,7 @@ class Giveaways(commands.Cog):
                     "### Congrats to them!\n"
                     f"This giveaway ended {ends_in}."
                 ),
-            )
+            ).set_footer(text=f"{await self._count_entries(giveaway.id)} entries")
 
             # send to mc-server-chatter
             mc_server_chatter = self.bot.get_partial_messageable(HVC_MC_SERVER_CHATTER)
@@ -515,3 +515,33 @@ class Giveaways(commands.Cog):
             giveaway,
             components_id={c.name: c.component_id for c in view_model.components},
         )
+
+    async def _add_entry(
+        self, user: discord.User | discord.Member, giveaway_id: int
+    ) -> None:
+        """Add the entry to the DB."""
+
+        LOGGER.debug(f"Saving entry for Giveaway {giveaway_id} for {user}.")
+        async with self.bot.db.session() as session:
+            async with session.begin():
+                session.add(
+                    Entry(
+                        user_id=user.id,
+                        giveaway_id=giveaway_id,
+                    )
+                )
+
+    async def _count_entries(self, giveaway_id: int) -> int:
+        """Count the number of entries for the current giveaway."""
+
+        LOGGER.debug(f"Counting entries for Giveaway {giveaway_id}.")
+        async with self.bot.db.session() as session:
+            entries = await session.scalar(
+                select(func.count())
+                .select_from(Entry)
+                .where(
+                    Entry.giveaway_id == giveaway_id,
+                )
+            )
+
+        return entries or 0
