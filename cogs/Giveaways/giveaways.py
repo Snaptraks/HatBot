@@ -9,8 +9,11 @@ import discord
 from discord import app_commands
 from discord.ext import commands
 from snapcogs import Bot
-from snapcogs.utils.db import read_sql_query
 from snapcogs.utils.views import Confirm
+from sqlalchemy import asc, func, not_, select, update
+from sqlalchemy.dialects.sqlite import insert
+from sqlalchemy.exc import OperationalError
+from sqlalchemy.orm import joinedload
 
 from ..utils.checks import NotOwner, is_owner
 from .base import (
@@ -18,10 +21,8 @@ from .base import (
     GIVEAWAY_TIME,
     HVC_MC_SERVER_CHATTER,
     HVC_STAFF_ROLES,
-    SQL,
-    Game,
-    Giveaway,
 )
+from .models import Component, Entry, Game, Giveaway, View
 from .views import GiveawayView
 
 LOGGER = logging.getLogger(__name__)
@@ -38,11 +39,8 @@ class Giveaways(commands.Cog):
 
     def __init__(self, bot: Bot):
         self.bot = bot
-        self.persistent_views_loaded = False
-        self._tasks = {}
-
-    async def cog_load(self):
-        await self._create_tables()
+        self.persistent_views_loaded: bool = False
+        self._tasks: dict[int, asyncio.Task] = {}
 
     async def cog_unload(self):
         # cancel giveaways tasks when unloading to prevent duplicates
@@ -65,14 +63,20 @@ class Giveaways(commands.Cog):
     @commands.Cog.listener()
     async def on_ready(self):
         if not self.persistent_views_loaded:
-            await self.load_ongoing_giveaways()
-            self.persistent_views_loaded = True
+            try:
+                await self.load_ongoing_giveaways()
+                self.persistent_views_loaded = True
+            except OperationalError:
+                LOGGER.info(
+                    f"Database tables for cog {self.__class__.__name__} "
+                    "do not exist yet."
+                )
 
     async def load_ongoing_giveaways(self) -> None:
         for giveaway in await self._get_ongoing_giveaways():
             LOGGER.debug(f"Loading view for message {giveaway.message_id}")
 
-            self._tasks[giveaway.giveaway_id] = asyncio.create_task(
+            self._tasks[giveaway.id] = asyncio.create_task(
                 self.giveaway_task(
                     interaction=None,
                     giveaway=giveaway,
@@ -100,25 +104,32 @@ class Giveaways(commands.Cog):
                     "### Press the button to enter!\n"
                     f"This giveaway ends at {ends_at} ({ends_in})"
                 ),
-            )
+            ).set_footer(text="No entries yet")
 
             view = GiveawayView(self.bot, giveaway)
             await interaction.response.send_message(embed=embed, view=view)
             original_message = await interaction.original_response()
             await self._save_presistent_view(view, original_message)
-            await self._update_giveaway(giveaway, original_message)
-            giveaway = await self._get_giveaway(giveaway.giveaway_id)  # type:ignore
+
+            giveaway.channel_id = original_message.channel.id
+            giveaway.created_at = original_message.created_at
+            giveaway.message_id = original_message.id
+            giveaway = await self._save_giveaway(giveaway)
 
         else:
             view = await self._get_view(giveaway)
             self.bot.add_view(view, message_id=giveaway.message_id)
 
+        LOGGER.debug(f"Sleeping for giveaway {giveaway.id}")
         await discord.utils.sleep_until(giveaway.trigger_at)
         view.stop()
+
         winner = await self._get_random_winner(giveaway)
 
         if winner is None:
-            LOGGER.info(f"No winner for {giveaway}, marking game as still available.")
+            LOGGER.info(
+                f"No winner for {giveaway.id}, marking game as still available."
+            )
             await self._edit_game_given(giveaway.game, False)
             embed = discord.Embed(
                 color=EMBED_COLOR,
@@ -161,7 +172,7 @@ class Giveaways(commands.Cog):
                     "### Congrats to them!\n"
                     f"This giveaway ended {ends_in}."
                 ),
-            )
+            ).set_footer(text=f"{await self._count_entries(giveaway.id)} entries")
 
             # send to mc-server-chatter
             mc_server_chatter = self.bot.get_partial_messageable(HVC_MC_SERVER_CHATTER)
@@ -175,8 +186,10 @@ class Giveaways(commands.Cog):
 
         await self._end_giveaway(giveaway)
 
-        channel = self.bot.get_partial_messageable(giveaway.channel_id)
-        message = channel.get_partial_message(giveaway.message_id)
+        # the following attributes should never be None
+        channel = self.bot.get_partial_messageable(giveaway.channel_id)  # type: ignore
+        message = channel.get_partial_message(giveaway.message_id)  # type: ignore
+
         try:
             await message.edit(embed=embed, view=None)
         except Exception:
@@ -193,13 +206,13 @@ class Giveaways(commands.Cog):
         This is an Owner Only command, as only the bot's owner can run it.
         """
         content = await attachment.read()
-        data: list[dict[str, str]] = json.loads(content)
+        games_data: list[dict[str, str]] = json.loads(content)
 
-        LOGGER.debug(f"Adding {len(data)} games to the database.")
-        await self._insert_games(data)
+        LOGGER.debug(f"Adding {len(games_data)} games to the database.")
+        await self._insert_games(games_data)
 
         await interaction.response.send_message(
-            f"Thank you! I received {len(data)} keys and updated the database.",
+            f"Thank you! I received {len(games_data)} keys and updated the database.",
             ephemeral=True,
         )
 
@@ -237,7 +250,8 @@ class Giveaways(commands.Cog):
 
         if isinstance(error, NotOwner):
             await interaction.response.send_message(
-                "You cannot add games to the giveaway, but you can enter them!"
+                "You cannot add games to the giveaway, but you can enter them!",
+                ephemeral=True,
             )
         else:
             interaction.extras["error_handled"] = False
@@ -291,7 +305,7 @@ class Giveaways(commands.Cog):
     @app_commands.checks.cooldown(10, 10 * 60, key=None)  # 10 calls per 10 mionutes
     @app_commands.checks.has_any_role(*HVC_STAFF_ROLES)
     async def giveaway_start(self, interaction: discord.Interaction):
-        """Start one giveaway event."""
+        """Start one Giveaway event."""
 
         game = await self._get_random_game()
         if game is None:
@@ -300,182 +314,164 @@ class Giveaways(commands.Cog):
             )
             return
 
-        LOGGER.debug(f"Giving game {game}")
-        giveaway_id = await self._create_giveaway(game.game_id)
-        if giveaway_id is None:
-            raise ValueError("Giveaway ID cannot be None!")
+        LOGGER.debug(f"Giving game {game.title} ({game.id=})")
+        giveaway = Giveaway(
+            trigger_at=discord.utils.utcnow() + GIVEAWAY_TIME,
+            game=game,
+        )
+        giveaway = await self._save_giveaway(giveaway)
 
-        giveaway = await self._get_giveaway(giveaway_id)
-        if giveaway is None:
-            raise ValueError(f"Giveaway with ID {giveaway_id} does not exist!")
-
-        self._tasks[giveaway.giveaway_id] = asyncio.create_task(
+        self._tasks[giveaway.id] = asyncio.create_task(
             self.giveaway_task(
                 interaction=interaction,
                 giveaway=giveaway,
             )
         )
 
-    async def _create_tables(self) -> None:
-        """Create the necessary tables if they do not exist."""
-
-        await self.bot.db.execute(read_sql_query(SQL / "create_game_table.sql"))
-        await self.bot.db.execute(read_sql_query(SQL / "create_giveaway_table.sql"))
-        await self.bot.db.execute(read_sql_query(SQL / "create_entry_table.sql"))
-        await self.bot.db.execute(read_sql_query(SQL / "create_view_table.sql"))
-        await self.bot.db.execute(read_sql_query(SQL / "create_component_table.sql"))
-
-        await self.bot.db.commit()
-
-    async def _create_giveaway(self, game_id: int) -> int | None:
-        """Create the database entry for the giveaway."""
-
-        async with self.bot.db.execute(
-            read_sql_query(SQL / "create_giveaway.sql"),
-            dict(
-                game_id=game_id,
-                trigger_at=discord.utils.utcnow() + GIVEAWAY_TIME,
-            ),
-        ) as c:
-            giveaway_id = c.lastrowid
-
-        await self.bot.db.commit()
-
-        return giveaway_id
-
-    async def _get_game(self, game_id: int) -> Game | None:
-        """Return a Game by it's ID."""
-
-        async with self.bot.db.execute(
-            read_sql_query(SQL / "get_game.sql"),
-            dict(
-                game_id=game_id,
-            ),
-        ) as c:
-            row = await c.fetchone()
-
-        if row is not None:
-            return Game(**row)
-
-    async def _get_giveaway(self, giveaway_id: int) -> Giveaway | None:
-        """Return the a Giveaway by it's ID."""
-
-        async with self.bot.db.execute(
-            read_sql_query(SQL / "get_giveaway.sql"),
-            dict(
-                giveaway_id=giveaway_id,
-            ),
-        ) as c:
-            giveaway_row = await c.fetchone()
-
-        if giveaway_row is None:
-            # exit early if giveaway doesn't exist
-            return None
-
-        game = await self._get_game(giveaway_row["game_id"])
-        if game is not None:
-            return Giveaway(**dict(giveaway_row), game=game)
-        else:
-            return None
-
     async def _get_ongoing_giveaways(self) -> list[Giveaway]:
-        """Return the list of giveaways that are not done yet."""
+        """Return the list of Giveaways that are not done yet."""
 
-        async with self.bot.db.execute(
-            read_sql_query(SQL / "get_ongoing_giveaways.sql")
-        ) as c:
-            giveaway_rows = await c.fetchall()
+        async with self.bot.db.session() as session:
+            giveaways = await session.scalars(
+                select(Giveaway)
+                .where(not_(Giveaway.is_done))
+                .options(
+                    joinedload(Giveaway.game),
+                )
+            )
 
-        giveaway_rows = list(giveaway_rows)
-        if len(giveaway_rows) == 0:
-            # exit early if no ongoing giveaways
-            return []
+        return list(giveaways)
 
-        giveaways: list[Giveaway] = []
-        for row in giveaway_rows:
-            game = await self._get_game(row["game_id"])
+    async def _save_giveaway(self, giveaway: Giveaway) -> Giveaway:
+        """Save the Giveaway information to the database."""
+        async with self.bot.db.session() as session:
+            async with session.begin():
+                session.add(giveaway)
 
-            if game is not None:
-                giveaways.append(Giveaway(**dict(row), game=game))
+        LOGGER.debug(f"Saved Giveaway {giveaway.id}.")
 
-        return giveaways
+        return giveaway
 
-    async def _get_remaining_games(self) -> list[Game]:
-        """Return the list of remaining games."""
+    async def _end_giveaway(self, giveaway: Giveaway) -> None:
+        """Mark the Giveaway as done."""
 
-        async with self.bot.db.execute(
-            read_sql_query(SQL / "get_remaining_games.sql")
-        ) as c:
-            rows = await c.fetchall()
+        async with self.bot.db.session() as session:
+            async with session.begin():
+                giveaway.is_done = True
+                session.add(giveaway)
 
-        return [Game(**row) for row in rows]
+        LOGGER.debug(f"Giveaway {giveaway.id} for {giveaway.game.title} ended.")
 
     async def _get_random_game(self) -> Game | None:
         """Return a random game that is not given yet.
         If None is returned, it means there are no available games yet.
         """
-        async with self.bot.db.execute(
-            read_sql_query(SQL / "get_random_game.sql")
-        ) as c:
-            row = await c.fetchone()
+        async with self.bot.db.session() as session:
+            game = await session.scalar(
+                select(Game)
+                .where(
+                    not_(Game.given),
+                )
+                .order_by(
+                    func.random(),
+                )
+                .limit(1)
+            )
 
-        if row:
-            game = Game(**row)
-            await self._edit_game_given(game, True)
-            return game
-        else:
-            return None
+        LOGGER.debug(f"Randomly selected Game {game}")
 
-    async def _insert_games(self, list_of_games: list[dict[str, str]]) -> None:
-        """Add a list of games and keys to the database."""
+        if game is not None:
+            await self._edit_game_given(game, given=True)
 
-        await self.bot.db.executemany(
-            read_sql_query(SQL / "insert_games.sql"),
-            list_of_games,
-        )
-
-        await self.bot.db.commit()
+        return game
 
     async def _edit_game_given(self, game: Game, given: bool) -> None:
         """Mark the game as given (or not, if no one wins it)."""
 
-        await self.bot.db.execute(
-            read_sql_query(SQL / "edit_game_given.sql"),
-            {
-                "game_id": game.game_id,
-                "given": given,
-            },
-        )
+        async with self.bot.db.session() as session:
+            async with session.begin():
+                game.given = given
+                session.add(game)
 
-        await self.bot.db.commit()
+        LOGGER.debug(f"Edited Game {game.id} ({game.title}) as {given=}.")
+
+    async def _get_remaining_games(self) -> list[Game]:
+        """Return the list of remaining games."""
+
+        async with self.bot.db.session() as session:
+            games = await session.scalars(
+                select(Game)
+                .where(
+                    not_(Game.given),
+                )
+                .order_by(
+                    asc(Game.title),
+                )
+            )
+
+        return list(games)
+
+    async def _insert_games(self, games_data: list[dict[str, str]]) -> None:
+        """Add a list of games and keys to the database."""
+
+        # this is the least hackish way I could find that actually works.
+        # this is a limitation qith SQLAlchemy where the "ON CONFLICT IGNORE"
+        # is not well implemented in the ORM
+        async with self.bot.db.session() as session:
+            async with session.begin():
+                for game_data in games_data:
+                    await session.execute(
+                        insert(Game)
+                        .values(
+                            key=game_data["key"],
+                            title=game_data["title"],
+                            url=game_data["url"],
+                        )
+                        .on_conflict_do_nothing(index_elements=["key"])
+                    )
 
     async def _re_add_game_key(self, key: str) -> None:
         """Mark the game key as not given."""
 
-        await self.bot.db.execute(
-            read_sql_query(SQL / "re-add_game_key.sql"),
-            {"key": key},
-        )
-        LOGGER.debug(f"Adding back key {key} to the giveaways.")
-        await self.bot.db.commit()
+        async with self.bot.db.session() as session:
+            async with session.begin():
+                await session.execute(
+                    update(Game)
+                    .where(
+                        Game.key == key,
+                    )
+                    .values(
+                        given=False,
+                    )
+                )
+        LOGGER.debug(f"Marked the key {key} as given=False.")
 
     async def _get_random_winner(self, giveaway: Giveaway) -> discord.User | None:
         """Return one random entry for the giveaway."""
 
-        async with self.bot.db.execute(
-            read_sql_query(SQL / "get_giveaway_entries.sql"),
-            {"giveaway_id": giveaway.giveaway_id},
-        ) as c:
-            rows = list(await c.fetchall())
+        async with self.bot.db.session() as session:
+            entries = await session.scalars(
+                select(Entry)
+                .where(
+                    Entry.giveaway_id == giveaway.id,
+                )
+                .order_by(
+                    func.random(),
+                )
+            )
 
-        if len(rows) == 0:
+        entries = list(entries)
+
+        if len(entries) == 0:
             return None
 
-        row = random.choice(rows)
+        LOGGER.debug(f"Selecting a random winner from {len(entries)} entries.")
+        winning_entry = random.choice(entries)
 
-        winner = self.bot.get_user(row["user_id"]) or await self.bot.fetch_user(
-            row["user_id"]
+        winner = self.bot.get_user(winning_entry.user_id) or await self.bot.fetch_user(
+            winning_entry.user_id
         )
+
         return winner
 
     async def _save_presistent_view(
@@ -485,78 +481,67 @@ class Giveaways(commands.Cog):
 
         LOGGER.debug(f"Saving View data for message {message.id}.")
         assert message.guild is not None
-        row = await self.bot.db.execute_insert(
-            read_sql_query(SQL / "save_view.sql"),
-            dict(
-                guild_id=message.guild.id,
-                message_id=message.id,
-            ),
-        )
-        assert row is not None
-        view_id: int = row[0]
 
-        await self.bot.db.executemany(
-            read_sql_query(SQL / "save_component.sql"),
-            [
-                dict(component_id=v, name=k, view_id=view_id)
-                for k, v in view.components_id.items()
-            ],
-        )
-
-        await self.bot.db.commit()
-
-    async def _update_giveaway(
-        self, giveaway: Giveaway, message: discord.InteractionMessage
-    ) -> None:
-        """Update the database entry with the info from the message
-        containing the View.
-        """
-        await self.bot.db.execute(
-            read_sql_query(SQL / "update_giveaway.sql"),
-            {
-                "giveaway_id": giveaway.giveaway_id,
-                "channel_id": message.channel.id,
-                "created_at": message.created_at,
-                "message_id": message.id,
-            },
-        )
-
-        await self.bot.db.commit()
-
-    async def _end_giveaway(self, giveaway: Giveaway) -> None:
-        """Mark the giveaway as done."""
-
-        await self.bot.db.execute(
-            read_sql_query(SQL / "end_giveaway.sql"),
-            {
-                "giveaway_id": giveaway.giveaway_id,
-            },
-        )
-        LOGGER.debug(f"Giveaway for {giveaway.game.title} ended")
-        await self.bot.db.commit()
+        async with self.bot.db.session() as session:
+            async with session.begin():
+                model_view = View(
+                    guild_id=message.guild.id,
+                    message_id=message.id,
+                    components=[
+                        Component(name=name, component_id=component_id)
+                        for name, component_id in view.components_id.items()
+                    ],
+                )
+                session.add(model_view)
 
     async def _get_view(self, giveaway: Giveaway) -> GiveawayView:
         """Get the View associated with the Giveaway."""
 
-        async with self.bot.db.execute(
-            read_sql_query(SQL / "get_view.sql"),
-            dict(message_id=giveaway.message_id),
-        ) as c:
-            view_row = await c.fetchone()
+        async with self.bot.db.session() as session:
+            view_model = await session.scalar(
+                select(View)
+                .where(
+                    View.message_id == giveaway.message_id,
+                )
+                .options(
+                    joinedload(View.components),
+                )
+            )
 
-        if view_row is None:
-            raise ValueError(f"No view attached to message {giveaway.message_id}.")
+        assert view_model is not None
 
-        components_id = await self._get_components_id(view_row["view_id"])
-
-        return GiveawayView(self.bot, giveaway, components_id=components_id)
-
-    async def _get_components_id(self, view_id: int) -> dict[str, str]:
-        """Get the dict of components ID for the View with view_id."""
-
-        rows = await self.bot.db.execute_fetchall(
-            read_sql_query(SQL / "get_components.sql"),
-            dict(view_id=view_id),
+        return GiveawayView(
+            self.bot,
+            giveaway,
+            components_id={c.name: c.component_id for c in view_model.components},
         )
-        components_id = {row["name"]: row["component_id"] for row in rows}
-        return components_id
+
+    async def _add_entry(
+        self, user: discord.User | discord.Member, giveaway_id: int
+    ) -> None:
+        """Add the entry to the DB."""
+
+        LOGGER.debug(f"Saving entry for Giveaway {giveaway_id} for {user}.")
+        async with self.bot.db.session() as session:
+            async with session.begin():
+                session.add(
+                    Entry(
+                        user_id=user.id,
+                        giveaway_id=giveaway_id,
+                    )
+                )
+
+    async def _count_entries(self, giveaway_id: int) -> int:
+        """Count the number of entries for the current giveaway."""
+
+        LOGGER.debug(f"Counting entries for Giveaway {giveaway_id}.")
+        async with self.bot.db.session() as session:
+            entries = await session.scalar(
+                select(func.count())
+                .select_from(Entry)
+                .where(
+                    Entry.giveaway_id == giveaway_id,
+                )
+            )
+
+        return entries or 0

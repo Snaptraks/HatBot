@@ -6,9 +6,12 @@ import discord
 import tomllib
 from discord.ext import commands
 from snapcogs import Bot
+from snapcogs.utils.logging import get_logger
 
 LOGGER = logging.getLogger()
 LOGGER.setLevel(logging.INFO)
+if LOGGER.level == logging.DEBUG:
+    get_logger("sqlalchemy.engine").setLevel(logging.DEBUG)
 
 
 def load_config(file_path: Path | str) -> dict[str, Any]:
@@ -24,7 +27,7 @@ def main() -> None:
 
     startup_extensions = [
         "cogs.Avatar",
-        "cogs.Giveaways",
+        # "cogs.Giveaways",
         "cogs.Presence",
         "snapcogs.Admin",
         "snapcogs.Announcements",
