@@ -1,4 +1,4 @@
-FROM python:3.11-slim
+FROM python:3.12-slim
 
 RUN apt-get update && apt-get install -y wget
 
@@ -13,7 +13,7 @@ RUN apt-get update \
 
 WORKDIR /bot
 
-ENV PYTHONUNBUFFERED 1
+ENV PYTHONUNBUFFERED=1
 
 COPY requirements.txt ./
 RUN python -m pip install --upgrade pip
