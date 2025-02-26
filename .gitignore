@@ -83,6 +83,6 @@ cogs/Giveaways/Christmas*
 
 # Testing
 SnapBot.py
-docker-compose-dev.yml
+compose.dev.yml
 cogs/Testing/
 tests/
