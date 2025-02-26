@@ -5,7 +5,7 @@ from typing import Any
 import discord
 import tomllib
 from discord.ext import commands
-from snapcogs import Bot
+from snapcogs.bot import Bot
 from snapcogs.utils.logging import get_logger
 
 LOGGER = logging.getLogger()
@@ -27,7 +27,6 @@ def main() -> None:
 
     startup_extensions = [
         "cogs.Avatar",
-        "cogs.Giveaways",
         "cogs.Presence",
         "snapcogs.Admin",
         "snapcogs.Announcements",
