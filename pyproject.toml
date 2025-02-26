@@ -1,0 +1,16 @@
+[project]
+    authors = [ { name = "Snaptraks" } ]
+    dependencies = [
+        "discord-py>=2.5.0",
+        "pillow>=11.1.0",
+        "snapcogs[all]",
+        "sqlalchemy[asyncio]>=2.0.38",
+    ]
+    description = "Discord bot for the Hatventures Community server"
+    name = "hatbot"
+    readme = "README.md"
+    requires-python = ">=3.12"
+    version = "2025.02.1"
+
+[tool.uv.sources]
+    snapcogs = { git = "https://github.com/Snaptraks/SnapCogs.git", rev = "master" }
