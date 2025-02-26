@@ -1,10 +1,8 @@
-from typing import Callable, TypeVar
+from typing import Callable
 
 import discord
 from discord import app_commands
 from discord.ext import commands
-
-T = TypeVar("T")
 
 
 class NotOwner(app_commands.CheckFailure):
@@ -14,7 +12,7 @@ class NotOwner(app_commands.CheckFailure):
     """
 
 
-def has_role_or_above(item):
+def has_role_or_above[T](item) -> Callable[[T], T]:
     """A check decorator that checks if the member invoking the command
     has their top role equal or above the role specified via the name
     or ID specified.
@@ -26,8 +24,8 @@ def has_role_or_above(item):
     of the role.
     """
 
-    def predicate(ctx):
-        if not isinstance(ctx.channel, discord.abc.GuildChannel):
+    def predicate(ctx: commands.Context) -> bool:
+        if ctx.guild is None:
             raise commands.NoPrivateMessage()
 
         if isinstance(item, int):
@@ -39,6 +37,7 @@ def has_role_or_above(item):
         if role is None:
             raise commands.MissingRole(item)
 
+        assert isinstance(ctx.author, discord.Member)
         return role <= ctx.author.top_role
 
     return commands.check(predicate)
@@ -60,7 +59,7 @@ async def _is_owner(interaction: discord.Interaction) -> bool:
             return interaction.user.id == app.owner.id
 
 
-def is_owner() -> Callable[[T], T]:
+def is_owner[T]() -> Callable[[T], T]:
     """A check decorator that checks if the user invoking the command
     is the owner of the bot.
     """

@@ -8,7 +8,7 @@ from datetime import date
 import discord
 from discord import app_commands
 from discord.ext import commands
-from snapcogs import Bot
+from snapcogs.bot import Bot
 from snapcogs.utils.views import Confirm
 from sqlalchemy import asc, func, not_, select, update
 from sqlalchemy.dialects.sqlite import insert
@@ -37,12 +37,12 @@ class Giveaways(commands.Cog):
         default_permissions=discord.Permissions(mention_everyone=True),
     )
 
-    def __init__(self, bot: Bot):
+    def __init__(self, bot: Bot) -> None:
         self.bot = bot
         self.persistent_views_loaded: bool = False
         self._tasks: dict[int, asyncio.Task] = {}
 
-    async def cog_unload(self):
+    async def cog_unload(self) -> None:
         # cancel giveaways tasks when unloading to prevent duplicates
         for t in self._tasks.values():
             t.cancel()
@@ -61,7 +61,7 @@ class Giveaways(commands.Cog):
         return interaction.guild.id in guild_ids
 
     @commands.Cog.listener()
-    async def on_ready(self):
+    async def on_ready(self) -> None:
         if not self.persistent_views_loaded:
             try:
                 await self.load_ongoing_giveaways()
@@ -200,7 +200,7 @@ class Giveaways(commands.Cog):
     @is_owner()
     async def giveaway_add(
         self, interaction: discord.Interaction, attachment: discord.Attachment
-    ):
+    ) -> None:
         """Add game keys to the database for the giveaways.
         A file must be attached to the command when running it.
         This is an Owner Only command, as only the bot's owner can run it.
@@ -219,7 +219,7 @@ class Giveaways(commands.Cog):
     @giveaway.command(name="readd")
     @app_commands.describe(key="Steam Key of the game to add back in the database.")
     @is_owner()
-    async def giveaway_readd(self, interaction: discord.Interaction, key: str):
+    async def giveaway_readd(self, interaction: discord.Interaction, key: str) -> None:
         """Re-add a game key in the database for the giveaways.
         The key must be a string as it is entered in the database.
         It is useful when someone did not want the key, already had the game, and
@@ -259,7 +259,9 @@ class Giveaways(commands.Cog):
     @giveaway.command(name="remaining")
     @app_commands.describe(page="Page number to display")
     @app_commands.checks.has_any_role(*HVC_STAFF_ROLES)
-    async def giveaway_remaining(self, interaction: discord.Interaction, page: int = 1):
+    async def giveaway_remaining(
+        self, interaction: discord.Interaction, page: int = 1
+    ) -> None:
         """List the remaining games for the giveaway."""
 
         remaining_games = await self._get_remaining_games()
@@ -304,7 +306,7 @@ class Giveaways(commands.Cog):
     @giveaway.command(name="start")
     @app_commands.checks.cooldown(10, 10 * 60, key=None)  # 10 calls per 10 mionutes
     @app_commands.checks.has_any_role(*HVC_STAFF_ROLES)
-    async def giveaway_start(self, interaction: discord.Interaction):
+    async def giveaway_start(self, interaction: discord.Interaction) -> None:
         """Start one Giveaway event."""
 
         game = await self._get_random_game()

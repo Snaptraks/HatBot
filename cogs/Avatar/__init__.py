@@ -1,4 +1,5 @@
-from snapcogs import Bot
+from snapcogs.bot import Bot
+
 from .avatar import Avatar
 
 

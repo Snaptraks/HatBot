@@ -24,7 +24,7 @@ class GiveawayView(ui.View):
         giveaway: Giveaway,
         *,
         components_id: dict[str, str] | None = None,
-    ):
+    ) -> None:
         # do stuff here?
         super().__init__(timeout=None)
         if components_id is None:

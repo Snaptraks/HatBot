@@ -1,12 +1,18 @@
+from __future__ import annotations
+
 import logging
 from dataclasses import dataclass
 from datetime import UTC, date, datetime, time
 from pathlib import Path
+from typing import TYPE_CHECKING
 
 import discord
 import tomllib
 from discord.ext import commands, tasks
-from snapcogs import Bot
+
+if TYPE_CHECKING:
+    from snapcogs.bot import Bot
+
 
 LOGGER = logging.getLogger(__name__)
 PATH = Path(__file__).parent
@@ -152,7 +158,7 @@ class Avatar(commands.Cog):
         self.event_avatars.start()
 
     @tasks.loop(time=time(hour=0, minute=1, tzinfo=UTC))
-    async def event_avatars(self):
+    async def event_avatars(self) -> None:
         """Task to check if we have entered a new event, and possibly change
         the bot's avatar.
         """
@@ -168,7 +174,7 @@ class Avatar(commands.Cog):
             await self.edit_avatar(event)
 
     @event_avatars.before_loop
-    async def event_avatars_before(self):
+    async def event_avatars_before(self) -> None:
         """Call the event_avatars task once immediately to make sure the
         avatar is up to date.
         """
@@ -176,7 +182,7 @@ class Avatar(commands.Cog):
         LOGGER.debug("Running event_avatars once at startup.")
         await self.event_avatars()
 
-    async def edit_avatar(self, event: Event):
+    async def edit_avatar(self, event: Event) -> None:
         """Fetch the event's avatar from the repository and edit the bot's avatar."""
 
         avatar = await self.repository.fetch_event_avatar(event)
@@ -187,7 +193,7 @@ class Avatar(commands.Cog):
 
     @commands.command()
     @commands.is_owner()
-    async def avatar_refresh(self, ctx: commands.Context):
+    async def avatar_refresh(self, ctx: commands.Context) -> None:
         """Refresh the bot's current avatar by fetching it from the repository."""
 
         event = await self.repository.get_current_event()
