@@ -31,7 +31,7 @@ With all this in mind, to run the bot locally and help with the development, you
 1. [Create a bot account](https://discordpy.readthedocs.io/en/latest/discord.html#creating-a-bot-account).
 2. Copy your secret token in a file named `config.py` under `hatbot_token` (see `config.py.example` for more details).
 3. [Invite the bot to your server](https://discordpy.readthedocs.io/en/latest/discord.html#inviting-your-bot). I recommend creating a dedicated Discord server for this, so that you are 100% sure to have total control over it.
-4. Start the bot with `uv run HatBot.py` from a terminal (here `uv` will automatically use the virtual appropriate virtual environment).
+4. Start the bot with `uv run HatBot.py` from a terminal (here `uv` will automatically use the appropriate virtual environment).
 5. Once the bot is on the server, you can enter commands and interact with it. If you modify the code (either the main HatBot.py file or code inside a [Cog](https://discordpy.readthedocs.io/en/latest/ext/commands/cogs.html)), you can stop the bot (`Ctrl + C` in the terminal) and restart it like in step 4.
 
 ### Running inside a Docker container
