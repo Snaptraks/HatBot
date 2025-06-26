@@ -274,10 +274,8 @@ class Giveaways(commands.Cog):
         ]
         max_pages = len(games_list) // per_page + 1
 
-        if page > max_pages:
-            page = max_pages
-        if page < 1:
-            page = 1
+        page = min(page, max_pages)
+        page = max(page, 1)
 
         i = (page - 1) * per_page
         j = page * per_page
