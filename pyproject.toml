@@ -2,7 +2,7 @@
     authors = [ { name = "Snaptraks" } ]
     dependencies = [
         "discord-py>=2.5.0",
-        "pillow>=11.1.0",
+        "pillow>=11.3.0",
         "snapcogs[all]",
         "sqlalchemy[asyncio]>=2.0.38",
     ]
