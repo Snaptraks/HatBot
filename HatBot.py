@@ -1,9 +1,9 @@
 import logging
+import tomllib
 from pathlib import Path
 from typing import Any
 
 import discord
-import tomllib
 from discord.ext import commands
 from snapcogs.bot import Bot
 from snapcogs.utils.logging import get_logger
@@ -15,7 +15,7 @@ if LOGGER.level == logging.DEBUG:
 
 
 def load_config(file_path: Path | str) -> dict[str, Any]:
-    with open(file_path, "rb") as f:
+    with Path(file_path).open("rb") as f:
         return tomllib.load(f)
 
 
