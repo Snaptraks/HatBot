@@ -14,3 +14,11 @@
 
 [tool.uv.sources]
     snapcogs = { git = "https://github.com/Snaptraks/SnapCogs.git", rev = "master" }
+
+[tool.ruff.lint]
+    ignore = [
+        "D",       # docstrings
+        "G004",    # logging-f-strings
+        "PLR2004", # magic-value-comparison
+        "S311",    # suspicious-non-cryptographic-random-usage
+    ]

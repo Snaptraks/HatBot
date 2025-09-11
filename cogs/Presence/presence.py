@@ -1,14 +1,15 @@
 from __future__ import annotations
 
 import random
+import tomllib
 from pathlib import Path
 from typing import TYPE_CHECKING
 
 import discord
-import tomllib
 from discord.ext import commands, tasks
 
 if TYPE_CHECKING:
+    from discord.ext.commands import Context
     from snapcogs.bot import Bot
 
 
@@ -16,12 +17,10 @@ PATH = Path(__file__).parent
 
 
 def load_activities() -> list[discord.CustomActivity]:
-    with open(PATH / "activities.toml", "rb") as f:
+    with (PATH / "activities.toml").open("rb") as f:
         data = tomllib.load(f)
 
-    activities = [discord.CustomActivity(name=name) for name in data["activities"]]
-
-    return activities
+    return [discord.CustomActivity(name=name) for name in data["activities"]]
 
 
 class Presence(commands.Cog):
@@ -34,7 +33,7 @@ class Presence(commands.Cog):
         self.change_presence.cancel()
         await self.bot.change_presence(activity=None)
 
-    async def cog_check(self, ctx) -> bool:
+    async def cog_check(self, ctx: Context) -> bool:
         return await self.bot.is_owner(ctx.author)
 
     @tasks.loop(hours=1)

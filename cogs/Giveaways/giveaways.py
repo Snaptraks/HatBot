@@ -130,7 +130,7 @@ class Giveaways(commands.Cog):
             LOGGER.info(
                 f"No winner for {giveaway.id}, marking game as still available."
             )
-            await self._edit_game_given(giveaway.game, False)
+            await self._edit_game(giveaway.game, given=False)
             embed = discord.Embed(
                 color=EMBED_COLOR,
                 description=(
@@ -181,19 +181,19 @@ class Giveaways(commands.Cog):
                     f"{winner.display_name} has won {giveaway.game.title} "
                     "on the Discord server! You should join for a chance to win too ;)"
                 )
-            except Exception:
+            except discord.DiscordException:
                 LOGGER.info("Could not send to mc-server-chatter")
 
         await self._end_giveaway(giveaway)
 
         # the following attributes should never be None
-        channel = self.bot.get_partial_messageable(giveaway.channel_id)  # type: ignore
-        message = channel.get_partial_message(giveaway.message_id)  # type: ignore
+        channel = self.bot.get_partial_messageable(giveaway.channel_id)  # type: ignore[not-none]
+        message = channel.get_partial_message(giveaway.message_id)  # type: ignore[not-none]
 
         try:
             await message.edit(embed=embed, view=None)
         except Exception:
-            LOGGER.exception("There was an unhandled exception", exc_info=True)
+            LOGGER.exception("There was an unhandled exception")
 
     @giveaway.command(name="add")
     @app_commands.describe(attachment="A JSON file with the games' info")
@@ -279,7 +279,7 @@ class Giveaways(commands.Cog):
 
         i = (page - 1) * per_page
         j = page * per_page
-        today = date.today()
+        today = discord.utils.utcnow().date()
         dec_31 = date(today.year, 12, 31)
         days_until_dec_31 = dec_31 - today
         content = (
@@ -344,9 +344,8 @@ class Giveaways(commands.Cog):
 
     async def _save_giveaway(self, giveaway: Giveaway) -> Giveaway:
         """Save the Giveaway information to the database."""
-        async with self.bot.db.session() as session:
-            async with session.begin():
-                session.add(giveaway)
+        async with self.bot.db.session() as session, session.begin():
+            session.add(giveaway)
 
         LOGGER.debug(f"Saved Giveaway {giveaway.id}.")
 
@@ -355,10 +354,9 @@ class Giveaways(commands.Cog):
     async def _end_giveaway(self, giveaway: Giveaway) -> None:
         """Mark the Giveaway as done."""
 
-        async with self.bot.db.session() as session:
-            async with session.begin():
-                giveaway.is_done = True
-                session.add(giveaway)
+        async with self.bot.db.session() as session, session.begin():
+            giveaway.is_done = True
+            session.add(giveaway)
 
         LOGGER.debug(f"Giveaway {giveaway.id} for {giveaway.game.title} ended.")
 
@@ -381,17 +379,16 @@ class Giveaways(commands.Cog):
         LOGGER.debug(f"Randomly selected Game {game}")
 
         if game is not None:
-            await self._edit_game_given(game, given=True)
+            await self._edit_game(game, given=True)
 
         return game
 
-    async def _edit_game_given(self, game: Game, given: bool) -> None:
+    async def _edit_game(self, game: Game, *, given: bool) -> None:
         """Mark the game as given (or not, if no one wins it)."""
 
-        async with self.bot.db.session() as session:
-            async with session.begin():
-                game.given = given
-                session.add(game)
+        async with self.bot.db.session() as session, session.begin():
+            game.given = given
+            session.add(game)
 
         LOGGER.debug(f"Edited Game {game.id} ({game.title}) as {given=}.")
 
@@ -417,33 +414,31 @@ class Giveaways(commands.Cog):
         # this is the least hackish way I could find that actually works.
         # this is a limitation qith SQLAlchemy where the "ON CONFLICT IGNORE"
         # is not well implemented in the ORM
-        async with self.bot.db.session() as session:
-            async with session.begin():
-                for game_data in games_data:
-                    await session.execute(
-                        insert(Game)
-                        .values(
-                            key=game_data["key"],
-                            title=game_data["title"],
-                            url=game_data["url"],
-                        )
-                        .on_conflict_do_nothing(index_elements=["key"])
+        async with self.bot.db.session() as session, session.begin():
+            for game_data in games_data:
+                await session.execute(
+                    insert(Game)
+                    .values(
+                        key=game_data["key"],
+                        title=game_data["title"],
+                        url=game_data["url"],
                     )
+                    .on_conflict_do_nothing(index_elements=["key"])
+                )
 
     async def _re_add_game_key(self, key: str) -> None:
         """Mark the game key as not given."""
 
-        async with self.bot.db.session() as session:
-            async with session.begin():
-                await session.execute(
-                    update(Game)
-                    .where(
-                        Game.key == key,
-                    )
-                    .values(
-                        given=False,
-                    )
+        async with self.bot.db.session() as session, session.begin():
+            await session.execute(
+                update(Game)
+                .where(
+                    Game.key == key,
                 )
+                .values(
+                    given=False,
+                )
+            )
         LOGGER.debug(f"Marked the key {key} as given=False.")
 
     async def _get_random_winner(self, giveaway: Giveaway) -> discord.User | None:
@@ -468,11 +463,9 @@ class Giveaways(commands.Cog):
         LOGGER.debug(f"Selecting a random winner from {len(entries)} entries.")
         winning_entry = random.choice(entries)
 
-        winner = self.bot.get_user(winning_entry.user_id) or await self.bot.fetch_user(
+        return self.bot.get_user(winning_entry.user_id) or await self.bot.fetch_user(
             winning_entry.user_id
         )
-
-        return winner
 
     async def _save_presistent_view(
         self, view: GiveawayView, message: discord.InteractionMessage
@@ -480,19 +473,17 @@ class Giveaways(commands.Cog):
         """Save the information needed to reconstruct later to the database."""
 
         LOGGER.debug(f"Saving View data for message {message.id}.")
-        assert message.guild is not None
 
-        async with self.bot.db.session() as session:
-            async with session.begin():
-                model_view = View(
-                    guild_id=message.guild.id,
-                    message_id=message.id,
-                    components=[
-                        Component(name=name, component_id=component_id)
-                        for name, component_id in view.components_id.items()
-                    ],
-                )
-                session.add(model_view)
+        async with self.bot.db.session() as session, session.begin():
+            model_view = View(
+                guild_id=message.guild.id,  # type: ignore[not-none]
+                message_id=message.id,
+                components=[
+                    Component(name=name, component_id=component_id)
+                    for name, component_id in view.components_id.items()
+                ],
+            )
+            session.add(model_view)
 
     async def _get_view(self, giveaway: Giveaway) -> GiveawayView:
         """Get the View associated with the Giveaway."""
@@ -508,12 +499,10 @@ class Giveaways(commands.Cog):
                 )
             )
 
-        assert view_model is not None
-
         return GiveawayView(
             self.bot,
             giveaway,
-            components_id={c.name: c.component_id for c in view_model.components},
+            components_id={c.name: c.component_id for c in view_model.components},  # type: ignore[not-none]
         )
 
     async def _add_entry(
@@ -522,14 +511,13 @@ class Giveaways(commands.Cog):
         """Add the entry to the DB."""
 
         LOGGER.debug(f"Saving entry for Giveaway {giveaway_id} for {user}.")
-        async with self.bot.db.session() as session:
-            async with session.begin():
-                session.add(
-                    Entry(
-                        user_id=user.id,
-                        giveaway_id=giveaway_id,
-                    )
+        async with self.bot.db.session() as session, session.begin():
+            session.add(
+                Entry(
+                    user_id=user.id,
+                    giveaway_id=giveaway_id,
                 )
+            )
 
     async def _count_entries(self, giveaway_id: int) -> int:
         """Count the number of entries for the current giveaway."""

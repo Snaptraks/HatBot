@@ -33,7 +33,6 @@ def main() -> None:
         "snapcogs.Fun",
         "snapcogs.Information",
     ]
-
     bot = Bot(
         description="Hatventures Community's helpful bot.",
         command_prefix=commands.when_mentioned_or("!"),

@@ -1,4 +1,4 @@
-from typing import Callable
+from collections.abc import Callable
 
 import discord
 from discord import app_commands
@@ -12,7 +12,7 @@ class NotOwner(app_commands.CheckFailure):
     """
 
 
-def has_role_or_above[T](item) -> Callable[[T], T]:
+def has_role_or_above[T](item: int | str) -> Callable[[T], T]:
     """A check decorator that checks if the member invoking the command
     has their top role equal or above the role specified via the name
     or ID specified.
@@ -26,7 +26,7 @@ def has_role_or_above[T](item) -> Callable[[T], T]:
 
     def predicate(ctx: commands.Context) -> bool:
         if ctx.guild is None:
-            raise commands.NoPrivateMessage()
+            raise commands.NoPrivateMessage
 
         if isinstance(item, int):
             role = discord.utils.get(ctx.guild.roles, id=item)
@@ -37,8 +37,10 @@ def has_role_or_above[T](item) -> Callable[[T], T]:
         if role is None:
             raise commands.MissingRole(item)
 
-        assert isinstance(ctx.author, discord.Member)
-        return role <= ctx.author.top_role
+        if isinstance(ctx.author, discord.Member):
+            return role <= ctx.author.top_role
+
+        return False
 
     return commands.check(predicate)
 
@@ -49,14 +51,13 @@ async def _is_owner(interaction: discord.Interaction) -> bool:
     if isinstance(interaction.client, commands.Bot):
         return await interaction.client.is_owner(interaction.user)
 
-    else:
-        app = await interaction.client.application_info()
+    app = await interaction.client.application_info()
 
-        if app.team:
-            ids = {m.id for m in app.team.members}
-            return interaction.user.id in ids
-        else:
-            return interaction.user.id == app.owner.id
+    if app.team:
+        ids = {m.id for m in app.team.members}
+        return interaction.user.id in ids
+
+    return interaction.user.id == app.owner.id
 
 
 def is_owner[T]() -> Callable[[T], T]:
@@ -66,7 +67,8 @@ def is_owner[T]() -> Callable[[T], T]:
 
     async def predicate(interaction: discord.Interaction) -> bool:
         if not await _is_owner(interaction):
-            raise NotOwner("You do not own this bot.")
+            msg = "You do not own this bot."
+            raise NotOwner(msg)
         return True
 
     return app_commands.check(predicate)

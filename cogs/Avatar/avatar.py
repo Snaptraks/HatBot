@@ -1,13 +1,13 @@
 from __future__ import annotations
 
 import logging
+import tomllib
 from dataclasses import dataclass
 from datetime import UTC, date, datetime, time
 from pathlib import Path
 from typing import TYPE_CHECKING
 
 import discord
-import tomllib
 from discord.ext import commands, tasks
 
 if TYPE_CHECKING:
@@ -34,7 +34,7 @@ class EventCache:
     def set_cache(cls, event: str) -> None:
         """Save the current event name to disk."""
 
-        with open(cls.path, "w") as f:
+        with cls.path.open("w") as f:
             f.write(event)
 
     @classmethod
@@ -42,7 +42,7 @@ class EventCache:
         """Read the last event name from disk if it exists, else return None."""
 
         if cls.path.exists():
-            with open(cls.path, "r") as f:
+            with cls.path.open() as f:
                 return f.read()
         else:
             return None
@@ -78,9 +78,8 @@ def parse_events(config_raw: bytes) -> list[Event]:
                 )
         event = Event(name=name, **data)
         if not event.fallback and None in (event.start_date, event.end_date):
-            raise RuntimeError(
-                "Non-fallback event needs start_date and end_date configured"
-            )
+            msg = "Non-fallback event needs start_date and end_date configured"
+            raise RuntimeError(msg)
         events.append(event)
 
     return events
@@ -107,7 +106,7 @@ class AvatarRepository:
             # we ignore type checking here because if the dates are None and fallback
             # is False, it will raise an error in parse_events anyway
             if not event.fallback and (
-                event.start_date <= lookup_date <= event.end_date  # type: ignore
+                event.start_date <= lookup_date <= event.end_date  # type: ignore[not-none]
             ):
                 LOGGER.debug(f"Found event {event.name}.")
                 return event
@@ -145,7 +144,8 @@ class AvatarRepository:
         LOGGER.debug(f"Fetching {download_url}")
         async with self.bot.http_session.get(download_url) as response:
             if response.status != 200:
-                raise RuntimeError(f"Failed to fetch file (status {response.status}).")
+                msg = f"Failed to fetch file (status {response.status})."
+                raise RuntimeError(msg)
 
             LOGGER.debug("Fetched successfully.")
             return await response.read()
@@ -188,7 +188,7 @@ class Avatar(commands.Cog):
         avatar = await self.repository.fetch_event_avatar(event)
         # we ignore type here since we will always try to edit the avatar
         # only if the bot is logged in (self.bot.user is not None)
-        await self.bot.user.edit(avatar=avatar)  # type: ignore
+        await self.bot.user.edit(avatar=avatar)  # type: ignore[not-none]
         LOGGER.debug(f"Successfully edited the bot's avatar for {event.name}.")
 
     @commands.command()
