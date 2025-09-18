@@ -12,6 +12,11 @@
     requires-python = ">=3.13"
     version = "2025.09.11"
 
+[dependency-groups]
+    dev = [
+        "rich>=14.1.0",
+    ]
+
 [tool.uv.sources]
     snapcogs = { git = "https://github.com/Snaptraks/SnapCogs.git", rev = "master" }
 
@@ -20,5 +25,7 @@
         "D",       # docstrings
         "G004",    # logging-f-strings
         "PLR2004", # magic-value-comparison
+        "S101",    # assert
         "S311",    # suspicious-non-cryptographic-random-usage
+        "SLF001",  # private-member-access
     ]

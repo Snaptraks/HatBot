@@ -54,7 +54,7 @@ class GiveawayView(ui.View):
         interaction: discord.Interaction,
     ) -> None:
         try:
-            await self.cog._add_entry(interaction.user, self.giveaway_id)  # noqa: SLF001
+            await self.cog._add_entry(interaction.user, self.giveaway_id)
         except IntegrityError:
             content = "You already entered this giveaway!"
         else:
@@ -64,7 +64,7 @@ class GiveawayView(ui.View):
             )
 
         embed = interaction.message.embeds[0]  # type: ignore[not-none]
-        entries = await self.cog._count_entries(self.giveaway_id)  # noqa: SLF001
+        entries = await self.cog._count_entries(self.giveaway_id)
         embed.set_footer(text=f"{entries} entries")
 
         await interaction.response.edit_message(embed=embed)
