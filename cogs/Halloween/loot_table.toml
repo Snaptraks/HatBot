@@ -1,0 +1,284 @@
+[rates]
+    common   = 75
+    rare     = 5
+    uncommon = 20
+
+[[loot]]
+    common   = "Space Trash"
+    image    = "https://archives.snaptraks.phd/Halloween/Alien.png"
+    name     = "Alien"
+    rare     = "Levitation Belt"
+    uncommon = "Silver Pants"
+
+[[loot]]
+    common   = "Assorted Bugs"
+    image    = "https://archives.snaptraks.phd/Halloween/Bat.png"
+    name     = "Bat"
+    rare     = "Tropical Flower"
+    uncommon = "Cool Geode"
+
+[[loot]]
+    common   = "Hairball"
+    image    = "https://archives.snaptraks.phd/Halloween/Cat.png"
+    name     = "Cat"
+    rare     = "Can Of Tuna"
+    uncommon = "Toy Mouse"
+
+[[loot]]
+    common   = "Smushed Pumpkin"
+    image    = "https://archives.snaptraks.phd/Halloween/Centaur.png"
+    name     = "Centaur"
+    rare     = "Huge Hoof"
+    uncommon = "Spooky Lantern"
+
+[[loot]]
+    common   = "Goat Horns"
+    image    = "https://archives.snaptraks.phd/Halloween/Chupacabra.png"
+    name     = "Chupacabra"
+    rare     = "Wool Sweater"
+    uncommon = "Cherry Slushie"
+
+[[loot]]
+    common   = "Balloon Animal"
+    image    = "https://archives.snaptraks.phd/Halloween/Clown.png"
+    name     = "Clown"
+    rare     = "Clown Egg"
+    uncommon = "Prank Flower"
+
+[[loot]]
+    common   = "Broken Twigs"
+    image    = "https://archives.snaptraks.phd/Halloween/Crow.png"
+    name     = "Crow"
+    rare     = "Shiny Bauble"
+    uncommon = "Cold Fries"
+
+[[loot]]
+    common   = "Brimstone"
+    image    = "https://archives.snaptraks.phd/Halloween/Demon.png"
+    name     = "Demon"
+    rare     = "Inferno Hot Sauce"
+    uncommon = "Pitchfork"
+
+[[loot]]
+    common   = "Pixie Dust"
+    image    = "https://archives.snaptraks.phd/Halloween/Fairy.png"
+    name     = "Fairy"
+    rare     = "Teeny Wand"
+    uncommon = "Tiny Boots"
+
+[[loot]]
+    common   = "Swamp Gas"
+    image    = "https://archives.snaptraks.phd/Halloween/Frog.png"
+    name     = "Frog"
+    rare     = "Miniature Crown"
+    uncommon = "Lily Pad"
+
+[[loot]]
+    common   = "Drop Of Ectoplasm"
+    image    = "https://archives.snaptraks.phd/Halloween/Ghost.png"
+    name     = "Ghost"
+    rare     = "Mostly Unfinished Business"
+    uncommon = "Rattlin' Chains"
+
+[[loot]]
+    common   = "Lucky Rock"
+    image    = "https://archives.snaptraks.phd/Halloween/Goblin.png"
+    name     = "Goblin"
+    rare     = "Half-Eaten Chocolate Bar"
+    uncommon = "Chewed Shoe"
+
+[[loot]]
+    common   = "Glitching Gizmo"
+    image    = "https://archives.snaptraks.phd/Halloween/Gremlin.png"
+    name     = "Gremlin"
+    rare     = "Twitchy Tablet"
+    uncommon = "Sparking Smartphone"
+
+[[loot]]
+    common   = "Eerie Acorn"
+    image    = "https://archives.snaptraks.phd/Halloween/Haunted-Tree.png"
+    name     = "Haunted Tree"
+    rare     = "Evil Syrup"
+    uncommon = "Poison Apple"
+
+[[loot]]
+    common   = "Creepy Candle"
+    image    = "https://archives.snaptraks.phd/Halloween/Jackolantern.png"
+    name     = "Jack O' Lantern"
+    rare     = "Pumpkin's Ghost"
+    uncommon = "Sinister Vine"
+
+[[loot]]
+    common   = "Bent Feather"
+    image    = "https://archives.snaptraks.phd/Halloween/Knight.png"
+    name     = "Knight"
+    rare     = "Enchanted Blade"
+    uncommon = "Shiny Helmet"
+
+[[loot]]
+    common   = "Wet Kelp"
+    image    = "https://archives.snaptraks.phd/Halloween/Man-shark.png"
+    name     = "Manshark"
+    rare     = "Postcard From Atlantis"
+    uncommon = "Snorkel And Fins"
+
+[[loot]]
+    common   = "Broken Lightbulb"
+    image    = "https://archives.snaptraks.phd/Halloween/Mothman.png"
+    name     = "Mothman"
+    rare     = "Blurry Photo"
+    uncommon = "Owl Feathers"
+
+[[loot]]
+    common   = "Box Of Bandages"
+    image    = "https://archives.snaptraks.phd/Halloween/Mummy.png"
+    name     = "Mummy"
+    rare     = "Book Of The Dead"
+    uncommon = "Papyrus Scroll"
+
+[[loot]]
+    common   = "Roasted Seeds"
+    image    = "https://archives.snaptraks.phd/Halloween/Nice-Pumpkins.png"
+    name     = "Nice Pumpkins"
+    rare     = "Perfect Pie"
+    uncommon = "Hearty Soup"
+
+[[loot]]
+    common   = "Bowl Of Orcslop"
+    image    = "https://archives.snaptraks.phd/Halloween/Orc.png"
+    name     = "Orc"
+    rare     = "Sweet Battleaxe"
+    uncommon = "Wicked Dagger"
+
+[[loot]]
+    common   = "Crusty Barnacle"
+    image    = "https://archives.snaptraks.phd/Halloween/Pirate.png"
+    name     = "Pirate"
+    rare     = "Gold'n Doubloon"
+    uncommon = "Fearsome Eyepatch"
+
+[[loot]]
+    common   = "Cough Drop"
+    image    = "https://archives.snaptraks.phd/Halloween/Plague-Doctor.png"
+    name     = "Plague Doctor"
+    rare     = "Gloomy Mask"
+    uncommon = "Fragrant Herbs"
+
+[[loot]]
+    common   = "Tiny Crumbs"
+    image    = "https://archives.snaptraks.phd/Halloween/Rat.png"
+    name     = "Rat"
+    rare     = "Magic Flute"
+    uncommon = "Fine Cheeseboard"
+
+[[loot]]
+    common   = "Chilly Chess Piece"
+    image    = "https://archives.snaptraks.phd/Halloween/Reaper.png"
+    name     = "Reaper"
+    rare     = "Shivering Scythe"
+    uncommon = "Souvenir Hourglass"
+
+[[loot]]
+    common   = "Confusing Captchas"
+    image    = "https://archives.snaptraks.phd/Halloween/Robot.png"
+    name     = "Robot "
+    rare     = "Techno Mixtape"
+    uncommon = "Positron Relay"
+
+[[loot]]
+    common   = "Short Straw"
+    image    = "https://archives.snaptraks.phd/Halloween/Scarecrow.png"
+    name     = "Scarecrow"
+    rare     = "Golden Corn"
+    uncommon = "Ragged Hat"
+
+[[loot]]
+    common   = "Empty Test Tube"
+    image    = "https://archives.snaptraks.phd/Halloween/Scientist.png"
+    name     = "Scientist"
+    rare     = "Shrink Ray"
+    uncommon = "Tesla Coil"
+
+[[loot]]
+    common   = "Glass Of Milk"
+    image    = "https://archives.snaptraks.phd/Halloween/Skeleton.png"
+    name     = "Skeleton"
+    rare     = "Grinning Skull"
+    uncommon = "Funny Bone"
+
+[[loot]]
+    common   = "Sour Jelly"
+    image    = "https://archives.snaptraks.phd/Halloween/Slime.png"
+    name     = "Slime"
+    rare     = "Prizewinning Preserves"
+    uncommon = "Gourmet Jam"
+
+[[loot]]
+    common   = "Baby Rattle"
+    image    = "https://archives.snaptraks.phd/Halloween/Snake.png"
+    name     = "Snake"
+    rare     = "Cool Eyepatch"
+    uncommon = "Feather Boa"
+
+[[loot]]
+    common   = "Cobwebs"
+    image    = "https://archives.snaptraks.phd/Halloween/Spider.png"
+    name     = "Spider"
+    rare     = "Spidersilk Robe"
+    uncommon = "Eight Tiny Shoes"
+
+[[loot]]
+    common   = "Spare Button"
+    image    = "https://archives.snaptraks.phd/Halloween/Teddy-Bear.png"
+    name     = "Teddy Bear"
+    rare     = "Picnic Basket"
+    uncommon = "Bag Of Rags"
+
+[[loot]]
+    common   = "Used Toothpick"
+    image    = "https://archives.snaptraks.phd/Halloween/Vampire.png"
+    name     = "Vampire"
+    rare     = "Blood-Red Brooch"
+    uncommon = "Cape Coupon"
+
+[[loot]]
+    common   = "Shedded Fur"
+    image    = "https://archives.snaptraks.phd/Halloween/Werewolf.png"
+    name     = "Werewolf"
+    rare     = "Moonstone"
+    uncommon = "Wolf Claw"
+
+[[loot]]
+    common   = "Eye Of Newt"
+    image    = "https://archives.snaptraks.phd/Halloween/Witch.png"
+    name     = "Witch"
+    rare     = "Witches' Brew"
+    uncommon = "Toe Of Frog"
+
+[[loot]]
+    common   = "Wumpling Soup"
+    image    = "https://archives.snaptraks.phd/Halloween/Wumpus-Wumpus.png"
+    name     = "Wumpus Wumpus"
+    rare     = "Wumpkin Spice Latte"
+    uncommon = "Wumpernickel Bread"
+
+[[loot]]
+    common   = "Fossil Footprint"
+    image    = "https://archives.snaptraks.phd/Halloween/Wumpus-Dino.png"
+    name     = "Wumpus Dino"
+    rare     = "Meteorite Chunk"
+    uncommon = "Corprolite"
+
+[[loot]]
+    common   = "Gnawed Bones"
+    image    = "https://archives.snaptraks.phd/Halloween/Wumpus-Yeti.png"
+    name     = "Yeti"
+    rare     = "Mountaineer's Hat"
+    uncommon = "Snowball"
+
+[[loot]]
+    common   = "Peabrain"
+    image    = "https://archives.snaptraks.phd/Halloween/Zombie.png"
+    name     = "Zombie"
+    rare     = "Galaxy Brain"
+    uncommon = "Basic Brain"
