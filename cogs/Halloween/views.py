@@ -149,3 +149,8 @@ class TrickOrTreaterView(ui.LayoutView):
     @property
     def cog(self) -> Halloween:
         return self.bot.get_cog("Halloween")  # type: ignore[correct-type]
+
+    async def on_timeout(self) -> None:
+        # TODO: edit the view to remove buttons
+        LOGGER.debug(f"Deleting message {self.message.id}")
+        await self.message.delete()
