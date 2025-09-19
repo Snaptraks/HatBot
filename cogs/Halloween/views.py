@@ -136,20 +136,17 @@ class TrickOrTreaterView(ui.LayoutView):
             f"## They want one {requested_treat}, I hope you have some!"
         )
         self.gallery = ui.MediaGallery(MediaGalleryItem(trick_or_treater["image"]))
+        self.bottom = ui.Section(
+            ui.TextDisplay(f"Select a treat to give to the {trick_or_treater['name']}"),
+            accessory=TreatButton(),
+        )
 
         container = ui.Container(
             self.title,
             self.description,
             self.gallery,
+            self.bottom,
             accent_color=Color.orange(),
-        )
-        container.add_item(
-            ui.Section(
-                ui.TextDisplay(
-                    f"Select a treat to give to the {trick_or_treater['name']}"
-                ),
-                accessory=TreatButton(),
-            )
         )
         self.add_item(container)
 
@@ -158,6 +155,12 @@ class TrickOrTreaterView(ui.LayoutView):
         return self.bot.get_cog("Halloween")  # type: ignore[correct-type]
 
     async def on_timeout(self) -> None:
-        # TODO: edit the view to remove buttons
-        LOGGER.debug(f"Deleting message {self.message.id}")
-        await self.message.delete()
+        LOGGER.debug(f"View on {self.message} has timed out, editing the message.")
+        self.title.content = f"# {self.trick_or_treater['name']} is gone!"
+        self.description.content = (
+            f"## They thank everyone for the {self.requested_treat}s!"
+        )
+        self.bottom.children[0].content = "See you for the next trick-or-treater!"  # type: ignore[reportAttributeAccessIssue]
+        self.bottom.accessory.disabled = True  # type: ignore[reportAttributeAccessIssue]
+
+        await self.message.edit(view=self)
