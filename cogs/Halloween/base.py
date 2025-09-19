@@ -26,5 +26,8 @@ class BaseTreat:
     name: str
     emoji: str
 
+    def __str__(self) -> str:
+        return f"{self.emoji} {self.name}"
+
 
 TRICK_OR_TREAT_CHANNEL = 588171779957063680  # Bot Testing Server

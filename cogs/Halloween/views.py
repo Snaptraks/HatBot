@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import logging
+import random
 from typing import TYPE_CHECKING
 
 from discord import (
@@ -8,6 +10,7 @@ from discord import (
     Interaction,
     MediaGalleryItem,
     Member,
+    Message,
     SelectOption,
     ui,
 )
@@ -16,8 +19,10 @@ from rich import print
 if TYPE_CHECKING:
     from snapcogs.bot import Bot
 
-    from .base import Inventory, TrickOrTreater
+    from .base import BaseTreat, Inventory, TrickOrTreater
     from .halloween import Halloween
+
+LOGGER = logging.getLogger(__name__)
 
 
 class TreatButton(ui.Button["TrickOrTreaterView"]):
@@ -90,13 +95,30 @@ class TreatModal(ui.Modal, title="Select a treat!"):
             interaction.message,
         )
 
-        await interaction.response.send_message(f"happy halloween `{selected_treat}`")
+        if treat == self.view.requested_treat:
+            LOGGER.debug(f"Giving requested treat to {interaction.message}.")
+            content = f"Thank you for the {treat}!"
+        else:
+            LOGGER.debug(f"Giving NOT requested treat to {interaction.message}.")
+            if random.random() < 0.5:
+                reaction = "It's even better!"
+            else:
+                reaction = "And it tastes awful! Ew!"
+            content = f"This is not what I asked for... {reaction}"
+
+        await interaction.response.send_message(content, ephemeral=True)
 
 
 class TrickOrTreaterView(ui.LayoutView):
-    def __init__(self, bot: Bot, trick_or_treater: TrickOrTreater) -> None:
+    message: Message
+
+    def __init__(
+        self, bot: Bot, trick_or_treater: TrickOrTreater, requested_treat: BaseTreat
+    ) -> None:
         super().__init__()
         self.bot = bot
+        self.trick_or_treater = trick_or_treater
+        self.requested_treat = requested_treat
 
         determinant = "A" if trick_or_treater["name"][0] not in "AEIOU" else "An"
 
@@ -104,7 +126,7 @@ class TrickOrTreaterView(ui.LayoutView):
             f"# {determinant} {trick_or_treater['name']} has stopped by!"
         )
         self.description = ui.TextDisplay(
-            "## They want one :emoji:, I hope you have some!"
+            f"## They want one {requested_treat}, I hope you have some!"
         )
         self.gallery = ui.MediaGallery(MediaGalleryItem(trick_or_treater["image"]))
 

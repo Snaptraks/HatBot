@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import logging
 import random
 import tomllib
 from pathlib import Path
@@ -22,6 +23,7 @@ if TYPE_CHECKING:
 
 
 PATH = Path(__file__).parent
+LOGGER = logging.getLogger(__name__)
 
 
 def random_loot(loot_rates: LootRates) -> str:
@@ -59,11 +61,19 @@ class Halloween(commands.Cog):
     @tasks.loop(count=1)
     async def send_trick_or_treater(self) -> None:
         trick_or_treater = random.choice(self.trick_or_treaters)
+        requested_treat = random.choice(self.treats)
         channel = self.bot.get_channel(TRICK_OR_TREAT_CHANNEL)
 
         assert isinstance(channel, discord.TextChannel)
 
-        await channel.send(view=TrickOrTreaterView(self.bot, trick_or_treater))
+        view = TrickOrTreaterView(
+            self.bot,
+            trick_or_treater,
+            requested_treat,
+        )
+
+        view.message = await channel.send(view=view)
+        LOGGER.debug(f"Sent {trick_or_treater['name']} in {channel}.")
 
     @send_trick_or_treater.before_loop
     async def send_trick_or_treater_before(self) -> None:
