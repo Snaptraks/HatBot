@@ -1,9 +1,12 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from dataclasses import dataclass
+from typing import TYPE_CHECKING, TypedDict
 
 if TYPE_CHECKING:
-    from typing import TypedDict
+    from .models import TreatCount
+
+    type Inventory = list[TreatCount]
 
     class LootRates(TypedDict):
         common: int
@@ -16,6 +19,12 @@ if TYPE_CHECKING:
         common: str
         uncommon: str
         rare: str
+
+
+@dataclass(frozen=True)
+class BaseTreat:
+    name: str
+    emoji: str
 
 
 TRICK_OR_TREAT_CHANNEL = 588171779957063680  # Bot Testing Server

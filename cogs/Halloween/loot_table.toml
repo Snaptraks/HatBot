@@ -1,284 +1,320 @@
-[rates]
+[rarity]
     common   = 75
     rare     = 5
     uncommon = 20
 
-[[loot]]
+[[trick_or_treaters]]
     common   = "Space Trash"
     image    = "https://archives.snaptraks.phd/Halloween/Alien.png"
     name     = "Alien"
     rare     = "Levitation Belt"
     uncommon = "Silver Pants"
 
-[[loot]]
+[[trick_or_treaters]]
     common   = "Assorted Bugs"
     image    = "https://archives.snaptraks.phd/Halloween/Bat.png"
     name     = "Bat"
     rare     = "Tropical Flower"
     uncommon = "Cool Geode"
 
-[[loot]]
+[[trick_or_treaters]]
     common   = "Hairball"
     image    = "https://archives.snaptraks.phd/Halloween/Cat.png"
     name     = "Cat"
     rare     = "Can Of Tuna"
     uncommon = "Toy Mouse"
 
-[[loot]]
+[[trick_or_treaters]]
     common   = "Smushed Pumpkin"
     image    = "https://archives.snaptraks.phd/Halloween/Centaur.png"
     name     = "Centaur"
     rare     = "Huge Hoof"
     uncommon = "Spooky Lantern"
 
-[[loot]]
+[[trick_or_treaters]]
     common   = "Goat Horns"
     image    = "https://archives.snaptraks.phd/Halloween/Chupacabra.png"
     name     = "Chupacabra"
     rare     = "Wool Sweater"
     uncommon = "Cherry Slushie"
 
-[[loot]]
+[[trick_or_treaters]]
     common   = "Balloon Animal"
     image    = "https://archives.snaptraks.phd/Halloween/Clown.png"
     name     = "Clown"
     rare     = "Clown Egg"
     uncommon = "Prank Flower"
 
-[[loot]]
+[[trick_or_treaters]]
     common   = "Broken Twigs"
     image    = "https://archives.snaptraks.phd/Halloween/Crow.png"
     name     = "Crow"
     rare     = "Shiny Bauble"
     uncommon = "Cold Fries"
 
-[[loot]]
+[[trick_or_treaters]]
     common   = "Brimstone"
     image    = "https://archives.snaptraks.phd/Halloween/Demon.png"
     name     = "Demon"
     rare     = "Inferno Hot Sauce"
     uncommon = "Pitchfork"
 
-[[loot]]
+[[trick_or_treaters]]
     common   = "Pixie Dust"
     image    = "https://archives.snaptraks.phd/Halloween/Fairy.png"
     name     = "Fairy"
     rare     = "Teeny Wand"
     uncommon = "Tiny Boots"
 
-[[loot]]
+[[trick_or_treaters]]
     common   = "Swamp Gas"
     image    = "https://archives.snaptraks.phd/Halloween/Frog.png"
     name     = "Frog"
     rare     = "Miniature Crown"
     uncommon = "Lily Pad"
 
-[[loot]]
+[[trick_or_treaters]]
     common   = "Drop Of Ectoplasm"
     image    = "https://archives.snaptraks.phd/Halloween/Ghost.png"
     name     = "Ghost"
     rare     = "Mostly Unfinished Business"
     uncommon = "Rattlin' Chains"
 
-[[loot]]
+[[trick_or_treaters]]
     common   = "Lucky Rock"
     image    = "https://archives.snaptraks.phd/Halloween/Goblin.png"
     name     = "Goblin"
     rare     = "Half-Eaten Chocolate Bar"
     uncommon = "Chewed Shoe"
 
-[[loot]]
+[[trick_or_treaters]]
     common   = "Glitching Gizmo"
     image    = "https://archives.snaptraks.phd/Halloween/Gremlin.png"
     name     = "Gremlin"
     rare     = "Twitchy Tablet"
     uncommon = "Sparking Smartphone"
 
-[[loot]]
+[[trick_or_treaters]]
     common   = "Eerie Acorn"
     image    = "https://archives.snaptraks.phd/Halloween/Haunted-Tree.png"
     name     = "Haunted Tree"
     rare     = "Evil Syrup"
     uncommon = "Poison Apple"
 
-[[loot]]
+[[trick_or_treaters]]
     common   = "Creepy Candle"
     image    = "https://archives.snaptraks.phd/Halloween/Jackolantern.png"
     name     = "Jack O' Lantern"
     rare     = "Pumpkin's Ghost"
     uncommon = "Sinister Vine"
 
-[[loot]]
+[[trick_or_treaters]]
     common   = "Bent Feather"
     image    = "https://archives.snaptraks.phd/Halloween/Knight.png"
     name     = "Knight"
     rare     = "Enchanted Blade"
     uncommon = "Shiny Helmet"
 
-[[loot]]
+[[trick_or_treaters]]
     common   = "Wet Kelp"
     image    = "https://archives.snaptraks.phd/Halloween/Man-shark.png"
     name     = "Manshark"
     rare     = "Postcard From Atlantis"
     uncommon = "Snorkel And Fins"
 
-[[loot]]
+[[trick_or_treaters]]
     common   = "Broken Lightbulb"
     image    = "https://archives.snaptraks.phd/Halloween/Mothman.png"
     name     = "Mothman"
     rare     = "Blurry Photo"
     uncommon = "Owl Feathers"
 
-[[loot]]
+[[trick_or_treaters]]
     common   = "Box Of Bandages"
     image    = "https://archives.snaptraks.phd/Halloween/Mummy.png"
     name     = "Mummy"
     rare     = "Book Of The Dead"
     uncommon = "Papyrus Scroll"
 
-[[loot]]
+[[trick_or_treaters]]
     common   = "Roasted Seeds"
     image    = "https://archives.snaptraks.phd/Halloween/Nice-Pumpkins.png"
     name     = "Nice Pumpkins"
     rare     = "Perfect Pie"
     uncommon = "Hearty Soup"
 
-[[loot]]
+[[trick_or_treaters]]
     common   = "Bowl Of Orcslop"
     image    = "https://archives.snaptraks.phd/Halloween/Orc.png"
     name     = "Orc"
     rare     = "Sweet Battleaxe"
     uncommon = "Wicked Dagger"
 
-[[loot]]
+[[trick_or_treaters]]
     common   = "Crusty Barnacle"
     image    = "https://archives.snaptraks.phd/Halloween/Pirate.png"
     name     = "Pirate"
     rare     = "Gold'n Doubloon"
     uncommon = "Fearsome Eyepatch"
 
-[[loot]]
+[[trick_or_treaters]]
     common   = "Cough Drop"
     image    = "https://archives.snaptraks.phd/Halloween/Plague-Doctor.png"
     name     = "Plague Doctor"
     rare     = "Gloomy Mask"
     uncommon = "Fragrant Herbs"
 
-[[loot]]
+[[trick_or_treaters]]
     common   = "Tiny Crumbs"
     image    = "https://archives.snaptraks.phd/Halloween/Rat.png"
     name     = "Rat"
     rare     = "Magic Flute"
     uncommon = "Fine Cheeseboard"
 
-[[loot]]
+[[trick_or_treaters]]
     common   = "Chilly Chess Piece"
     image    = "https://archives.snaptraks.phd/Halloween/Reaper.png"
     name     = "Reaper"
     rare     = "Shivering Scythe"
     uncommon = "Souvenir Hourglass"
 
-[[loot]]
+[[trick_or_treaters]]
     common   = "Confusing Captchas"
     image    = "https://archives.snaptraks.phd/Halloween/Robot.png"
     name     = "Robot "
     rare     = "Techno Mixtape"
     uncommon = "Positron Relay"
 
-[[loot]]
+[[trick_or_treaters]]
     common   = "Short Straw"
     image    = "https://archives.snaptraks.phd/Halloween/Scarecrow.png"
     name     = "Scarecrow"
     rare     = "Golden Corn"
     uncommon = "Ragged Hat"
 
-[[loot]]
+[[trick_or_treaters]]
     common   = "Empty Test Tube"
     image    = "https://archives.snaptraks.phd/Halloween/Scientist.png"
     name     = "Scientist"
     rare     = "Shrink Ray"
     uncommon = "Tesla Coil"
 
-[[loot]]
+[[trick_or_treaters]]
     common   = "Glass Of Milk"
     image    = "https://archives.snaptraks.phd/Halloween/Skeleton.png"
     name     = "Skeleton"
     rare     = "Grinning Skull"
     uncommon = "Funny Bone"
 
-[[loot]]
+[[trick_or_treaters]]
     common   = "Sour Jelly"
     image    = "https://archives.snaptraks.phd/Halloween/Slime.png"
     name     = "Slime"
     rare     = "Prizewinning Preserves"
     uncommon = "Gourmet Jam"
 
-[[loot]]
+[[trick_or_treaters]]
     common   = "Baby Rattle"
     image    = "https://archives.snaptraks.phd/Halloween/Snake.png"
     name     = "Snake"
     rare     = "Cool Eyepatch"
     uncommon = "Feather Boa"
 
-[[loot]]
+[[trick_or_treaters]]
     common   = "Cobwebs"
     image    = "https://archives.snaptraks.phd/Halloween/Spider.png"
     name     = "Spider"
     rare     = "Spidersilk Robe"
     uncommon = "Eight Tiny Shoes"
 
-[[loot]]
+[[trick_or_treaters]]
     common   = "Spare Button"
     image    = "https://archives.snaptraks.phd/Halloween/Teddy-Bear.png"
     name     = "Teddy Bear"
     rare     = "Picnic Basket"
     uncommon = "Bag Of Rags"
 
-[[loot]]
+[[trick_or_treaters]]
     common   = "Used Toothpick"
     image    = "https://archives.snaptraks.phd/Halloween/Vampire.png"
     name     = "Vampire"
     rare     = "Blood-Red Brooch"
     uncommon = "Cape Coupon"
 
-[[loot]]
+[[trick_or_treaters]]
     common   = "Shedded Fur"
     image    = "https://archives.snaptraks.phd/Halloween/Werewolf.png"
     name     = "Werewolf"
     rare     = "Moonstone"
     uncommon = "Wolf Claw"
 
-[[loot]]
+[[trick_or_treaters]]
     common   = "Eye Of Newt"
     image    = "https://archives.snaptraks.phd/Halloween/Witch.png"
     name     = "Witch"
     rare     = "Witches' Brew"
     uncommon = "Toe Of Frog"
 
-[[loot]]
+[[trick_or_treaters]]
     common   = "Wumpling Soup"
     image    = "https://archives.snaptraks.phd/Halloween/Wumpus-Wumpus.png"
     name     = "Wumpus Wumpus"
     rare     = "Wumpkin Spice Latte"
     uncommon = "Wumpernickel Bread"
 
-[[loot]]
+[[trick_or_treaters]]
     common   = "Fossil Footprint"
     image    = "https://archives.snaptraks.phd/Halloween/Wumpus-Dino.png"
     name     = "Wumpus Dino"
     rare     = "Meteorite Chunk"
     uncommon = "Corprolite"
 
-[[loot]]
+[[trick_or_treaters]]
     common   = "Gnawed Bones"
     image    = "https://archives.snaptraks.phd/Halloween/Wumpus-Yeti.png"
     name     = "Yeti"
     rare     = "Mountaineer's Hat"
     uncommon = "Snowball"
 
-[[loot]]
+[[trick_or_treaters]]
     common   = "Peabrain"
     image    = "https://archives.snaptraks.phd/Halloween/Zombie.png"
     name     = "Zombie"
     rare     = "Galaxy Brain"
     uncommon = "Basic Brain"
+
+[[treats]]
+    emoji = "🍬"
+    name  = "Candy"
+
+[[treats]]
+    emoji = "🍫"
+    name  = "Chocolate"
+
+[[treats]]
+    emoji = "🍪"
+    name  = "Cookie"
+
+[[treats]]
+    emoji = "🧁"
+    name  = "Cupcake"
+
+[[treats]]
+    emoji = "🍩"
+    name  = "Doughnut"
+
+[[treats]]
+    emoji = "🍦"
+    name  = "Ice Cream"
+
+[[treats]]
+    emoji = "🍭"
+    name  = "Lollipop"
+
+[[treats]]
+    emoji = "🍿"
+    name  = "Popcorn"
+
+[[treats]]
+    emoji = "🥨"
+    name  = "Pretzel"

@@ -1,5 +1,5 @@
 from snapcogs.database import Base
-from sqlalchemy.orm import Mapped
+from sqlalchemy.orm import Mapped, mapped_column
 
 
 class HalloweenBase(Base):
@@ -9,6 +9,12 @@ class HalloweenBase(Base):
     user_id: Mapped[int]
 
 
+class TrickOrTreaterLog(HalloweenBase):
+    __tablename__ = "halloween_trick_or_treater_log"
+
+    message_id: Mapped[int]
+
+
 class Loot(HalloweenBase):
     __tablename__ = "halloween_loot"
 
@@ -16,11 +22,12 @@ class Loot(HalloweenBase):
     rarity: Mapped[str]
 
 
-class Treat(HalloweenBase):
-    __tablename__ = "halloween_treat"
+class TreatCount(HalloweenBase):
+    __tablename__ = "halloween_treat_count"
 
     name: Mapped[str]
     emoji: Mapped[str]
+    amount: Mapped[int] = mapped_column(default=0)
 
 
 class OriginalName(HalloweenBase):

@@ -16,44 +16,81 @@ from rich import print
 if TYPE_CHECKING:
     from snapcogs.bot import Bot
 
-    from .base import TrickOrTreater
+    from .base import Inventory, TrickOrTreater
     from .halloween import Halloween
-    from .models import Treat
 
 
 class TreatButton(ui.Button["TrickOrTreaterView"]):
     def __init__(self) -> None:
-        super().__init__(
-            label="Give a treat!", emoji="\U0001f36c", style=ButtonStyle.green
-        )
+        super().__init__(label="Give a treat!", emoji="🎃", style=ButtonStyle.green)
         self.view: TrickOrTreaterView
 
     async def callback(self, interaction: Interaction[Bot]) -> None:
         assert isinstance(interaction.user, Member)
         user_inventory = await self.view.cog._get_user_inventory(interaction.user)
-        await interaction.response.send_modal(TreatModal(user_inventory))
+
+        if len(user_inventory) > 0:
+            await interaction.response.send_modal(TreatModal(self.view, user_inventory))
+        else:
+            await interaction.response.send_message(
+                "You do not have any treats to give...\n"
+                "You can gain some by talking with the community! "
+                "Happy Halloween! 🎃",
+                ephemeral=True,
+            )
+
+    async def interaction_check(self, interaction: Interaction[Bot]) -> bool:
+        assert isinstance(interaction.user, Member)
+        assert interaction.message is not None
+
+        check = await self.view.cog._check_member_able_to_give(
+            interaction.user,
+            interaction.message,
+        )
+        if not check:
+            await interaction.response.send_message(
+                "You already gave a treat to this trick-or-treater, thank you though!",
+                ephemeral=True,
+            )
+        return check
 
 
 class TreatModal(ui.Modal, title="Select a treat!"):
-    def __init__(self, user_inventory: list[Treat]) -> None:
+    def __init__(self, view: TrickOrTreaterView, user_inventory: Inventory) -> None:
         super().__init__()
-        print(user_inventory)
+        self.view = view
 
         self.treat_select: ui.Label[TrickOrTreaterView] = ui.Label(
             text="Select a treat!",
-            description="yum",
+            description="This will give one (1) treat to the trick-or-treater.",
             component=ui.Select(
                 options=[
-                    SelectOption(label=item.name, emoji=item.emoji)
-                    for item in user_inventory
+                    SelectOption(
+                        label=f"{treat_count.name}",
+                        value=treat_count.name,
+                        description=f"You have {treat_count.amount}",
+                        emoji=treat_count.emoji,
+                    )
+                    for treat_count in user_inventory
                 ],
             ),
         )
         self.add_item(self.treat_select)
 
     async def on_submit(self, interaction: Interaction[Bot]) -> None:
-        treat: SelectOption = self.treat_select.component.values[0]  # type: ignore[reportAttributeAccessIssue]
-        await interaction.response.send_message(f"happy halloween {treat}")
+        assert isinstance(interaction.user, Member)
+        assert interaction.message is not None
+
+        selected_treat: str = self.treat_select.component.values[0]  # type: ignore[reportAttributeAccessIssue]
+        treat = self.view.cog._get_treat_by_name(selected_treat)
+
+        await self.view.cog._remove_treat_from_inventory(treat, interaction.user)
+        await self.view.cog._mark_trick_or_treater_by_member(
+            interaction.user,
+            interaction.message,
+        )
+
+        await interaction.response.send_message(f"happy halloween `{selected_treat}`")
 
 
 class TrickOrTreaterView(ui.LayoutView):
