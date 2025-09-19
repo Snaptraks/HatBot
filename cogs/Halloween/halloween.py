@@ -74,7 +74,7 @@ class Halloween(commands.Cog):
         )
 
         view.message = await channel.send(view=view)
-        LOGGER.debug(f"Sent {trick_or_treater['name']} in {channel}.")
+        LOGGER.info(f"Sent {trick_or_treater['name']} in {channel}.")
 
     @send_trick_or_treater.before_loop
     async def send_trick_or_treater_before(self) -> None:
@@ -161,7 +161,7 @@ class Halloween(commands.Cog):
     async def _check_member_able_to_give(
         self, member: Member, message: Message
     ) -> bool:
-        LOGGER.debug(f"Checking allowed to give treat to {message} by {member}.")
+        LOGGER.debug(f"Checking if allowed to give treat to {message} by {member}.")
         async with self.bot.db.session() as session:
             check = await session.scalar(
                 select(TrickOrTreaterLog).filter_by(

@@ -61,7 +61,6 @@ class TreatButton(ui.Button["TrickOrTreaterView"]):
                 "You already gave a treat to this trick-or-treater, thank you though!",
                 ephemeral=True,
             )
-        LOGGER.debug(f"Allowing {interaction.user} to give to {interaction.message}.")
         return check
 
 
@@ -94,6 +93,10 @@ class TreatModal(ui.Modal, title="Select a treat!"):
         selected_treat: str = self.treat_select.component.values[0]  # type: ignore[reportAttributeAccessIssue]
         treat = self.view.cog._get_treat_by_name(selected_treat)
 
+        LOGGER.info(
+            f"{interaction.user.display_name} giving 1 "
+            f"{treat} to {self.view.message.jump_url}"
+        )
         LOGGER.debug(f"{interaction.user} giving 1 {treat} to {self.view.message}.")
 
         await self.view.cog._remove_treat_from_inventory(treat, interaction.user)
@@ -122,7 +125,7 @@ class TrickOrTreaterView(ui.LayoutView):
     def __init__(
         self, bot: Bot, trick_or_treater: TrickOrTreater, requested_treat: BaseTreat
     ) -> None:
-        super().__init__()
+        super().__init__(timeout=10)
         self.bot = bot
         self.trick_or_treater = trick_or_treater
         self.requested_treat = requested_treat
