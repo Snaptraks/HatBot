@@ -48,6 +48,7 @@ class Halloween(commands.Cog):
 
     @tasks.loop(count=1)
     async def populate_database(self) -> None:
+        LOGGER.debug("Populating database with test data.")
         member = discord.Object(id=337266376941240320)
         member.guild = discord.Object(id=588171715960635393)  # pyright: ignore[reportAttributeAccessIssue]
         async with self.bot.db.session() as session, session.begin():
@@ -88,6 +89,7 @@ class Halloween(commands.Cog):
         raise ValueError(msg)
 
     async def _add_treat_to_inventory(self, treat: BaseTreat, member: Member) -> None:
+        LOGGER.debug(f"Added 1 {treat} to {member}.")
         async with self.bot.db.session() as session, session.begin():
             # check if the member has the treat already
             treat_count = await session.scalar(
@@ -117,6 +119,7 @@ class Halloween(commands.Cog):
     async def _remove_treat_from_inventory(
         self, treat: BaseTreat, member: Member
     ) -> None:
+        LOGGER.debug(f"Removed 1 {treat} from {member}.")
         async with self.bot.db.session() as session, session.begin():
             treat_count = await session.scalar(
                 select(TreatCount).filter_by(
@@ -131,6 +134,7 @@ class Halloween(commands.Cog):
             await session.commit()
 
     async def _get_user_inventory(self, member: Member) -> Inventory:
+        LOGGER.debug(f"Getting inventory of {member}.")
         async with self.bot.db.session() as session:
             inventory = await session.scalars(
                 select(TreatCount)
@@ -144,6 +148,7 @@ class Halloween(commands.Cog):
     async def _mark_trick_or_treater_by_member(
         self, member: Member, message: Message
     ) -> None:
+        LOGGER.debug(f"Marking {message} responded by {member}.")
         async with self.bot.db.session() as session, session.begin():
             log = TrickOrTreaterLog(
                 guild_id=member.guild.id,
@@ -156,6 +161,7 @@ class Halloween(commands.Cog):
     async def _check_member_able_to_give(
         self, member: Member, message: Message
     ) -> bool:
+        LOGGER.debug(f"Checking allowed to give treat to {message} by {member}.")
         async with self.bot.db.session() as session:
             check = await session.scalar(
                 select(TrickOrTreaterLog).filter_by(

@@ -37,6 +37,7 @@ class TreatButton(ui.Button["TrickOrTreaterView"]):
         if len(user_inventory) > 0:
             await interaction.response.send_modal(TreatModal(self.view, user_inventory))
         else:
+            LOGGER.debug(f"{interaction.user} inventory is empty.")
             await interaction.response.send_message(
                 "You do not have any treats to give...\n"
                 "You can gain some by talking with the community! "
@@ -53,10 +54,14 @@ class TreatButton(ui.Button["TrickOrTreaterView"]):
             interaction.message,
         )
         if not check:
+            LOGGER.debug(
+                f"{interaction.user} not allowed to give to {interaction.message}."
+            )
             await interaction.response.send_message(
                 "You already gave a treat to this trick-or-treater, thank you though!",
                 ephemeral=True,
             )
+        LOGGER.debug(f"Allowing {interaction.user} to give to {interaction.message}.")
         return check
 
 
@@ -88,6 +93,8 @@ class TreatModal(ui.Modal, title="Select a treat!"):
 
         selected_treat: str = self.treat_select.component.values[0]  # type: ignore[reportAttributeAccessIssue]
         treat = self.view.cog._get_treat_by_name(selected_treat)
+
+        LOGGER.debug(f"{interaction.user} giving 1 {treat} to {self.view.message}.")
 
         await self.view.cog._remove_treat_from_inventory(treat, interaction.user)
         await self.view.cog._mark_trick_or_treater_by_member(
