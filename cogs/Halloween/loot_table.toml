@@ -181,7 +181,7 @@
 [[trick_or_treaters]]
     common   = "Confusing Captchas"
     image    = "https://archives.snaptraks.phd/Halloween/Robot.png"
-    name     = "Robot "
+    name     = "Robot"
     rare     = "Techno Mixtape"
     uncommon = "Positron Relay"
 
@@ -285,7 +285,7 @@
 
 [[treats]]
     emoji = "🍬"
-    name  = "Candy"
+    name  = "Sweet"
 
 [[treats]]
     emoji = "🍫"
