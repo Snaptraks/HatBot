@@ -59,6 +59,7 @@ class Halloween(commands.Cog):
         with (PATH / "loot_table.toml").open("rb") as f:
             data = tomllib.load(f)
             self.rarity: Rarity = data["rarity"]
+            self.blessed_rarity: Rarity = data["blessed_rarity"]
             self.trick_or_treaters: list[TrickOrTreater] = data["trick_or_treaters"]
             self.treats: list[BaseTreat] = [
                 BaseTreat(**treat) for treat in data["treats"]
@@ -145,6 +146,9 @@ class Halloween(commands.Cog):
             ephemeral=True,
         )
 
+    def _get_random_treat(self) -> BaseTreat:
+        return random.choice(self.treats)
+
     def _get_treat_by_name(self, treat_name: str) -> BaseTreat:
         for treat in self.treats:
             if treat.name == treat_name:
@@ -153,8 +157,11 @@ class Halloween(commands.Cog):
         msg = f"Unknown treat {treat_name}"
         raise ValueError(msg)
 
-    def _get_random_loot(self, trick_or_treater: TrickOrTreater) -> BaseLoot:
-        rarity = random_rarity(self.rarity)
+    def _get_random_loot(
+        self, trick_or_treater: TrickOrTreater, *, blessed: bool = False
+    ) -> BaseLoot:
+        rates = self.rarity if not blessed else self.blessed_rarity
+        rarity = random_rarity(rates)
         name = trick_or_treater[rarity]
 
         return {"name": name, "rarity": rarity}
