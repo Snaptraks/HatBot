@@ -5,15 +5,21 @@ import logging
 import random
 import tomllib
 from pathlib import Path
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Literal
 
 from discord import Color, Embed, Interaction, Member, Object, TextChannel, app_commands
 from discord.ext import commands, tasks
 from rich import print
 from sqlalchemy import select
+from sqlalchemy.exc import IntegrityError
 from tabulate import tabulate
 
-from .base import TRICK_OR_TREAT_CHANNEL, BaseTreat
+from .base import (
+    RARITY,
+    TRICK_OR_TREAT_CHANNEL,
+    BaseTreat,
+    DuplicateLootError,
+)
 from .models import Loot, TreatCount, TrickOrTreaterLog
 from .views import TrickOrTreaterView
 
@@ -23,22 +29,20 @@ if TYPE_CHECKING:
     from discord import Message
     from snapcogs.bot import Bot
 
-    from .base import Inventory, Rarity, TrickOrTreater
+    from .base import BaseLoot, Inventory, Rarity, TrickOrTreater
 
 
 PATH = Path(__file__).parent
 LOGGER = logging.getLogger(__name__)
 
 
-def random_loot(loot_rates: Rarity) -> str:
+def random_rarity(loot_rates: Rarity) -> Literal["common", "uncommon", "rare"]:
     rarity, weights = zip(*loot_rates.items(), strict=True)
     return random.choices(rarity, weights, k=1)[0]
 
 
 def sort_loot(loot: Sequence[Loot]) -> list[Loot]:
-    return sorted(
-        loot, key=lambda x: (["common", "uncommon", "rare"].index(x.rarity), x.name)
-    )
+    return sorted(loot, key=lambda x: (RARITY.index(x.rarity), x.name))
 
 
 class Halloween(commands.Cog):
@@ -103,27 +107,37 @@ class Halloween(commands.Cog):
         assert isinstance(interaction.user, Member)
 
         loot = await self._get_member_loot(interaction.user)
-        loot = sort_loot(loot)
+        loot_list = [
+            sorted(item.name for item in loot if item.rarity == rarity)
+            for rarity in RARITY
+        ]
 
         table_data: list[Sequence[str]] = list(
             itertools.zip_longest(
-                *[
-                    [item.name for item in group]
-                    for _, group in itertools.groupby(loot, key=lambda x: x.rarity)
-                ],
+                *loot_list,
                 fillvalue="",
             )
         )
         table = tabulate(
             table_data,
-            headers=["Common", "Uncommon", "Rare"],
+            headers=[rarity.title() for rarity in RARITY],
             maxcolwidths=16,
             tablefmt="presto",
         )
+
         embed = Embed(
             title="Halloween Loot Inventory",
             description=f"```rst\n{table!s}\n```",
             color=Color.orange(),
+        ).add_field(
+            name="Completion",
+            value=(
+                "You have:\n"
+                f"- {len(loot_list[0])}/{len(self.trick_or_treaters)} Commons\n"
+                f"- {len(loot_list[1])}/{len(self.trick_or_treaters)} Uncommons\n"
+                f"- {len(loot_list[2])}/{len(self.trick_or_treaters)} Rares\n"
+                f"- {len(loot)}/{3 * len(self.trick_or_treaters)} Total!"
+            ),
         )
 
         await interaction.response.send_message(
@@ -138,6 +152,12 @@ class Halloween(commands.Cog):
 
         msg = f"Unknown treat {treat_name}"
         raise ValueError(msg)
+
+    def _get_random_loot(self, trick_or_treater: TrickOrTreater) -> BaseLoot:
+        rarity = random_rarity(self.rarity)
+        name = trick_or_treater[rarity]
+
+        return {"name": name, "rarity": rarity}
 
     async def _add_treat_to_inventory(self, treat: BaseTreat, member: Member) -> None:
         LOGGER.debug(f"Added 1 {treat} to {member}.")
@@ -227,10 +247,20 @@ class Halloween(commands.Cog):
             # they have given a treat already, therefore are not allowed again.
             return check is None
 
-    async def _add_loot_to_member(self, loot: Loot, member: Member) -> None:
+    async def _add_loot_to_member(self, loot: BaseLoot, member: Member) -> None:
         async with self.bot.db.session() as session, session.begin():
-            session.add(loot)
-            await session.commit()
+            session.add(
+                Loot(
+                    guild_id=member.guild.id,
+                    user_id=member.id,
+                    name=loot["name"],
+                    rarity=loot["rarity"],
+                )
+            )
+            try:
+                await session.commit()
+            except IntegrityError as e:
+                raise DuplicateLootError from e
 
     async def _get_member_loot(self, member: Member) -> list[Loot]:
         async with self.bot.db.session() as session:

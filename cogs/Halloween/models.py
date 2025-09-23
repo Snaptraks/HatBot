@@ -1,4 +1,5 @@
 from snapcogs.database import Base
+from sqlalchemy import UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column
 
 
@@ -17,6 +18,7 @@ class TrickOrTreaterLog(HalloweenBase):
 
 class Loot(HalloweenBase):
     __tablename__ = "halloween_loot"
+    __table_args__ = (UniqueConstraint("guild_id", "user_id", "name"),)
 
     name: Mapped[str]
     rarity: Mapped[str]

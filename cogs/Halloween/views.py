@@ -16,13 +16,19 @@ from discord import (
 )
 from rich import print
 
+from .base import DuplicateLootError
+
 if TYPE_CHECKING:
     from snapcogs.bot import Bot
 
-    from .base import BaseTreat, Inventory, TrickOrTreater
+    from .base import BaseLoot, BaseTreat, Inventory, TrickOrTreater
     from .halloween import Halloween
 
 LOGGER = logging.getLogger(__name__)
+
+
+def _fmt(loot: BaseLoot) -> str:
+    return f"{loot['rarity'].title()} {loot['name']}"
 
 
 class TreatButton(ui.Button["TrickOrTreaterView"]):
@@ -107,8 +113,20 @@ class TreatModal(ui.Modal, title="Select a treat!"):
 
         if treat == self.view.requested_treat:
             LOGGER.debug(f"Giving requested treat to {interaction.message}.")
-            content = f"Thank you for the {treat}!"
-            # TODO: give a loot item
+            loot = self.view.cog._get_random_loot(self.view.trick_or_treater)
+            try:
+                await self.view.cog._add_loot_to_member(
+                    loot,
+                    interaction.user,
+                )
+            except DuplicateLootError:
+                success_message = (
+                    f"You already had a {_fmt(loot)}, you don't get another one."
+                )
+            else:
+                success_message = f"Here's a {_fmt(loot)} as a gift!"
+            content = f"Thank you for the {treat}! {success_message}"
+
         else:
             LOGGER.debug(f"Giving NOT requested treat to {interaction.message}.")
             if random.random() < 0.5:

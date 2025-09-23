@@ -3,6 +3,8 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import TYPE_CHECKING, TypedDict
 
+from discord.app_commands import AppCommandError
+
 if TYPE_CHECKING:
     from .models import TreatCount
 
@@ -20,6 +22,10 @@ if TYPE_CHECKING:
         uncommon: str
         rare: str
 
+    class BaseLoot(TypedDict):
+        name: str
+        rarity: str
+
 
 @dataclass(frozen=True)
 class BaseTreat:
@@ -29,5 +35,11 @@ class BaseTreat:
     def __str__(self) -> str:
         return f"{self.emoji} {self.name}"
 
+
+class DuplicateLootError(AppCommandError):
+    pass
+
+
+RARITY = ["common", "uncommon", "rare"]
 
 TRICK_OR_TREAT_CHANNEL = 588171779957063680  # Bot Testing Server
