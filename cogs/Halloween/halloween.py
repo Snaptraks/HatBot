@@ -1,43 +1,60 @@
 from __future__ import annotations
 
+import itertools
 import logging
 import random
 import tomllib
 from pathlib import Path
 from typing import TYPE_CHECKING
 
-import discord
+from discord import Color, Embed, Interaction, Member, Object, TextChannel, app_commands
 from discord.ext import commands, tasks
 from rich import print
 from sqlalchemy import select
+from tabulate import tabulate
 
 from .base import TRICK_OR_TREAT_CHANNEL, BaseTreat
-from .models import TreatCount, TrickOrTreaterLog
+from .models import Loot, TreatCount, TrickOrTreaterLog
 from .views import TrickOrTreaterView
 
 if TYPE_CHECKING:
-    from discord import Member, Message
+    from collections.abc import Sequence
+
+    from discord import Message
     from snapcogs.bot import Bot
 
-    from .base import Inventory, LootRates, TrickOrTreater
+    from .base import Inventory, Rarity, TrickOrTreater
 
 
 PATH = Path(__file__).parent
 LOGGER = logging.getLogger(__name__)
 
 
-def random_loot(loot_rates: LootRates) -> str:
+def random_loot(loot_rates: Rarity) -> str:
     rarity, weights = zip(*loot_rates.items(), strict=True)
     return random.choices(rarity, weights, k=1)[0]
 
 
+def sort_loot(loot: Sequence[Loot]) -> list[Loot]:
+    return sorted(
+        loot, key=lambda x: (["common", "uncommon", "rare"].index(x.rarity), x.name)
+    )
+
+
 class Halloween(commands.Cog):
+    """Cog for the Halloween event."""
+
+    halloween = app_commands.Group(
+        name="halloween",
+        description="Halloween Event commands!",
+    )
+
     def __init__(self, bot: Bot) -> None:
         self.bot = bot
 
         with (PATH / "loot_table.toml").open("rb") as f:
             data = tomllib.load(f)
-            self.rarity: LootRates = data["rarity"]
+            self.rarity: Rarity = data["rarity"]
             self.trick_or_treaters: list[TrickOrTreater] = data["trick_or_treaters"]
             self.treats: list[BaseTreat] = [
                 BaseTreat(**treat) for treat in data["treats"]
@@ -49,8 +66,8 @@ class Halloween(commands.Cog):
     @tasks.loop(count=1)
     async def populate_database(self) -> None:
         LOGGER.debug("Populating database with test data.")
-        member = discord.Object(id=337266376941240320)
-        member.guild = discord.Object(id=588171715960635393)  # pyright: ignore[reportAttributeAccessIssue]
+        member = Object(id=337266376941240320)
+        member.guild = Object(id=588171715960635393)  # pyright: ignore[reportAttributeAccessIssue]
         async with self.bot.db.session() as session, session.begin():
             for treat in self.treats * 2:
                 await self._add_treat_to_inventory(treat, member)  # pyright: ignore[reportArgumentType]
@@ -65,7 +82,7 @@ class Halloween(commands.Cog):
         requested_treat = random.choice(self.treats)
         channel = self.bot.get_channel(TRICK_OR_TREAT_CHANNEL)
 
-        assert isinstance(channel, discord.TextChannel)
+        assert isinstance(channel, TextChannel)
 
         view = TrickOrTreaterView(
             self.bot,
@@ -79,6 +96,40 @@ class Halloween(commands.Cog):
     @send_trick_or_treater.before_loop
     async def send_trick_or_treater_before(self) -> None:
         await self.bot.wait_until_ready()
+
+    @halloween.command(name="loot")
+    async def halloween_loot(self, interaction: Interaction[Bot]) -> None:
+        """Show the loot you gained."""
+        assert isinstance(interaction.user, Member)
+
+        loot = await self._get_member_loot(interaction.user)
+        loot = sort_loot(loot)
+
+        table_data: list[Sequence[str]] = list(
+            itertools.zip_longest(
+                *[
+                    [item.name for item in group]
+                    for _, group in itertools.groupby(loot, key=lambda x: x.rarity)
+                ],
+                fillvalue="",
+            )
+        )
+        table = tabulate(
+            table_data,
+            headers=["Common", "Uncommon", "Rare"],
+            maxcolwidths=16,
+            tablefmt="presto",
+        )
+        embed = Embed(
+            title="Halloween Loot Inventory",
+            description=f"```rst\n{table!s}\n```",
+            color=Color.orange(),
+        )
+
+        await interaction.response.send_message(
+            embed=embed,
+            ephemeral=True,
+        )
 
     def _get_treat_by_name(self, treat_name: str) -> BaseTreat:
         for treat in self.treats:
@@ -133,7 +184,7 @@ class Halloween(commands.Cog):
 
             await session.commit()
 
-    async def _get_user_inventory(self, member: Member) -> Inventory:
+    async def _get_member_inventory(self, member: Member) -> Inventory:
         LOGGER.debug(f"Getting inventory of {member}.")
         async with self.bot.db.session() as session:
             inventory = await session.scalars(
@@ -175,3 +226,30 @@ class Halloween(commands.Cog):
             # therefore are allowed. If check is an instance of TrickOrTreaterLog,
             # they have given a treat already, therefore are not allowed again.
             return check is None
+
+    async def _add_loot_to_member(self, loot: Loot, member: Member) -> None:
+        async with self.bot.db.session() as session, session.begin():
+            session.add(loot)
+            await session.commit()
+
+    async def _get_member_loot(self, member: Member) -> list[Loot]:
+        async with self.bot.db.session() as session:
+            loot = await session.scalars(
+                select(Loot).filter_by(
+                    guild_id=member.guild.id,
+                    user_id=member.id,
+                )
+            )
+
+        return list(loot)
+
+    async def _bless(self, member: Member) -> None:
+        """Bless the member.
+        Gives a loot item as well as an extra treat.
+        """
+
+    async def _curse(self, member: Member) -> None:
+        """Curse the member.
+        Change the nickname of the member to something funny,
+        and give them the Cursed role for 15 minutes.
+        """

@@ -8,7 +8,7 @@ if TYPE_CHECKING:
 
     type Inventory = list[TreatCount]
 
-    class LootRates(TypedDict):
+    class Rarity(TypedDict):
         common: int
         uncommon: int
         rare: int

@@ -32,7 +32,7 @@ class TreatButton(ui.Button["TrickOrTreaterView"]):
 
     async def callback(self, interaction: Interaction[Bot]) -> None:
         assert isinstance(interaction.user, Member)
-        user_inventory = await self.view.cog._get_user_inventory(interaction.user)
+        user_inventory = await self.view.cog._get_member_inventory(interaction.user)
 
         if len(user_inventory) > 0:
             await interaction.response.send_modal(TreatModal(self.view, user_inventory))
@@ -108,12 +108,15 @@ class TreatModal(ui.Modal, title="Select a treat!"):
         if treat == self.view.requested_treat:
             LOGGER.debug(f"Giving requested treat to {interaction.message}.")
             content = f"Thank you for the {treat}!"
+            # TODO: give a loot item
         else:
             LOGGER.debug(f"Giving NOT requested treat to {interaction.message}.")
             if random.random() < 0.5:
                 reaction = "It's even better!"
+                # TODO: give a blessing
             else:
                 reaction = "And it tastes awful! Ew!"
+                # TODO: give a curse
             content = f"This is not what I asked for... {reaction}"
 
         await interaction.response.send_message(content, ephemeral=True)
