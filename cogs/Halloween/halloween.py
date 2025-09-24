@@ -56,7 +56,7 @@ class Halloween(commands.Cog):
     def __init__(self, bot: Bot) -> None:
         self.bot = bot
 
-        with (PATH / "loot_table.toml").open("rb") as f:
+        with (PATH / "assets.toml").open("rb") as f:
             data = tomllib.load(f)
             self.rarity: Rarity = data["rarity"]
             self.blessed_rarity: Rarity = data["blessed_rarity"]
