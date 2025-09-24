@@ -66,9 +66,14 @@ class Halloween(commands.Cog):
             ]
 
         self.send_trick_or_treater.start()
-        self.populate_database.start()
+        self.database_populated: bool = False
 
-    @tasks.loop(count=1)
+    @commands.Cog.listener()
+    async def on_ready(self) -> None:
+        if not self.database_populated:
+            await self.populate_database()
+            self.database_populated = True
+
     async def populate_database(self) -> None:
         LOGGER.debug("Populating database with test data.")
         member = Object(id=337266376941240320)
@@ -76,10 +81,6 @@ class Halloween(commands.Cog):
         async with self.bot.db.session() as session, session.begin():
             for treat in self.treats * 2:
                 await self._add_treat_to_inventory(treat, member)  # pyright: ignore[reportArgumentType]
-
-    @populate_database.before_loop
-    async def populate_database_before(self) -> None:
-        await self.bot.wait_until_ready()
 
     @tasks.loop(count=1)
     async def send_trick_or_treater(self) -> None:
