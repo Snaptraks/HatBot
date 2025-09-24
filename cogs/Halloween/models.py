@@ -34,5 +34,6 @@ class TreatCount(HalloweenBase):
 
 class OriginalName(HalloweenBase):
     __tablename__ = "halloween_original_name"
+    __table_args__ = (UniqueConstraint("guild_id", "user_id"),)
 
     display_name: Mapped[str]

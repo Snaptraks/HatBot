@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import asyncio
 import logging
 import random
 from typing import TYPE_CHECKING
@@ -95,6 +96,7 @@ class TreatModal(ui.Modal, title="Select a treat!"):
     async def on_submit(self, interaction: Interaction[Bot]) -> None:
         assert isinstance(interaction.user, Member)
         assert interaction.message is not None
+        assert interaction.guild is not None
 
         selected_treat: str = self.treat_select.component.values[0]  # type: ignore[reportAttributeAccessIssue]
         treat = self.view.cog._get_treat_by_name(selected_treat)
@@ -161,8 +163,18 @@ class TreatModal(ui.Modal, title="Select a treat!"):
 
                 reaction = f"It's even better! {success_message}"
             else:
-                reaction = "And it tastes awful! Ew!"
-                # TODO: give a curse
+                # Curse: funny name and Cursed role
+                cursed_name = self.view.cog._get_random_cursed_name()
+
+                task = asyncio.create_task(
+                    self.view.cog._curse_task(
+                        interaction.user,
+                        cursed_name,
+                    )
+                )
+                self.view.cog.curse_tasks.add(task)
+                task.add_done_callback(self.view.cog.curse_tasks.discard)
+                reaction = f"Ew!\nYou get a **curse** for that, __**{cursed_name}**__!"
 
             content = f"This is not what I asked for... {reaction}"
 
@@ -175,7 +187,7 @@ class TrickOrTreaterView(ui.LayoutView):
     def __init__(
         self, bot: Bot, trick_or_treater: TrickOrTreater, requested_treat: BaseTreat
     ) -> None:
-        super().__init__(timeout=10)
+        super().__init__(timeout=30)
         self.bot = bot
         self.trick_or_treater = trick_or_treater
         self.requested_treat = requested_treat

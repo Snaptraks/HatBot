@@ -26,6 +26,11 @@ if TYPE_CHECKING:
         name: str
         rarity: str
 
+    class CursedNames(TypedDict):
+        first_names: list[str]
+        last_names: list[str]
+        emojis: str
+
 
 @dataclass(frozen=True)
 class BaseTreat:

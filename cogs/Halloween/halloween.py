@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import asyncio
 import itertools
 import logging
 import random
@@ -7,7 +8,16 @@ import tomllib
 from pathlib import Path
 from typing import TYPE_CHECKING, Literal
 
-from discord import Color, Embed, Interaction, Member, Object, TextChannel, app_commands
+from discord import (
+    Color,
+    Embed,
+    Forbidden,
+    Member,
+    Object,
+    TextChannel,
+    app_commands,
+    utils,
+)
 from discord.ext import commands, tasks
 from rich import print
 from sqlalchemy import select
@@ -20,16 +30,16 @@ from .base import (
     BaseTreat,
     DuplicateLootError,
 )
-from .models import Loot, TreatCount, TrickOrTreaterLog
+from .models import Loot, OriginalName, TreatCount, TrickOrTreaterLog
 from .views import TrickOrTreaterView
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
 
-    from discord import Message
+    from discord import Interaction, Message
     from snapcogs.bot import Bot
 
-    from .base import BaseLoot, Inventory, Rarity, TrickOrTreater
+    from .base import BaseLoot, CursedNames, Inventory, Rarity, TrickOrTreater
 
 
 PATH = Path(__file__).parent
@@ -64,9 +74,12 @@ class Halloween(commands.Cog):
             self.treats: list[BaseTreat] = [
                 BaseTreat(**treat) for treat in data["treats"]
             ]
+            self.cursed_names: CursedNames = data["cursed_names"]
 
         self.send_trick_or_treater.start()
         self.database_populated: bool = False
+
+        self.curse_tasks: set[asyncio.Task] = set()
 
     @commands.Cog.listener()
     async def on_ready(self) -> None:
@@ -147,9 +160,6 @@ class Halloween(commands.Cog):
             ephemeral=True,
         )
 
-    def _get_random_treat(self) -> BaseTreat:
-        return random.choice(self.treats)
-
     def _get_treat_by_name(self, treat_name: str) -> BaseTreat:
         for treat in self.treats:
             if treat.name == treat_name:
@@ -157,6 +167,9 @@ class Halloween(commands.Cog):
 
         msg = f"Unknown treat {treat_name}"
         raise ValueError(msg)
+
+    def _get_random_treat(self) -> BaseTreat:
+        return random.choice(self.treats)
 
     def _get_random_loot(
         self, trick_or_treater: TrickOrTreater, *, blessed: bool = False
@@ -166,6 +179,12 @@ class Halloween(commands.Cog):
         name = trick_or_treater[rarity]
 
         return {"name": name, "rarity": rarity}
+
+    def _get_random_cursed_name(self) -> str:
+        first_name = random.choice(self.cursed_names["first_names"])
+        last_name = random.choice(self.cursed_names["last_names"])
+        emoji = random.choice(self.cursed_names["emojis"])
+        return f"{first_name} {last_name} {emoji}"
 
     async def _add_treat_to_inventory(self, treat: BaseTreat, member: Member) -> None:
         LOGGER.debug(f"Added 1 {treat} to {member}.")
@@ -281,13 +300,52 @@ class Halloween(commands.Cog):
 
         return list(loot)
 
-    async def _bless(self, member: Member) -> None:
-        """Bless the member.
-        Gives a loot item as well as an extra treat.
-        """
+    async def _save_member_display_name(self, member: Member) -> None:
+        async with self.bot.db.session() as session, session.begin():
+            session.add(
+                OriginalName(
+                    guild_id=member.guild.id,
+                    user_id=member.id,
+                    display_name=member.display_name,
+                )
+            )
+            try:
+                await session.commit()
+            except IntegrityError:
+                LOGGER.debug("Member has their display_name saved already, ignoring.")
 
-    async def _curse(self, member: Member) -> None:
+    async def _get_member_display_name(self, member: Member) -> str:
+        async with self.bot.db.session() as session, session.begin():
+            original_name = await session.scalar(
+                select(OriginalName.display_name).filter_by(
+                    guild_id=member.guild.id,
+                    user_id=member.id,
+                )
+            )
+
+        # return the member's display_name in case it is not saved in the database
+        return original_name or member.display_name
+
+    async def _curse_task(self, member: Member, cursed_name: str) -> None:
         """Curse the member.
         Change the nickname of the member to something funny,
         and give them the Cursed role for 15 minutes.
         """
+
+        cursed_role = utils.get(member.guild.roles, name="Cursed")
+        await self._save_member_display_name(member)
+        try:
+            await member.edit(nick=cursed_name)
+        except Forbidden:
+            LOGGER.warning(f"Could not change nickname of {member}, returning early")
+            return
+
+        if cursed_role:
+            await member.add_roles(cursed_role, reason="Halloween Curse!")
+
+        await asyncio.sleep(15 * 60)  # 15 minutes
+
+        original_name = await self._get_member_display_name(member)
+        await member.edit(nick=original_name)
+        if cursed_role:
+            await member.remove_roles(cursed_role)
