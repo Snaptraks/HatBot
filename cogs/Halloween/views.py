@@ -131,9 +131,15 @@ class TreatModal(ui.Modal, title="Select a treat!"):
         else:
             LOGGER.debug(f"Giving NOT requested treat to {interaction.message}.")
             if random.random() < 0.5:
+                # Blessing: higher loot rarity or bonus treat
                 loot = self.view.cog._get_random_loot(
                     self.view.trick_or_treater,
                     blessed=True,
+                )
+                treat = self.view.cog._get_random_treat()
+                await self.view.cog._add_treat_to_inventory(
+                    treat,
+                    interaction.user,
                 )
                 try:
                     await self.view.cog._add_loot_to_member(
@@ -141,16 +147,17 @@ class TreatModal(ui.Modal, title="Select a treat!"):
                         interaction.user,
                     )
                 except DuplicateLootError:
-                    treat = self.view.cog._get_random_treat()
                     success_message = (
-                        f"You already had a {_fmt(loot)}, so you get a bonus {treat}!"
+                        f"You already had a {_fmt(loot)}, so you get two {treat}s!"
                     )
                     await self.view.cog._add_treat_to_inventory(
                         treat,
                         interaction.user,
                     )
                 else:
-                    success_message = f"Here's a {_fmt(loot)} as a gift!"
+                    success_message = (
+                        f"You can have my {_fmt(loot)} and {treat} as a gift!"
+                    )
 
                 reaction = f"It's even better! {success_message}"
             else:
