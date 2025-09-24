@@ -112,12 +112,11 @@ class Halloween(commands.Cog):
     @commands.Cog.listener(name="on_message")
     async def send_trick_or_treater(self, message: Message) -> None:
         print("on_message triggered")
-        if message.channel.id != TRICK_OR_TREAT_CHANNEL:
-            return
-        if message.author.bot:
-            return
-        if message.interaction_metadata is not None:
-            print("INTERACTION MESSAGE")
+        if (
+            message.channel.id != TRICK_OR_TREAT_CHANNEL
+            or message.author.bot
+            or message.interaction_metadata is not None
+        ):
             return
 
         r = random.randint(0, SPAWN_RATE)
