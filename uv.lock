@@ -473,18 +473,18 @@ wheels = [
 
 [[package]]
 name = "snapcogs"
-version = "2025.9.8"
-source = { git = "https://github.com/Snaptraks/SnapCogs.git?rev=master#9eae9403bf776d0bd66d8a7a536d6639aedc1b94" }
+version = "2025.9.24"
+source = { git = "https://github.com/Snaptraks/SnapCogs.git?rev=master#f62218efb8c589698dec84fdcb72bcc9d20f53f8" }
 dependencies = [
     { name = "aiosqlite" },
     { name = "discord-py" },
-    { name = "pillow" },
     { name = "sqlalchemy", extra = ["asyncio"] },
 ]
 
 [package.optional-dependencies]
 all = [
     { name = "beautifulsoup4" },
+    { name = "pillow" },
     { name = "pint" },
     { name = "python-dateutil" },
     { name = "pytz" },
