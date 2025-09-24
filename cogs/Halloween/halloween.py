@@ -26,6 +26,7 @@ from tabulate import tabulate
 
 from .base import (
     RARITY,
+    SPAWN_RATE,
     TRICK_OR_TREAT_CHANNEL,
     BaseTreat,
     DuplicateLootError,
@@ -76,10 +77,12 @@ class Halloween(commands.Cog):
             ]
             self.cursed_names: CursedNames = data["cursed_names"]
 
-        self.send_trick_or_treater.start()
+        self.trick_or_treater_spawner.start()
         self.database_populated: bool = False
 
         self.curse_tasks: set[asyncio.Task] = set()
+
+        self.trick_or_treater_timer: int = 0
 
     @commands.Cog.listener()
     async def on_ready(self) -> None:
@@ -95,26 +98,52 @@ class Halloween(commands.Cog):
             for treat in self.treats * 2:
                 await self._add_treat_to_inventory(treat, member)  # pyright: ignore[reportArgumentType]
 
-    @tasks.loop(count=1)
-    async def send_trick_or_treater(self) -> None:
-        trick_or_treater = random.choice(self.trick_or_treaters)
-        requested_treat = random.choice(self.treats)
-        channel = self.bot.get_channel(TRICK_OR_TREAT_CHANNEL)
+        for tot in self.trick_or_treaters:
+            for rarity in self.rarity:
+                loot = {"name": tot[rarity], "rarity": rarity}
 
-        assert isinstance(channel, TextChannel)
+                await self._add_loot_to_member(loot, member)  # pyright: ignore[reportArgumentType]
 
-        view = TrickOrTreaterView(
-            self.bot,
-            trick_or_treater,
-            requested_treat,
-        )
+    @tasks.loop(minutes=1)
+    async def trick_or_treater_spawner(self) -> None:
+        self.trick_or_treater_timer += 1
+        self.trick_or_treater_timer %= SPAWN_RATE
 
-        view.message = await channel.send(view=view)
-        LOGGER.info(f"Sent {trick_or_treater['name']} in {channel}.")
+    @commands.Cog.listener(name="on_message")
+    async def send_trick_or_treater(self, message: Message) -> None:
+        print("on_message triggered")
+        if message.channel.id != TRICK_OR_TREAT_CHANNEL:
+            return
+        if message.author.bot:
+            return
+        if message.interaction_metadata is not None:
+            print("INTERACTION MESSAGE")
+            return
 
-    @send_trick_or_treater.before_loop
-    async def send_trick_or_treater_before(self) -> None:
-        await self.bot.wait_until_ready()
+        r = random.randint(0, SPAWN_RATE)
+        if r < self.trick_or_treater_timer:
+            LOGGER.debug(
+                f"Spawned Trick-or-treater at {utils.utcnow()} "
+                f"({r=}, {self.trick_or_treater_timer=})"
+            )
+            self.trick_or_treater_timer = 0
+            trick_or_treater = random.choice(self.trick_or_treaters)
+            requested_treat = random.choice(self.treats)
+            channel = self.bot.get_channel(TRICK_OR_TREAT_CHANNEL)
+
+            assert isinstance(channel, TextChannel)
+
+            view = TrickOrTreaterView(
+                self.bot,
+                trick_or_treater,
+                requested_treat,
+            )
+
+            view.message = await channel.send(view=view)
+            LOGGER.info(f"Sent {trick_or_treater['name']} in {channel}.")
+
+        else:
+            LOGGER.debug(f"No spawn. {r=} {self.trick_or_treater_timer=}")
 
     @halloween.command(name="loot")
     async def halloween_loot(self, interaction: Interaction[Bot]) -> None:
