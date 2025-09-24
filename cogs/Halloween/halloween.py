@@ -111,7 +111,6 @@ class Halloween(commands.Cog):
 
     @commands.Cog.listener(name="on_message")
     async def send_trick_or_treater(self, message: Message) -> None:
-        print("on_message triggered")
         if (
             message.channel.id != TRICK_OR_TREAT_CHANNEL
             or message.author.bot
