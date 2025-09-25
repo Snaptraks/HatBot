@@ -289,10 +289,6 @@
     uncommon = "Basic Brain"
 
 [[treats]]
-    emoji = "🍬"
-    name  = "Sweet"
-
-[[treats]]
     emoji = "🍫"
     name  = "Chocolate"
 
@@ -323,6 +319,10 @@
 [[treats]]
     emoji = "🥨"
     name  = "Pretzel"
+
+[[treats]]
+    emoji = "🍬"
+    name  = "Sweet"
 
 [cursed_names]
     emojis = "🌕🎃🐸👻👽💀🕷🕸😈👹😨🤡🦇🧛🦄🧟🧜⚰️🪦🧙🔮🩸"
