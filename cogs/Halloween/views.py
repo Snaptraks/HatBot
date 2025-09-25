@@ -245,6 +245,12 @@ class TreatsView(ui.View):
         treats_list = [
             emoji for treat in self.treats for emoji in (treat.emoji * treat.amount)
         ]
+        if len(treats_list) == 0:
+            await interaction.response.send_message(
+                "No treats to show ☹️", ephemeral=True
+            )
+            return
+
         random.shuffle(treats_list)
         batch_size = int(len(treats_list) ** 0.5)
         formatted_treats = "\n".join(
