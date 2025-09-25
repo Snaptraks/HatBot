@@ -46,6 +46,7 @@ class DuplicateLootError(AppCommandError):
 
 
 RARITY = ["common", "uncommon", "rare"]
-SPAWN_RATE = 30
+TRICK_OR_TREATER_SPAWN_RATE = 30
+TREAT_SPAWN_RATE = 10
 
 TRICK_OR_TREAT_CHANNEL = 588171779957063680  # Bot Testing Server

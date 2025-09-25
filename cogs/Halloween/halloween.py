@@ -26,8 +26,9 @@ from tabulate import tabulate
 
 from .base import (
     RARITY,
-    SPAWN_RATE,
+    TREAT_SPAWN_RATE,
     TRICK_OR_TREAT_CHANNEL,
+    TRICK_OR_TREATER_SPAWN_RATE,
     BaseTreat,
     DuplicateLootError,
 )
@@ -37,7 +38,7 @@ from .views import TreatsView, TrickOrTreaterView
 if TYPE_CHECKING:
     from collections.abc import Sequence
 
-    from discord import Interaction, Message
+    from discord import Interaction, Message, Reaction
     from snapcogs.bot import Bot
 
     from .base import BaseLoot, CursedNames, Inventory, Rarity, TrickOrTreater
@@ -117,7 +118,7 @@ class Halloween(commands.Cog):
         ):
             return
 
-        r = random.randint(0, SPAWN_RATE)
+        r = random.randint(0, TRICK_OR_TREATER_SPAWN_RATE)
         if r < self.trick_or_treater_timer:
             LOGGER.debug(
                 f"Spawned Trick-or-treater at {utils.utcnow()} "
@@ -141,6 +142,35 @@ class Halloween(commands.Cog):
 
         else:
             LOGGER.debug(f"No spawn. {r=} {self.trick_or_treater_timer=}")
+
+    @commands.Cog.listener(name="on_message")
+    async def random_treat_drop(self, message: Message) -> None:
+        if (
+            message.author.bot
+            or message.interaction_metadata is not None
+            or message.channel.guild is None
+        ):
+            return
+
+        assert isinstance(message.author, Member)
+
+        r = random.randint(0, TREAT_SPAWN_RATE)
+        if r == 0:
+            LOGGER.debug(f"Setting treat drop to {message}")
+            treat = self._get_random_treat()
+
+            def check(reaction: Reaction, member: Member) -> bool:
+                return (
+                    member == message.author
+                    and reaction.message.id == message.id
+                    and reaction.emoji == treat.emoji
+                )
+
+            await message.add_reaction(treat.emoji)
+            await self.bot.wait_for("reaction_add", check=check)
+
+            await self._add_treat_to_inventory(treat, message.author)
+            await message.clear_reactions()
 
     @halloween.command(name="loot")
     async def halloween_loot(self, interaction: Interaction[Bot]) -> None:
