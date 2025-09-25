@@ -160,7 +160,7 @@ class Halloween(commands.Cog):
             )
         )
         table = tabulate(
-            table_data,
+            table_data or loot_list,  # prevent error when there's no loot
             headers=[rarity.title() for rarity in RARITY],
             maxcolwidths=16,
             tablefmt="presto",
