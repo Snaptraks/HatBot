@@ -107,7 +107,6 @@ class Halloween(commands.Cog):
     @tasks.loop(minutes=1)
     async def trick_or_treater_spawner(self) -> None:
         self.trick_or_treater_timer += 1
-        self.trick_or_treater_timer %= SPAWN_RATE
 
     @commands.Cog.listener(name="on_message")
     async def send_trick_or_treater(self, message: Message) -> None:
