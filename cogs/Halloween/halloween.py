@@ -32,7 +32,7 @@ from .base import (
     DuplicateLootError,
 )
 from .models import Loot, OriginalName, TreatCount, TrickOrTreaterLog
-from .views import TrickOrTreaterView
+from .views import TreatsView, TrickOrTreaterView
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
@@ -183,6 +183,29 @@ class Halloween(commands.Cog):
 
         await interaction.response.send_message(
             embed=embed,
+            ephemeral=True,
+        )
+
+    @halloween.command(name="treats")
+    async def halloween_treats(self, interaction: Interaction) -> None:
+        """Show your treats."""
+        assert isinstance(interaction.user, Member)
+
+        treats = await self._get_member_inventory(interaction.user)
+
+        embed = Embed(
+            title="Treats Inventory",
+            description="\n".join(
+                f"{treat.emoji} {treat.name} ({treat.amount})"
+                for treat in treats
+                if treat.amount > 0
+            ),
+            color=Color.orange(),
+        )
+
+        await interaction.response.send_message(
+            embed=embed,
+            view=TreatsView(treats),
             ephemeral=True,
         )
 

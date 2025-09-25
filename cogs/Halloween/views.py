@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import asyncio
+import itertools
 import logging
 import random
 from typing import TYPE_CHECKING
@@ -18,6 +19,7 @@ from discord import (
 from rich import print
 
 from .base import DuplicateLootError
+from .models import TreatCount
 
 if TYPE_CHECKING:
     from snapcogs.bot import Bot
@@ -229,3 +231,28 @@ class TrickOrTreaterView(ui.LayoutView):
         self.bottom.accessory.disabled = True  # type: ignore[reportAttributeAccessIssue]
 
         await self.message.edit(view=self)
+
+
+class TreatsView(ui.View):
+    def __init__(self, treats: list[TreatCount]) -> None:
+        super().__init__()
+        self.treats = treats
+
+    @ui.button(label="See the Content", emoji="👀")
+    async def see_content(self, interaction: Interaction, _: ui.Button) -> None:
+        assert isinstance(interaction.user, Member)
+
+        treats_list = [
+            emoji for treat in self.treats for emoji in (treat.emoji * treat.amount)
+        ]
+        random.shuffle(treats_list)
+        batch_size = int(len(treats_list) ** 0.5)
+        formatted_treats = "\n".join(
+            "# " + "".join(batch)
+            for batch in itertools.batched(treats_list, batch_size, strict=False)
+        )
+
+        await interaction.response.send_message(
+            content=formatted_treats,
+            ephemeral=True,
+        )
