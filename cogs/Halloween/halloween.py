@@ -20,7 +20,7 @@ from discord import (
 )
 from discord.ext import commands, tasks
 from rich import print
-from sqlalchemy import select
+from sqlalchemy import desc, func, select
 from sqlalchemy.exc import IntegrityError
 from tabulate import tabulate
 
@@ -251,6 +251,38 @@ class Halloween(commands.Cog):
             ephemeral=True,
         )
 
+    @halloween.command(name="scoreboard")
+    async def halloween_scoreboard(self, interaction: Interaction[Bot]) -> None:
+        """Display the members with the highest number of loot items."""
+        assert interaction.guild is not None
+
+        scores = await self._get_guild_score(interaction.guild)
+
+        table_data: list[tuple[int, int, str]] = []
+        for rank, (user_id, amount) in enumerate(scores):
+            member = interaction.guild.get_member(user_id)
+            table_data.append(
+                (
+                    rank + 1,
+                    amount,
+                    member.display_name if member is not None else "Unknown member",
+                )
+            )
+
+        table = tabulate(
+            table_data,
+            headers=["Rank", "Loots", "Member"],
+            tablefmt="presto",
+        )
+
+        embed = Embed(
+            title=f"Halloween Scoreboard • {interaction.guild.name}",
+            description=f"```rst\n{table}\n```",
+            color=Color.orange(),
+        )
+
+        await interaction.response.send_message(embed=embed, ephemeral=True)
+
     def _get_treat_by_name(self, treat_name: str) -> BaseTreat:
         for treat in self.treats:
             if treat.name == treat_name:
@@ -458,6 +490,17 @@ class Halloween(commands.Cog):
         await member.edit(nick=original_name)
         if cursed_role:
             await member.remove_roles(cursed_role)
+
+    async def _get_guild_score(self, guild: Guild) -> list[tuple[int, int]]:
+        async with self.bot.db.session() as session, session.begin():
+            scores = await session.execute(
+                select(Loot.user_id, func.count(Loot.user_id).label("amount"))
+                .filter_by(guild_id=guild.id)
+                .group_by(Loot.user_id)
+                .order_by(desc("amount"))
+            )
+
+        return list(scores)  # type: ignore[reportReturnType]
 
     async def _log_event(
         self,

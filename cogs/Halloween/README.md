@@ -94,10 +94,11 @@ Try to get as many unique items as possible!
 
 ### Command List
 
-| Command               | Description                            |
-| --------------------- | -------------------------------------- |
-| ``/halloween treats`` | See the treats you have collected.     |
-| ``/halloween loot``   | See the loot items you have collected. |
+| Command                   | Description                             |
+| ------------------------- | --------------------------------------- |
+| ``/halloween treats``     | See the treats you have collected.      |
+| ``/halloween loot``       | See the loot items you have collected.  |
+| ``/halloween scoreboard`` | Display the members with the most loot. |
 
 ### FAQ
 
