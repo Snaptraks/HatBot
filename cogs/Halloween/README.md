@@ -1,20 +1,31 @@
-# Halloween Cog
+# Halloween Cog <!-- omit from toc -->
 
 The assets used in the Cog were taken form the Trick'cord Treat event that Discord hosted in 2020. The original link has been removed, so here's an archived version:
 https://web.archive.org/web/20201031021358/https://support.discord.com/hc/en-us/articles/360057167253-Halloween-Bot-2020
 
 So thanks to whoever made the art, they are really awesome, and made this possible!
 
+Table of content
+- [Event Description](#event-description)
+- [Detailed Explanation](#detailed-explanation)
+  - [Treats](#treats)
+  - [Trick-or-treaters](#trick-or-treaters)
+  - [Blessing](#blessing)
+  - [Curse!](#curse)
+  - [Loot!](#loot)
+  - [Command List](#command-list)
+  - [FAQ](#faq)
+
 ## Event Description
 
 This is a timely event that will happen a few weeks before Halloween, and end a few days after.
-During that time, you will be able to collect **treats** that appear randomly under your messages as you chat with the community.
-On top of **treats** to collect, there will be **trick-or-treaters** that will spawn in a special channel, asking for specific **treats**!
-It is up to YOU to give them what they are looking for, in exchange for a special collectible **loot** item!
+During that time, you will be able to collect [**treats**](#treats) that appear randomly under your messages as you chat with the community.
+On top of **treats** to collect, there will be [**trick-or-treaters**](#trick-or-treaters) that will spawn in a special channel, asking for specific **treats**!
+It is up to YOU to give them what they are looking for, in exchange for a special collectible [**loot**](#loot) item!
 This **loot** ranges from **common** trinkets such as the **Goblin**'s **Lucky Rock**, to some very **rare** ones, like the **Alien**'s **Levitation Belt**!
 If you don't give them what they want though, either because you don't have the **treat** or because you feel mischievous, who knows what might happen!
 
-You will have access to some event related commands all under the **``/halloween``** "main" command.
+You will have access to some event related [**commands**](#command-list) all under the **``/halloween``** "main" command.
 For example, to check how many treats you have, use the **``/halloween treats``** command.
 More on them later!
 
@@ -30,7 +41,7 @@ Simple as that!
 Do not worry about other people stealing your hard earned **treats**, only *you* can claim the **treats** under your messages.
 There is no time limit either, so if you miss it, it will be there later.
 
-There **treats** will be useful to give to [trick-or-treaters](#trick-or-treaters) later.
+There **treats** will be useful to give to **trick-or-treaters** later.
 
 You can view your **treats** inventory with the command **``/halloween treats``** to get the amount of each you currently have.
 There is also a button to check your stash in an "exploded" view, just for fun 👀!
@@ -59,7 +70,7 @@ Confirm by clicking the **Submit** button.
 The layout might look a bit different on mobile, but the mechanics are exactly the same.
 
 If you give the **treat** that has been requested by the **trick-or-treater**, great!
-You get a random [**loot** item](#loot) from them.
+You get a random **loot** from them.
 But what if, like in the example above, you *do not* give them what they want...?
 
 ### Blessing
