@@ -59,7 +59,7 @@ Confirm by clicking the **Submit** button.
 The layout might look a bit different on mobile, but the mechanics are exactly the same.
 
 If you give the **treat** that has been requested by the **trick-or-treater**, great!
-You get a random **loot** item from them.
+You get a random [**loot** item](#loot) from them.
 But what if, like in the example above, you *do not* give them what they want...?
 
 ### Blessing
