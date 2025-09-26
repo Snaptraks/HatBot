@@ -154,8 +154,8 @@ class Halloween(commands.Cog):
 
         assert isinstance(message.author, Member)
 
-        r = random.randint(0, TREAT_SPAWN_RATE)
-        if r == 0:
+        r = random_integer(TREAT_SPAWN_RATE)
+        if r == TREAT_SPAWN_RATE:
             LOGGER.debug(f"Setting treat drop to {message}")
             treat = self._get_random_treat()
 
