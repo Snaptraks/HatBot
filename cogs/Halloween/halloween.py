@@ -442,7 +442,7 @@ class Halloween(commands.Cog):
                 LOGGER.debug("Member has their display_name saved already, ignoring.")
 
     async def _get_member_display_name(self, member: Member) -> str:
-        async with self.bot.db.session() as session, session.begin():
+        async with self.bot.db.session() as session:
             original_name = await session.scalar(
                 select(OriginalName.display_name).filter_by(
                     guild_id=member.guild.id,
@@ -471,7 +471,7 @@ class Halloween(commands.Cog):
         and give them the Cursed role for 15 minutes.
         """
 
-        LOGGER.debug(f"Cursing {member} for {CURSE_LENGTH} minutes.")
+        LOGGER.debug(f"Cursing {member} for {CURSE_LENGTH} minutes with {cursed_name}.")
         cursed_role = utils.get(member.guild.roles, name="Cursed")
         await self._save_member_display_name(member)
         try:
