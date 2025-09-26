@@ -1,6 +1,18 @@
+import datetime
+from enum import Enum, auto
+
 from snapcogs.database import Base
-from sqlalchemy import UniqueConstraint
+from sqlalchemy import DateTime, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column
+
+
+class Event(Enum):
+    GIVE_TREAT = auto()
+    COLLECT_TREAT = auto()
+    REQUESTED_TREAT = auto()
+    NOT_REQUESTED_TREAT = auto()
+    GET_CURSE = auto()
+    SPAWN_TRICK_OR_TREATER = auto()
 
 
 class HalloweenBase(Base):
@@ -37,3 +49,12 @@ class OriginalName(HalloweenBase):
     __table_args__ = (UniqueConstraint("guild_id", "user_id"),)
 
     display_name: Mapped[str]
+
+
+class EventLog(Base):
+    __tablename__ = "halloween_event_log"
+
+    guild_id: Mapped[int]
+    user_id: Mapped[int | None]
+    event: Mapped[Event]
+    created_at: Mapped[datetime.datetime] = mapped_column(DateTime(timezone=True))

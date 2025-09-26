@@ -25,20 +25,30 @@ from sqlalchemy.exc import IntegrityError
 from tabulate import tabulate
 
 from .base import (
+    CURSE_LENGTH,
     RARITY,
     TREAT_SPAWN_RATE,
     TRICK_OR_TREAT_CHANNEL,
+    TRICK_OR_TREATER_LENGTH,
     TRICK_OR_TREATER_SPAWN_RATE,
     BaseTreat,
     DuplicateLootError,
+    random_integer,
 )
+from .models import (
+    Event,
+    EventLog,
+    Loot,
+    OriginalName,
+    TreatCount,
     TrickOrTreaterMessage,
+)
 from .views import TreatsView, TrickOrTreaterView
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
 
-    from discord import Interaction, Message, Reaction
+    from discord import Guild, Interaction, Message, Reaction
     from snapcogs.bot import Bot
 
     from .base import BaseLoot, CursedNames, Inventory, Rarity, TrickOrTreater
@@ -88,7 +98,7 @@ class Halloween(commands.Cog):
     @commands.Cog.listener()
     async def on_ready(self) -> None:
         if not self.database_populated:
-            await self.populate_database()
+            # await self.populate_database()
             self.database_populated = True
 
     async def populate_database(self) -> None:
@@ -139,6 +149,8 @@ class Halloween(commands.Cog):
 
             view.message = await channel.send(view=view)
             LOGGER.info(f"Sent {trick_or_treater['name']} in {channel}.")
+
+            await self._log_event(Event.SPAWN_TRICK_OR_TREATER, guild=channel.guild)
 
         else:
             LOGGER.debug(f"No spawn. {r=} {self.trick_or_treater_timer=}")
@@ -217,7 +229,7 @@ class Halloween(commands.Cog):
         )
 
     @halloween.command(name="treats")
-    async def halloween_treats(self, interaction: Interaction) -> None:
+    async def halloween_treats(self, interaction: Interaction[Bot]) -> None:
         """Show your treats."""
         assert isinstance(interaction.user, Member)
 
@@ -293,6 +305,8 @@ class Halloween(commands.Cog):
                 treat_count.amount += 1
                 await session.commit()
 
+        await self._log_event(Event.COLLECT_TREAT, member=member)
+
     async def _remove_treat_from_inventory(
         self, treat: BaseTreat, member: Member
     ) -> None:
@@ -309,6 +323,8 @@ class Halloween(commands.Cog):
                 treat_count.amount -= 1
 
             await session.commit()
+
+        await self._log_event(Event.GIVE_TREAT, member=member)
 
     async def _get_member_inventory(self, member: Member) -> Inventory:
         LOGGER.debug(f"Getting inventory of {member}.")
@@ -405,12 +421,25 @@ class Halloween(commands.Cog):
         # return the member's display_name in case it is not saved in the database
         return original_name or member.display_name
 
+    async def _create_curse_task(self, member: Member, cursed_name: str) -> None:
+        task = asyncio.create_task(
+            self._curse_task(
+                member,
+                cursed_name,
+            )
+        )
+        self.curse_tasks.add(task)
+        task.add_done_callback(self.curse_tasks.discard)
+
+        await self._log_event(Event.GET_CURSE, member=member)
+
     async def _curse_task(self, member: Member, cursed_name: str) -> None:
         """Curse the member.
         Change the nickname of the member to something funny,
         and give them the Cursed role for 15 minutes.
         """
 
+        LOGGER.debug(f"Cursing {member} for {CURSE_LENGTH} minutes.")
         cursed_role = utils.get(member.guild.roles, name="Cursed")
         await self._save_member_display_name(member)
         try:
@@ -422,9 +451,41 @@ class Halloween(commands.Cog):
         if cursed_role:
             await member.add_roles(cursed_role, reason="Halloween Curse!")
 
-        await asyncio.sleep(15 * 60)  # 15 minutes
+        await asyncio.sleep(CURSE_LENGTH * 60)  # 15 minutes
 
+        LOGGER.debug(f"Resetting {member} to original nickname.")
         original_name = await self._get_member_display_name(member)
         await member.edit(nick=original_name)
         if cursed_role:
             await member.remove_roles(cursed_role)
+
+    async def _log_event(
+        self,
+        event_type: Event,
+        *,
+        member: Member | None = None,
+        guild: Guild | None = None,
+    ) -> None:
+        if member is not None and guild is not None:
+            msg = "member and guild cannot both be set."
+            raise ValueError(msg)
+
+        if member is None and guild is None:
+            msg = "Please set either member or guild."
+            raise ValueError(msg)
+
+        if member is not None:
+            guild = member.guild
+
+        guild_id = member.guild.id if member is not None else guild.id  # type: ignore[not-none]
+
+        async with self.bot.db.session() as session, session.begin():
+            event_log = EventLog(
+                event=event_type,
+                guild_id=guild_id,
+                user_id=member.id if member else None,
+                created_at=utils.utcnow(),
+            )
+            session.add(event_log)
+            await session.commit()
+        LOGGER.debug(f"Logging event {event_type} at {event_log.created_at}.")

@@ -12,20 +12,23 @@ from discord import (
     Interaction,
     MediaGalleryItem,
     Member,
-    Message,
     SelectOption,
     ui,
 )
 from rich import print
 
-from .base import DuplicateLootError
-from .models import TreatCount
+from .base import TRICK_OR_TREATER_LENGTH, DuplicateLootError
+from .models import Event
 
 if TYPE_CHECKING:
+    from typing import Self
+
+    from discord import Message
     from snapcogs.bot import Bot
 
     from .base import BaseLoot, BaseTreat, Inventory, TrickOrTreater
     from .halloween import Halloween
+    from .models import TreatCount
 
 LOGGER = logging.getLogger(__name__)
 
@@ -132,6 +135,10 @@ class TreatModal(ui.Modal, title="Select a treat!"):
 
             content = f"Thank you for the {treat}! {success_message}"
 
+            await self.view.cog._log_event(
+                Event.REQUESTED_TREAT, member=interaction.user
+            )
+
         else:
             LOGGER.debug(f"Giving NOT requested treat to {interaction.message}.")
             if random.random() < 0.5:
@@ -168,17 +175,15 @@ class TreatModal(ui.Modal, title="Select a treat!"):
                 # Curse: funny name and Cursed role
                 cursed_name = self.view.cog._get_random_cursed_name()
 
-                task = asyncio.create_task(
-                    self.view.cog._curse_task(
-                        interaction.user,
-                        cursed_name,
-                    )
-                )
-                self.view.cog.curse_tasks.add(task)
-                task.add_done_callback(self.view.cog.curse_tasks.discard)
+                await self.view.cog._create_curse_task(interaction.user, cursed_name)
+
                 reaction = f"Ew!\nYou get a **curse** for that, __**{cursed_name}**__!"
 
             content = f"This is not what I asked for... {reaction}"
+
+            await self.view.cog._log_event(
+                Event.NOT_REQUESTED_TREAT, member=interaction.user
+            )
 
         await interaction.response.send_message(content, ephemeral=True)
 
@@ -189,7 +194,7 @@ class TrickOrTreaterView(ui.LayoutView):
     def __init__(
         self, bot: Bot, trick_or_treater: TrickOrTreater, requested_treat: BaseTreat
     ) -> None:
-        super().__init__(timeout=30)
+        super().__init__(timeout=TRICK_OR_TREATER_LENGTH * 60)
         self.bot = bot
         self.trick_or_treater = trick_or_treater
         self.requested_treat = requested_treat
@@ -239,7 +244,9 @@ class TreatsView(ui.View):
         self.treats = treats
 
     @ui.button(label="See the Content", emoji="👀")
-    async def see_content(self, interaction: Interaction, _: ui.Button) -> None:
+    async def see_content(
+        self, interaction: Interaction[Bot], _: ui.Button[Self]
+    ) -> None:
         assert isinstance(interaction.user, Member)
 
         treats_list = [
@@ -252,7 +259,7 @@ class TreatsView(ui.View):
             return
 
         random.shuffle(treats_list)
-        batch_size = int(len(treats_list) ** 0.5)
+        batch_size = int(len(treats_list) ** 0.5) + 1
         formatted_treats = "\n".join(
             "# " + "".join(batch)
             for batch in itertools.batched(treats_list, batch_size, strict=False)
