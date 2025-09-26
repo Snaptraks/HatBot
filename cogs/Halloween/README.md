@@ -102,6 +102,6 @@ Q: How long does this event last?
 
 A: Probably two weeks, but it might last longer if it is appreciated!
 
-Q: How many unique items are there?
+Q: How many unique **loot** items are there?
 
-A: 120 unique items! However, the **trick-or-treaters** may drop duplicate items!
+A: 120 unique **loot** items! However, the **trick-or-treaters** may drop duplicate items!
