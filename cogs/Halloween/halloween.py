@@ -118,13 +118,13 @@ class Halloween(commands.Cog):
         ):
             return
 
-        r = random.randint(0, TRICK_OR_TREATER_SPAWN_RATE)
+        r = random_integer(TRICK_OR_TREATER_SPAWN_RATE)
         if r < self.trick_or_treater_timer:
             LOGGER.debug(
                 f"Spawned Trick-or-treater at {utils.utcnow()} "
                 f"({r=}, {self.trick_or_treater_timer=})"
             )
-            self.trick_or_treater_timer = 0
+            self.trick_or_treater_timer = -TRICK_OR_TREATER_LENGTH
             trick_or_treater = random.choice(self.trick_or_treaters)
             requested_treat = random.choice(self.treats)
             channel = self.bot.get_channel(TRICK_OR_TREAT_CHANNEL)
