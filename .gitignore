@@ -66,11 +66,6 @@ config.toml
 
 # Data files
 *.db
-*.pkl
-*.png
-*.jpg
-*.pdn
-*.tar
 
 # backups
 *_bkp.*
