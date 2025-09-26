@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import random
 from dataclasses import dataclass
 from typing import TYPE_CHECKING, TypedDict
 
@@ -55,3 +56,7 @@ TRICK_OR_TREATER_LENGTH = 3  # minutes
 CURSE_LENGTH = 15  # minutes
 
 TRICK_OR_TREAT_CHANNEL = 588171779957063680  # Bot Testing Server
+
+
+def random_integer(max_value: int) -> int:
+    return random.randint(1, max_value)
