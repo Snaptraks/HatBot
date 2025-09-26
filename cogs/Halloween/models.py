@@ -10,7 +10,7 @@ class HalloweenBase(Base):
     user_id: Mapped[int]
 
 
-class TrickOrTreaterLog(HalloweenBase):
+class TrickOrTreaterMessage(HalloweenBase):
     __tablename__ = "halloween_trick_or_treater_log"
 
     message_id: Mapped[int]

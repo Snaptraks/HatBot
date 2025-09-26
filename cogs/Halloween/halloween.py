@@ -32,7 +32,7 @@ from .base import (
     BaseTreat,
     DuplicateLootError,
 )
-from .models import Loot, OriginalName, TreatCount, TrickOrTreaterLog
+    TrickOrTreaterMessage,
 from .views import TreatsView, TrickOrTreaterView
 
 if TYPE_CHECKING:
@@ -327,7 +327,7 @@ class Halloween(commands.Cog):
     ) -> None:
         LOGGER.debug(f"Marking {message} responded by {member}.")
         async with self.bot.db.session() as session, session.begin():
-            log = TrickOrTreaterLog(
+            log = TrickOrTreaterMessage(
                 guild_id=member.guild.id,
                 user_id=member.id,
                 message_id=message.id,
@@ -341,7 +341,7 @@ class Halloween(commands.Cog):
         LOGGER.debug(f"Checking if allowed to give treat to {message} by {member}.")
         async with self.bot.db.session() as session:
             check = await session.scalar(
-                select(TrickOrTreaterLog).filter_by(
+                select(TrickOrTreaterMessage).filter_by(
                     guild_id=member.guild.id,
                     user_id=member.id,
                     message_id=message.id,
