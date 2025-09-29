@@ -17,7 +17,7 @@ from discord import (
 )
 from rich import print
 
-from .base import TRICK_OR_TREATER_LENGTH, DuplicateLootError
+from .base import TRICK_OR_TREATER_LENGTH, DuplicateLootError, fmt_loot
 from .models import Event
 
 if TYPE_CHECKING:
@@ -26,15 +26,11 @@ if TYPE_CHECKING:
     from discord import Message
     from snapcogs.bot import Bot
 
-    from .base import BaseLoot, BaseTreat, Inventory, TrickOrTreater
+    from .base import BaseTreat, Inventory, TrickOrTreater
     from .halloween import Halloween
     from .models import TreatCount
 
 LOGGER = logging.getLogger(__name__)
-
-
-def _fmt(loot: BaseLoot) -> str:
-    return f"{loot['rarity'].title()} {loot['name']}"
 
 
 class TreatButton(ui.Button["TrickOrTreaterView"]):
@@ -128,10 +124,10 @@ class TreatModal(ui.Modal, title="Select a treat!"):
                 )
             except DuplicateLootError:
                 success_message = (
-                    f"You already had a {_fmt(loot)}, you don't get another one."
+                    f"You already had a {fmt_loot(loot)}, you don't get another one."
                 )
             else:
-                success_message = f"Here's a {_fmt(loot)} as a gift!"
+                success_message = f"Here's a {fmt_loot(loot)} as a gift!"
 
             content = f"Thank you for the {treat}! {success_message}"
 
@@ -143,39 +139,14 @@ class TreatModal(ui.Modal, title="Select a treat!"):
             LOGGER.debug(f"Giving NOT requested treat to {interaction.message}.")
             if random.random() < 0.5:
                 # Blessing: higher loot rarity or bonus treat
-                loot = self.view.cog._get_random_loot(
-                    self.view.trick_or_treater,
-                    blessed=True,
+                success_message = await self.view.cog._give_blessing(
+                    interaction.user, self.view.trick_or_treater
                 )
-                treat = self.view.cog._get_random_treat()
-                await self.view.cog._add_treat_to_inventory(
-                    treat,
-                    interaction.user,
-                )
-                try:
-                    await self.view.cog._add_loot_to_member(
-                        loot,
-                        interaction.user,
-                    )
-                except DuplicateLootError:
-                    success_message = (
-                        f"You already had a {_fmt(loot)}, so you get two {treat}s!"
-                    )
-                    await self.view.cog._add_treat_to_inventory(
-                        treat,
-                        interaction.user,
-                    )
-                else:
-                    success_message = (
-                        f"You can have my {_fmt(loot)} and {treat} as a gift!"
-                    )
 
                 reaction = f"It's even better! {success_message}"
             else:
                 # Curse: funny name and Cursed role
-                cursed_name = self.view.cog._get_random_cursed_name()
-
-                await self.view.cog._create_curse_task(interaction.user, cursed_name)
+                cursed_name = await self.view.cog._give_curse(interaction.user)
 
                 reaction = f"Ew!\nYou get a **curse** for that, __**{cursed_name}**__!"
 

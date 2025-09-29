@@ -60,3 +60,7 @@ TRICK_OR_TREAT_CHANNEL = 588171779957063680  # Bot Testing Server
 
 def random_integer(max_value: int) -> int:
     return random.randint(1, max_value)
+
+
+def fmt_loot(loot: BaseLoot) -> str:
+    return f"{loot['rarity'].title()} {loot['name']}"

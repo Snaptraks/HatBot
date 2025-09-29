@@ -33,6 +33,7 @@ from .base import (
     TRICK_OR_TREATER_SPAWN_RATE,
     BaseTreat,
     DuplicateLootError,
+    fmt_loot,
     random_integer,
 )
 from .models import (
@@ -184,6 +185,20 @@ class Halloween(commands.Cog):
             await self._add_treat_to_inventory(treat, message.author)
             await message.clear_reactions()
 
+    @halloween.command(name="curse")
+    @app_commands.describe(member="Who receives the curse.")
+    async def halloween_curse(
+        self, interaction: Interaction[Bot], member: Member
+    ) -> None:
+        """Curse someone!"""
+
+        cursed_name = await self._give_curse(member)
+
+        await interaction.response.send_message(
+            f"Hahaha you little devil, you cursed {member.mention}!",
+            ephemeral=True,
+        )
+
     @halloween.command(name="loot")
     async def halloween_loot(self, interaction: Interaction[Bot]) -> None:
         """Show the loot you gained."""
@@ -308,6 +323,73 @@ class Halloween(commands.Cog):
         last_name = random.choice(self.cursed_names["last_names"])
         emoji = random.choice(self.cursed_names["emojis"])
         return f"{first_name} {last_name} {emoji}"
+
+    async def _give_blessing(
+        self, member: Member, trick_or_treater: TrickOrTreater
+    ) -> str:
+        """Give a blessed loot to the member.
+
+        Give a higher rarity loot to the member and a treat, or two treats if
+        they already have the loot item.
+        """
+        loot = self._get_random_loot(trick_or_treater, blessed=True)
+        treat = self._get_random_treat()
+        await self._add_treat_to_inventory(treat, member)
+
+        try:
+            await self._add_loot_to_member(loot, member)
+
+        except DuplicateLootError:
+            success_message = (
+                f"You already had a {fmt_loot(loot)}, so you get two {treat}s!"
+            )
+            await self._add_treat_to_inventory(treat, member)
+
+        else:
+            success_message = f"You can have my {fmt_loot(loot)} and {treat} as a gift!"
+
+        return success_message
+
+    async def _give_curse(self, member: Member) -> str:
+        """Curse the member.
+
+        Change the nickname of the member to something funny,
+        and give them the Cursed role for 15 minutes.
+        """
+        cursed_name = self._get_random_cursed_name()
+        task = asyncio.create_task(
+            self._curse_task(
+                member,
+                cursed_name,
+            )
+        )
+        self.curse_tasks.add(task)
+        task.add_done_callback(self.curse_tasks.discard)
+
+        await self._log_event(Event.GET_CURSE, member=member)
+
+        return cursed_name
+
+    async def _curse_task(self, member: Member, cursed_name: str) -> None:
+        LOGGER.debug(f"Cursing {member} for {CURSE_LENGTH} minutes with {cursed_name}.")
+        cursed_role = utils.get(member.guild.roles, name="Cursed")
+        await self._save_member_display_name(member)
+        try:
+            await member.edit(nick=cursed_name)
+        except Forbidden:
+            LOGGER.warning(f"Could not change nickname of {member}, returning early")
+            return
+
+        if cursed_role:
+            await member.add_roles(cursed_role, reason="Halloween Curse!")
+
+        await asyncio.sleep(CURSE_LENGTH * 60)  # 15 minutes
+
+        LOGGER.debug(f"Resetting {member} to original nickname.")
+        original_name = await self._get_member_display_name(member)
+        await member.edit(nick=original_name)
+        if cursed_role:
+            await member.remove_roles(cursed_role)
 
     async def _add_treat_to_inventory(self, treat: BaseTreat, member: Member) -> None:
         LOGGER.debug(f"Added 1 {treat} to {member}.")
@@ -452,44 +534,6 @@ class Halloween(commands.Cog):
 
         # return the member's display_name in case it is not saved in the database
         return original_name or member.display_name
-
-    async def _create_curse_task(self, member: Member, cursed_name: str) -> None:
-        task = asyncio.create_task(
-            self._curse_task(
-                member,
-                cursed_name,
-            )
-        )
-        self.curse_tasks.add(task)
-        task.add_done_callback(self.curse_tasks.discard)
-
-        await self._log_event(Event.GET_CURSE, member=member)
-
-    async def _curse_task(self, member: Member, cursed_name: str) -> None:
-        """Curse the member.
-        Change the nickname of the member to something funny,
-        and give them the Cursed role for 15 minutes.
-        """
-
-        LOGGER.debug(f"Cursing {member} for {CURSE_LENGTH} minutes with {cursed_name}.")
-        cursed_role = utils.get(member.guild.roles, name="Cursed")
-        await self._save_member_display_name(member)
-        try:
-            await member.edit(nick=cursed_name)
-        except Forbidden:
-            LOGGER.warning(f"Could not change nickname of {member}, returning early")
-            return
-
-        if cursed_role:
-            await member.add_roles(cursed_role, reason="Halloween Curse!")
-
-        await asyncio.sleep(CURSE_LENGTH * 60)  # 15 minutes
-
-        LOGGER.debug(f"Resetting {member} to original nickname.")
-        original_name = await self._get_member_display_name(member)
-        await member.edit(nick=original_name)
-        if cursed_role:
-            await member.remove_roles(cursed_role)
 
     async def _get_guild_score(self, guild: Guild) -> list[tuple[int, int]]:
         async with self.bot.db.session() as session, session.begin():
