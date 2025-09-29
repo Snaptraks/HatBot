@@ -100,7 +100,7 @@ Try to get as many unique items as possible!
 | ``/halloween loot``       | See the loot items you have collected.  |
 | ``/halloween scoreboard`` | Display the members with the most loot. |
 
-### FAQ
+### *Foire aux Questions*
 
 Q: How do I get **treats**?
 
