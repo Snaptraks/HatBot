@@ -324,6 +324,24 @@ class Halloween(commands.Cog):
         emoji = random.choice(self.cursed_names["emojis"])
         return f"{first_name} {last_name} {emoji}"
 
+    async def _give_normal_loot(
+        self, member: Member, trick_or_treater: TrickOrTreater
+    ) -> str:
+        """Give a normal loot item."""
+
+        loot = self._get_random_loot(trick_or_treater)
+        try:
+            await self._add_loot_to_member(loot, member)
+
+        except DuplicateLootError:
+            success_message = (
+                f"You already had a {fmt_loot(loot)}, you don't get another one."
+            )
+        else:
+            success_message = f"Here's a {fmt_loot(loot)} as a gift!"
+
+        return success_message
+
     async def _give_blessing(
         self, member: Member, trick_or_treater: TrickOrTreater
     ) -> str:
