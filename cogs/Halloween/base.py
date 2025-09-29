@@ -48,9 +48,11 @@ class DuplicateLootError(AppCommandError):
 
 RARITY = ["common", "uncommon", "rare"]
 
-# Rates: will have a chance of 1 over *_RATE
+# will have a chance of 1 over the value
 TRICK_OR_TREATER_SPAWN_RATE = 30
-TREAT_SPAWN_RATE = 3
+
+# will have a 100*value % chance of spawning
+TREAT_SPAWN_RATE = 0.75
 
 TRICK_OR_TREATER_LENGTH = 3  # minutes
 CURSE_LENGTH = 15  # minutes
