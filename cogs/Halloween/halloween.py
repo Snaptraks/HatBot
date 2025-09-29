@@ -516,6 +516,8 @@ class Halloween(commands.Cog):
             except IntegrityError as e:
                 raise DuplicateLootError from e
 
+        await self._log_event(Event.COLLECT_LOOT, member=member)
+
     async def _get_member_loot(self, member: Member) -> list[Loot]:
         async with self.bot.db.session() as session:
             loot = await session.scalars(

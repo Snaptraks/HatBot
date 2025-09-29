@@ -11,6 +11,7 @@ class Event(Enum):
     COLLECT_TREAT = auto()
     REQUESTED_TREAT = auto()
     NOT_REQUESTED_TREAT = auto()
+    COLLECT_LOOT = auto()
     GET_CURSE = auto()
     SPAWN_TRICK_OR_TREATER = auto()
 
