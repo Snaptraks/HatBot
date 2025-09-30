@@ -258,6 +258,9 @@ class Halloween(commands.Cog):
                 if treat.amount > 0
             ),
             color=Color.orange(),
+        ).add_field(
+            name="Total:",
+            value=f"{sum(treat.amount for treat in treats)} Treats",
         )
 
         await interaction.response.send_message(
