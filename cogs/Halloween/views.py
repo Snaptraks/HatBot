@@ -17,7 +17,7 @@ from discord import (
 )
 from rich import print
 
-from .base import TRICK_OR_TREATER_LENGTH, DuplicateLootError, fmt_loot
+from .base import TRICK_OR_TREATER_LENGTH
 from .models import Event
 
 if TYPE_CHECKING:
