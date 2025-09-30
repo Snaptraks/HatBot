@@ -13,7 +13,6 @@ from discord import (
     Embed,
     Forbidden,
     Member,
-    Object,
     TextChannel,
     app_commands,
     utils,
@@ -90,31 +89,10 @@ class Halloween(commands.Cog):
             self.cursed_names: CursedNames = data["cursed_names"]
 
         self.trick_or_treater_spawner.start()
-        self.database_populated: bool = False
 
         self.curse_tasks: set[asyncio.Task] = set()
 
         self.trick_or_treater_timer: int = 0
-
-    @commands.Cog.listener()
-    async def on_ready(self) -> None:
-        if not self.database_populated:
-            # await self.populate_database()
-            self.database_populated = True
-
-    async def populate_database(self) -> None:
-        LOGGER.debug("Populating database with test data.")
-        member = Object(id=337266376941240320)
-        member.guild = Object(id=588171715960635393)  # pyright: ignore[reportAttributeAccessIssue]
-        async with self.bot.db.session() as session, session.begin():
-            for treat in self.treats * 2:
-                await self._add_treat_to_inventory(treat, member)  # pyright: ignore[reportArgumentType]
-
-        for tot in self.trick_or_treaters:
-            for rarity in self.rarity:
-                loot = {"name": tot[rarity], "rarity": rarity}
-
-                await self._add_loot_to_member(loot, member)  # pyright: ignore[reportArgumentType]
 
     @tasks.loop(minutes=1)
     async def trick_or_treater_spawner(self) -> None:
@@ -184,20 +162,6 @@ class Halloween(commands.Cog):
 
             await self._add_treat_to_inventory(treat, message.author)
             await message.clear_reactions()
-
-    @halloween.command(name="curse")
-    @app_commands.describe(member="Who receives the curse.")
-    async def halloween_curse(
-        self, interaction: Interaction[Bot], member: Member
-    ) -> None:
-        """Curse someone!"""
-
-        cursed_name = await self._give_curse(member)
-
-        await interaction.response.send_message(
-            f"Hahaha you little devil, you cursed {member.mention}!",
-            ephemeral=True,
-        )
 
     @halloween.command(name="loot")
     async def halloween_loot(self, interaction: Interaction[Bot]) -> None:
