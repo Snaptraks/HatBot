@@ -43,12 +43,13 @@ from .models import (
     TreatCount,
     TrickOrTreaterMessage,
 )
-from .views import TreatsView, TrickOrTreaterView
+from .views import HalloweenStartView, TreatsView, TrickOrTreaterView
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
 
     from discord import Guild, Interaction, Message, Reaction
+    from discord.ext.commands import Context
     from snapcogs.bot import Bot
 
     from .base import BaseLoot, CursedNames, Inventory, Rarity, TrickOrTreater
@@ -93,6 +94,15 @@ class Halloween(commands.Cog):
         self.curse_tasks: set[asyncio.Task] = set()
 
         self.trick_or_treater_timer: int = 0
+
+        self.free_treats_view_added: bool = False
+
+    @commands.Cog.listener()
+    async def on_ready(self) -> None:
+        if not self.free_treats_view_added:
+            free_treats_view = HalloweenStartView(self.bot)
+            self.bot.add_view(free_treats_view)
+            self.free_treats_view_added = True
 
     @tasks.loop(minutes=1)
     async def trick_or_treater_spawner(self) -> None:
@@ -162,6 +172,13 @@ class Halloween(commands.Cog):
 
             await self._add_treat_to_inventory(treat, message.author)
             await message.clear_reactions()
+
+    @commands.command()
+    @commands.is_owner()
+    async def halloween_start(self, ctx: Context, channel: TextChannel) -> None:
+        view = HalloweenStartView(self.bot)
+        await channel.send(view=view)
+        await ctx.message.add_reaction("✅")
 
     @halloween.command(name="loot")
     async def halloween_loot(self, interaction: Interaction[Bot]) -> None:
@@ -375,6 +392,21 @@ class Halloween(commands.Cog):
         await member.edit(nick=original_name)
         if cursed_role:
             await member.remove_roles(cursed_role)
+
+    async def _check_free_treats(self, member: Member) -> bool:
+        async with self.bot.db.session() as session:
+            check = await session.scalar(
+                select(EventLog).filter_by(
+                    guild_id=member.guild.id,
+                    user_id=member.id,
+                    event=Event.CLAIM_FREE_TREATS,
+                )
+            )
+
+            # If check is None, the member has not claimed free treats,
+            # therefore are allowed. If check is an instance of EventLog,
+            # they have claimed the free treats already, therefore are not allowed.
+            return check is None
 
     async def _add_treat_to_inventory(self, treat: BaseTreat, member: Member) -> None:
         LOGGER.debug(f"Added 1 {treat} to {member}.")

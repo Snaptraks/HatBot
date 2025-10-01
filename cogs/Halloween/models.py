@@ -7,6 +7,7 @@ from sqlalchemy.orm import Mapped, mapped_column
 
 
 class Event(Enum):
+    CLAIM_FREE_TREATS = auto()
     GIVE_TREAT = auto()
     COLLECT_TREAT = auto()
     REQUESTED_TREAT = auto()

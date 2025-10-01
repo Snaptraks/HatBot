@@ -33,6 +33,79 @@ if TYPE_CHECKING:
 LOGGER = logging.getLogger(__name__)
 
 
+class FreeTreatsButton(ui.Button):
+    def __init__(self) -> None:
+        super().__init__(
+            label="Free Treats!",
+            emoji="🪅",
+            style=ButtonStyle.green,
+            custom_id="halloweeh:free_treats",
+        )
+        self.view: HalloweenStartView
+
+    async def callback(self, interaction: Interaction[Bot]) -> None:
+        assert isinstance(interaction.user, Member)
+        for treat in self.view.cog.treats:
+            await self.view.cog._add_treat_to_inventory(treat, interaction.user)
+
+        treats_str = " ".join(t.emoji for t in self.view.cog.treats)
+
+        await interaction.response.send_message(
+            f"Here are some free treats to get you started!\n# {treats_str}",
+            ephemeral=True,
+        )
+
+        await self.view.cog._log_event(Event.CLAIM_FREE_TREATS, member=interaction.user)
+
+    async def interaction_check(self, interaction: Interaction[Bot]) -> bool:
+        assert isinstance(interaction.user, Member)
+        check = await self.view.cog._check_free_treats(interaction.user)
+        if not check:
+            await interaction.response.send_message(
+                "You already claimed your free treats!",
+                ephemeral=True,
+            )
+
+        return check
+
+
+class HalloweenStartView(ui.LayoutView):
+    def __init__(self, bot: Bot) -> None:
+        super().__init__(timeout=None)
+        self.bot = bot
+
+        self.title = ui.TextDisplay("# 🎃 Happy Halloween!")
+        self.description = ui.TextDisplay(
+            "### It is time for Halloween! Starting today and for the following weeks, "
+            "There will be **treats** popping up when chatting with the community! "
+            "Make sure to collect them, as some **trick-or-treaters** will start "
+            "knocking in #bot-0 asking for them, and trading for unique **loot**! \n"
+            "[Click Here for more information.](https://github.com/Snaptraks/HatBot/blob/master/cogs/Halloween/README.md)"
+        )
+        self.image = ui.MediaGallery(
+            MediaGalleryItem(
+                media="https://archives.snaptraks.phd/Halloween/Happy_Halloween.png"
+            )
+        )
+        self.bottom = ui.Section(
+            ui.TextDisplay("Claim your free treats here!"),
+            accessory=FreeTreatsButton(),
+        )
+
+        container = ui.Container(
+            self.title,
+            self.description,
+            self.image,
+            self.bottom,
+            accent_color=Color.orange(),
+        )
+        self.add_item(container)
+
+    @property
+    def cog(self) -> Halloween:
+        return self.bot.get_cog("Halloween")  # type: ignore[correct-type]
+
+
 class TreatButton(ui.Button["TrickOrTreaterView"]):
     def __init__(self) -> None:
         super().__init__(label="Give a treat!", emoji="🎃", style=ButtonStyle.green)
