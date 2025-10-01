@@ -135,7 +135,8 @@ class Trophies(commands.Cog):
         if all(milestones.values()) and len(new_milestones) == 0:
             content = "You reached all milestones!"
         elif new_milestones:
-            content = f"Trophies sent for the milestones: {new_milestones}!"
+            milestones_str = fmt_milestones(dict.fromkeys(new_milestones, True))
+            content = f"Trophies sent for the milestones:\n{milestones_str}"
         else:
             content = "No trophies ready to claim!"
 
