@@ -165,7 +165,7 @@ class Halloween(commands.Cog):
 
     @halloween.command(name="loot")
     async def halloween_loot(self, interaction: Interaction[Bot]) -> None:
-        """Show the loot you gained."""
+        """See the loot items you have collected."""
         assert isinstance(interaction.user, Member)
 
         loot = await self._get_member_loot(interaction.user)
@@ -209,7 +209,7 @@ class Halloween(commands.Cog):
 
     @halloween.command(name="treats")
     async def halloween_treats(self, interaction: Interaction[Bot]) -> None:
-        """Show your treats."""
+        """See the treats you have collected."""
         assert isinstance(interaction.user, Member)
 
         treats = await self._get_member_inventory(interaction.user)
@@ -235,7 +235,7 @@ class Halloween(commands.Cog):
 
     @halloween.command(name="scoreboard")
     async def halloween_scoreboard(self, interaction: Interaction[Bot]) -> None:
-        """Display the members with the highest number of loot items."""
+        """Display the members with the most loot."""
         assert interaction.guild is not None
 
         scores = await self._get_guild_score(interaction.guild)

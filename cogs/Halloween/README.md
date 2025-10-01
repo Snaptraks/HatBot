@@ -13,8 +13,11 @@ Table of content
   - [Blessing](#blessing)
   - [Curse!](#curse)
   - [Loot!](#loot)
+  - [Scoreboard](#scoreboard)
+  - [Milestones](#milestones)
+  - [Trophies](#trophies)
   - [Command List](#command-list)
-  - [FAQ](#faq)
+  - [*Foire aux Questions*](#foire-aux-questions)
 
 ## Event Description
 
@@ -24,6 +27,9 @@ On top of **treats** to collect, there will be [**trick-or-treaters**](#trick-or
 It is up to YOU to give them what they are looking for, in exchange for a special collectible [**loot**](#loot) item!
 This **loot** ranges from **common** trinkets such as the **Goblin**'s **Lucky Rock**, to some very **rare** ones, like the **Alien**'s **Levitation Belt**!
 If you don't give them what they want though, either because you don't have the **treat** or because you feel mischievous, who knows what might happen!
+
+As you progress through the event, you will reach certain [**milestones**](#milestones), which will allow you to claim special items on the Hatventures Community Minecraft server.
+We call those [**trophies**](#trophies), because while they might not be useful, they are very fun to show off!
 
 You will have access to some event related [**commands**](#command-list) all under the **``/halloween``** "main" command.
 For example, to check how many treats you have, use the **``/halloween treats``** command.
@@ -92,6 +98,28 @@ You can check the loot you have gained with the command **``/halloween loot``**.
 It will show as a table, with the level of completion at the bottom.
 Try to get as many unique items as possible!
 
+### Scoreboard
+
+As the community gathers loot items,
+
+### Milestones
+
+As you participate in the event, you will be able to reach certain **milestones**.
+Those range from receiving your first **loot** item from a **trick-or-treater**, to getting **cursed** many times!
+You can check your **milestones** with the **``/halloween milestones``** command.
+
+### Trophies
+Each **milestone** reached will grant access to a special item on the **Hatventures Community Minecraft server**.
+These items are unique, probably offer no bonus other than bragging rights and trade value, but they are fun!
+You can claim your **trophies** for newly reached **milestones** with the **``/halloween /trophies``** command.
+
+> [!WARNING]
+> Claiming **trophies** <ins>**REQUIRES**</ins> you to be logged in on the Minecraft server, and that you provide your Minecraft username **exactly** (that means case sensitive!).
+> If you are not connected when claiming the **trophies**, you will not be able to collect them again.
+> This is because there is no way to check if the ``give`` command on the server is successful or not, so double, **TRIPLE** check that you are connected, and verify that your username is typed correctly in the form!
+
+![Claim your trophies](../../.github/assets/Halloween_claim_trophies.png "Claim your trophies")
+
 ### Command List
 
 | Command                   | Description                             |
@@ -99,6 +127,8 @@ Try to get as many unique items as possible!
 | ``/halloween treats``     | See the treats you have collected.      |
 | ``/halloween loot``       | See the loot items you have collected.  |
 | ``/halloween scoreboard`` | Display the members with the most loot. |
+| ``/halloween milestones`` | View your milestones.                   |
+| ``/halloween trophies``   | Claim trophies on Minecraft!            |
 
 ### *Foire aux Questions*
 
@@ -117,3 +147,15 @@ A: Probably two weeks, but it might last longer if it is appreciated!
 Q: How many unique **loot** items are there?
 
 A: 120 unique **loot** items! However, the **trick-or-treaters** may drop duplicate items!
+
+Q: How do I reach **milestones**?
+
+A: All you need to do is participate in the event, by collecting **treats**, giving them to **trick-or-treaters**, and accept your fate when you get **cursed**.
+
+Q: How many unique **trophies** are there?
+
+A: We don't know how many **trophies** there are, but the most skilled of detectives are already searching through ancient documents to figure it out...
+
+Q: I did not read all the warnings that were very visible when claiming my **trophies**, and I did not receive them, can I run the command again to get them?
+
+A: No. Once the command is sent the **milestones** are marked as completed and you cannot get a second trophy for that **milestone**.
