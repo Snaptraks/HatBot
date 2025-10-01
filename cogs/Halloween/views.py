@@ -129,8 +129,8 @@ class TreatModal(ui.Modal, title="Select a treat!"):
 
         else:
             LOGGER.debug(f"Giving NOT requested treat to {interaction.message}.")
-            r = random.random() < 0.5
-            if r:
+            r = random.random()
+            if r < 0.5:
                 LOGGER.debug(f"Giving BLESSING to {interaction.user} ({r=}).")
                 # Blessing: higher loot rarity or bonus treat
                 success_message = await self.view.cog._give_blessing(
