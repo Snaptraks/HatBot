@@ -30,7 +30,7 @@ if TYPE_CHECKING:
     class CursedNames(TypedDict):
         first_names: list[str]
         last_names: list[str]
-        emojis: str
+        emojis: list[str]
 
 
 @dataclass(frozen=True)
