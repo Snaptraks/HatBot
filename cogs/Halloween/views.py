@@ -210,7 +210,7 @@ class TreatModal(ui.Modal, title="Select a treat!"):
                     interaction.user, self.view.trick_or_treater
                 )
 
-                reaction = f"It's even better! {success_message}"
+                reaction = f"It's even better!\n{success_message}"
             else:
                 LOGGER.debug(f"Giving CURSE to {interaction.user} ({r=}).")
                 # Curse: funny name and Cursed role
