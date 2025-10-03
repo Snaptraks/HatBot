@@ -19,7 +19,6 @@ from discord import (
 )
 from discord.abc import GuildChannel
 from discord.ext import commands, tasks
-from rich import print
 from sqlalchemy import desc, func, select
 from sqlalchemy.exc import IntegrityError
 from tabulate import tabulate

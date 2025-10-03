@@ -8,7 +8,6 @@ from typing import TYPE_CHECKING
 
 from discord import Color, Embed, Interaction, Member, TextChannel, app_commands, ui
 from discord.ext import commands
-from rich import print
 from snapcogs.database import Base
 from sqlalchemy import select
 from sqlalchemy.orm import Mapped  # noqa: TC002
