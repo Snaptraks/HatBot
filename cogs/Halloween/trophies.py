@@ -28,6 +28,7 @@ LOGGER = logging.getLogger(__name__)
 MC_CONSOLE_CHANNEL = 588171779957063680  # Bot Testing Server
 
 
+# Maybe add milestones if the event is very popular?
 class Milestone(Enum):
     ALL_TREATS = auto()
     FIRST_LOOT = auto()
@@ -71,6 +72,12 @@ class MilestoneLog(Base):
 
 
 class TrophiesModal(ui.Modal, title="Claim trophies on Minecraft"):
+    """The modal that takes the Minecraft username of the member.
+
+    There is a very obvious warning at the top, which states that they will not be
+    able to claim trophies if they are not logged in at the time of claiming.
+    """
+
     # warning = ui.TextDisplay(
     #     ":warning: **NOTE**: You need to be logged in on the "
     #     "Hatventures Community Minecraft server to receive your trophies.\n\n"
@@ -85,12 +92,16 @@ class TrophiesModal(ui.Modal, title="Claim trophies on Minecraft"):
 
 
 class Trophies(commands.Cog):
+    """Cog for trophies for the Halloween event."""
+
     def __init__(self, bot: Bot) -> None:
         self.bot = bot
 
         with (PATH / "trophies.txt").open() as f:
+            # each line of the file is a Minecraft command
             self.trophy_commands = f.readlines()
 
+        # Add the subcommands to the /halloween command group
         self.halloween_cog: Halloween = self.bot.get_cog("Halloween")  # type: ignore[]
 
         self.halloween_cog.halloween.add_command(
@@ -109,6 +120,7 @@ class Trophies(commands.Cog):
         )
 
     async def halloween_trophies(self, interaction: Interaction[Bot]) -> None:
+        """Claim the trophies for the newly reached milestones."""
         assert isinstance(interaction.user, Member)
         modal = TrophiesModal()
         await interaction.response.send_modal(modal)
@@ -119,7 +131,7 @@ class Trophies(commands.Cog):
         new_milestones: list[Milestone] = []
 
         for milestone, reward in milestones.items():
-            if reward and await self.check_milestone(interaction.user, milestone):
+            if reward and await self._check_milestone(interaction.user, milestone):
                 LOGGER.debug(
                     f"New milestone {milestone} attained for {interaction.user}."
                 )
@@ -130,7 +142,7 @@ class Trophies(commands.Cog):
                 mc_console_channel = self.bot.get_channel(MC_CONSOLE_CHANNEL)
                 assert isinstance(mc_console_channel, TextChannel)
                 await mc_console_channel.send(trophy_command)
-                await self.mark_milestone(interaction.user, milestone)
+                await self._mark_milestone(interaction.user, milestone)
 
         if all(milestones.values()) and len(new_milestones) == 0:
             content = "You reached all milestones!"
@@ -143,6 +155,7 @@ class Trophies(commands.Cog):
         await interaction.followup.send(content, ephemeral=True)
 
     async def halloween_milestones(self, interaction: Interaction[Bot]) -> None:
+        """List the milestones reached by the member."""
         assert isinstance(interaction.user, Member)
         milestones = await self.get_milestones(interaction.user)
         milestones_str = fmt_milestones(milestones)
@@ -157,6 +170,19 @@ class Trophies(commands.Cog):
         await interaction.response.send_message(embed=embed, ephemeral=True)
 
     async def get_milestones(self, member: Member) -> dict[Milestone, bool]:
+        """Get a dict of whether each milestone is reached or not.
+
+        Parameters
+        ----------
+        member : Member
+            The member to get the milestones from
+
+        Returns
+        -------
+        dict[Milestone, bool]
+            A dict of Milestone to bool, indicating if the milestone is reached.
+
+        """
         milestones: dict[Milestone, bool] = {}
         get_milestone = {
             Milestone.ALL_TREATS: self._get_milestone_all_treats,
@@ -175,7 +201,17 @@ class Trophies(commands.Cog):
 
         return milestones
 
-    async def mark_milestone(self, member: Member, milestone: Milestone) -> None:
+    async def _mark_milestone(self, member: Member, milestone: Milestone) -> None:
+        """Mark the milestone as reached for the member.
+
+        Parameters
+        ----------
+        member : Member
+            The member that reached the milestone.
+        milestone : Milestone
+            The milestone that was reached.
+
+        """
         async with self.bot.db.session() as session, session.begin():
             session.add(
                 MilestoneLog(
@@ -186,7 +222,22 @@ class Trophies(commands.Cog):
             )
             await session.commit()
 
-    async def check_milestone(self, member: Member, milestone: Milestone) -> bool:
+    async def _check_milestone(self, member: Member, milestone: Milestone) -> bool:
+        """Check if the milestone was reached by the member.
+
+        Parameters
+        ----------
+        member : Member
+            The member to check if the milestone was reached
+        milestone : Milestone
+            The milestone to check.
+
+        Returns
+        -------
+        bool
+            Whether the milestone was reached by the member or not.
+
+        """
         async with self.bot.db.session() as session:
             check = await session.scalar(
                 select(MilestoneLog).filter_by(
@@ -200,6 +251,19 @@ class Trophies(commands.Cog):
             return check is None
 
     async def _get_milestone_all_treats(self, member: Member) -> bool:
+        """Check if the milestone for collecting all kinds of treats is reached.
+
+        Parameters
+        ----------
+        member : Member
+            The member to check the milestone from.
+
+        Returns
+        -------
+        bool
+            Whether the milestone was reached by the member or not.
+
+        """
         async with self.bot.db.session() as session:
             type_of_treats = await session.scalars(
                 select(TreatCount).filter_by(
@@ -210,6 +274,19 @@ class Trophies(commands.Cog):
             return len(list(type_of_treats)) == len(self.halloween_cog.treats)
 
     async def _get_milestone_n_loot(self, member: Member, amount: int) -> bool:
+        """Check if the milestone for collecting `amount` loot items is reached.
+
+        Parameters
+        ----------
+        member : Member
+            The member to check the milestone from.
+
+        Returns
+        -------
+        bool
+            Whether the milestone was reached by the member or not.
+
+        """
         async with self.bot.db.session() as session:
             loots = await session.scalars(
                 select(Loot).filter_by(
@@ -221,15 +298,67 @@ class Trophies(commands.Cog):
             return len(loots.all()) >= amount
 
     async def _get_milestone_first_loot(self, member: Member) -> bool:
+        """Check if the milestone for collecting 1 loot item is reached.
+
+        Parameters
+        ----------
+        member : Member
+            The member to check the milestone from.
+
+        Returns
+        -------
+        bool
+            Whether the milestone was reached by the member or not.
+
+        """
         return await self._get_milestone_n_loot(member, 1)
 
     async def _get_milestone_ten_loot(self, member: Member) -> bool:
+        """Check if the milestone for collecting 10 loot items is reached.
+
+        Parameters
+        ----------
+        member : Member
+            The member to check the milestone from.
+
+        Returns
+        -------
+        bool
+            Whether the milestone was reached by the member or not.
+
+        """
         return await self._get_milestone_n_loot(member, 10)
 
     async def _get_milestone_twenty_loot(self, member: Member) -> bool:
+        """Check if the milestone for collecting 20 loot items is reached.
+
+        Parameters
+        ----------
+        member : Member
+            The member to check the milestone from.
+
+        Returns
+        -------
+        bool
+            Whether the milestone was reached by the member or not.
+
+        """
         return await self._get_milestone_n_loot(member, 20)
 
     async def _get_milestone_n_rare(self, member: Member, amount: int) -> bool:
+        """Check if the milestone for collecting `amount` rare loot items is reached.
+
+        Parameters
+        ----------
+        member : Member
+            The member to check the milestone from.
+
+        Returns
+        -------
+        bool
+            Whether the milestone was reached by the member or not.
+
+        """
         async with self.bot.db.session() as session:
             loots = await session.scalars(
                 select(Loot).filter_by(
@@ -242,15 +371,67 @@ class Trophies(commands.Cog):
             return len(loots.all()) >= amount
 
     async def _get_milestone_first_rare(self, member: Member) -> bool:
+        """Check if the milestone for collecting 1 rare loot item is reached.
+
+        Parameters
+        ----------
+        member : Member
+            The member to check the milestone from.
+
+        Returns
+        -------
+        bool
+            Whether the milestone was reached by the member or not.
+
+        """
         return await self._get_milestone_n_rare(member, 1)
 
     async def _get_milestone_five_rare(self, member: Member) -> bool:
+        """Check if the milestone for collecting 5 rare loot items is reached.
+
+        Parameters
+        ----------
+        member : Member
+            The member to check the milestone from.
+
+        Returns
+        -------
+        bool
+            Whether the milestone was reached by the member or not.
+
+        """
         return await self._get_milestone_n_rare(member, 5)
 
     async def _get_milestone_ten_rare(self, member: Member) -> bool:
+        """Check if the milestone for collecting 10 rare loot items is reached.
+
+        Parameters
+        ----------
+        member : Member
+            The member to check the milestone from.
+
+        Returns
+        -------
+        bool
+            Whether the milestone was reached by the member or not.
+
+        """
         return await self._get_milestone_n_rare(member, 10)
 
     async def _get_milestone_n_curse(self, member: Member, amount: int) -> bool:
+        """Check if the milestone for getting cursed `amount` times is reached.
+
+        Parameters
+        ----------
+        member : Member
+            The member to check the milestone from.
+
+        Returns
+        -------
+        bool
+            Whether the milestone was reached by the member or not.
+
+        """
         async with self.bot.db.session() as session:
             curses = await session.scalars(
                 select(EventLog).filter_by(
@@ -263,10 +444,49 @@ class Trophies(commands.Cog):
             return len(curses.all()) >= amount
 
     async def _get_milestone_first_curse(self, member: Member) -> bool:
+        """Check if the milestone for getting cursed once is reached.
+
+        Parameters
+        ----------
+        member : Member
+            The member to check the milestone from.
+
+        Returns
+        -------
+        bool
+            Whether the milestone was reached by the member or not.
+
+        """
         return await self._get_milestone_n_curse(member, 1)
 
     async def _get_milestone_ten_curse(self, member: Member) -> bool:
+        """Check if the milestone for getting cursed 10 times is reached.
+
+        Parameters
+        ----------
+        member : Member
+            The member to check the milestone from.
+
+        Returns
+        -------
+        bool
+            Whether the milestone was reached by the member or not.
+
+        """
         return await self._get_milestone_n_curse(member, 10)
 
     async def _get_milestone_twenty_curse(self, member: Member) -> bool:
+        """Check if the milestone for getting cursed 20 is reached.
+
+        Parameters
+        ----------
+        member : Member
+            The member to check the milestone from.
+
+        Returns
+        -------
+        bool
+            Whether the milestone was reached by the member or not.
+
+        """
         return await self._get_milestone_n_curse(member, 20)

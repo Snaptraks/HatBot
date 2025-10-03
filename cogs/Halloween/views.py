@@ -34,6 +34,8 @@ LOGGER = logging.getLogger(__name__)
 
 
 class FreeTreatsButton(ui.Button):
+    """A button that gives free treats to who pressed it."""
+
     def __init__(self) -> None:
         super().__init__(
             label="Free Treats!",
@@ -70,6 +72,12 @@ class FreeTreatsButton(ui.Button):
 
 
 class HalloweenStartView(ui.LayoutView):
+    """The LayoutView (attached to a message) that starts the Halloween event.
+
+    This has a lot of text to describe the event, a cute picture, and a button
+    to give free treats to people to start the Halloween event!
+    """
+
     def __init__(self, bot: Bot) -> None:
         super().__init__(timeout=None)
         self.bot = bot
@@ -107,6 +115,8 @@ class HalloweenStartView(ui.LayoutView):
 
 
 class TreatButton(ui.Button["TrickOrTreaterView"]):
+    """The button to give a treat to the trick-or-treater."""
+
     def __init__(self) -> None:
         super().__init__(label="Give a treat!", emoji="🎃", style=ButtonStyle.green)
         self.view: TrickOrTreaterView
@@ -146,6 +156,11 @@ class TreatButton(ui.Button["TrickOrTreaterView"]):
 
 
 class TreatModal(ui.Modal, title="Select a treat!"):
+    """The modal that asks which treat to give.
+
+    The modal contains a dropdown select menu with the treats the member owns.
+    """
+
     def __init__(self, view: TrickOrTreaterView, user_inventory: Inventory) -> None:
         super().__init__()
         self.view = view
@@ -168,6 +183,20 @@ class TreatModal(ui.Modal, title="Select a treat!"):
         self.add_item(self.treat_select)
 
     async def on_submit(self, interaction: Interaction[Bot]) -> None:
+        """Handle the logic of giving a treat to the trick-or-treater.
+
+        If the member provides the requested treat, select a loot item from the
+        trick-or-treater with normal rarity rates. If the member already has it,
+        do not give them another one.
+
+        If the member does NOT provide the requested treat, there is a 50/50
+        chance of a blessing or curse.
+        A blessing rewards the member with a loot item of rarity Uncommon or Rare,
+        with increased rarity rates, plus a random treat. If the member already has
+        the loot item, give them two of the random treat instead.
+        A curse gives the member a special Cursed role with the color visible,
+        and give them a random Halloween themed nickname for CURSE_LENGTH minutes.
+        """
         assert isinstance(interaction.user, Member)
         assert interaction.message is not None
         assert interaction.guild is not None
@@ -228,6 +257,13 @@ class TreatModal(ui.Modal, title="Select a treat!"):
 
 
 class TrickOrTreaterView(ui.LayoutView):
+    """The LayoutView (attached to a message) that displays a trick-or-treater.
+
+    This contains a bit of text with the requested treat, a nice picture of
+    the trick-or-treater, and a button that opens the modal for selecting the
+    treat to give out. It has a timeout of TRICK_OR_TREATER_LENGTH minutes.
+    """
+
     message: Message
 
     def __init__(
@@ -278,6 +314,12 @@ class TrickOrTreaterView(ui.LayoutView):
 
 
 class TreatsView(ui.View):
+    """The View to display the treats in an exploded view.
+
+    This view contains a single button, attached to the /halloween treats
+    command output.
+    """
+
     def __init__(self, treats: list[TreatCount]) -> None:
         super().__init__()
         self.treats = treats

@@ -61,8 +61,34 @@ TRICK_OR_TREAT_CHANNEL = 588171779957063680  # Bot Testing Server
 
 
 def random_integer(max_value: int) -> int:
+    """Return a random integer between 1 and max_value.
+
+    Parameters
+    ----------
+    max_value : int
+        The maximum value of the random integer
+
+    Returns
+    -------
+    int
+        The random integer
+
+    """
     return random.randint(1, max_value)
 
 
 def fmt_loot(loot: BaseLoot) -> str:
+    """Format the loot intem into a nice string.
+
+    Parameters
+    ----------
+    loot : BaseLoot
+        The loot item to get a nice string from.
+
+    Returns
+    -------
+    str
+        The nice string representing the loot item.
+
+    """
     return f"{loot['rarity'].title()} {loot['name']}"

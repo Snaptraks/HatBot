@@ -25,12 +25,16 @@ class HalloweenBase(Base):
 
 
 class TrickOrTreaterMessage(HalloweenBase):
+    """The message containing a trick-or-treater that a member has given a treat to."""
+
     __tablename__ = "halloween_trick_or_treater_log"
 
     message_id: Mapped[int]
 
 
 class Loot(HalloweenBase):
+    """The loot that a member has."""
+
     __tablename__ = "halloween_loot"
     __table_args__ = (UniqueConstraint("guild_id", "user_id", "name"),)
 
@@ -39,6 +43,8 @@ class Loot(HalloweenBase):
 
 
 class TreatCount(HalloweenBase):
+    """The number of treats a member has."""
+
     __tablename__ = "halloween_treat_count"
 
     name: Mapped[str]
@@ -47,6 +53,8 @@ class TreatCount(HalloweenBase):
 
 
 class OriginalName(HalloweenBase):
+    """The display name a member has at the begining of the event."""
+
     __tablename__ = "halloween_original_name"
     __table_args__ = (UniqueConstraint("guild_id", "user_id"),)
 
@@ -54,6 +62,8 @@ class OriginalName(HalloweenBase):
 
 
 class EventLog(Base):
+    """A record of an event that happened."""
+
     __tablename__ = "halloween_event_log"
 
     guild_id: Mapped[int]

@@ -17,6 +17,7 @@ from discord import (
     app_commands,
     utils,
 )
+from discord.abc import GuildChannel
 from discord.ext import commands, tasks
 from rich import print
 from sqlalchemy import desc, func, select
@@ -89,27 +90,32 @@ class Halloween(commands.Cog):
             ]
             self.cursed_names: CursedNames = data["cursed_names"]
 
-        self.trick_or_treater_spawner.start()
+        self.increate_trick_or_treater_spawn_rate.start()
 
         self.curse_tasks: set[asyncio.Task] = set()
 
         self.trick_or_treater_timer: int = 0
 
-        self.free_treats_view_added: bool = False
+        self.halloween_start_view_added: bool = False
 
     @commands.Cog.listener()
     async def on_ready(self) -> None:
-        if not self.free_treats_view_added:
-            free_treats_view = HalloweenStartView(self.bot)
-            self.bot.add_view(free_treats_view)
-            self.free_treats_view_added = True
+        if not self.halloween_start_view_added:
+            halloween_start_view = HalloweenStartView(self.bot)
+            self.bot.add_view(halloween_start_view)
+            self.halloween_start_view_added = True
 
     @tasks.loop(minutes=1)
-    async def trick_or_treater_spawner(self) -> None:
+    async def increate_trick_or_treater_spawn_rate(self) -> None:
         self.trick_or_treater_timer += 1
 
     @commands.Cog.listener(name="on_message")
     async def send_trick_or_treater(self, message: Message) -> None:
+        """Randomly spawn a trick-or-treater when a message in sent.
+
+        Trick-or-treaters will only spawn in the TRICK_OR_TREAT_CHANNEL,
+        and if the message was sent by a member (not a bot).
+        """
         if (
             message.channel.id != TRICK_OR_TREAT_CHANNEL
             or message.author.bot
@@ -123,6 +129,7 @@ class Halloween(commands.Cog):
                 f"Spawned Trick-or-treater at {utils.utcnow()} "
                 f"({r=}, {self.trick_or_treater_timer=})"
             )
+            # reset timer with cooldown
             self.trick_or_treater_timer = -TRICK_OR_TREATER_LENGTH
             trick_or_treater = random.choice(self.trick_or_treaters)
             requested_treat = random.choice(self.treats)
@@ -146,10 +153,19 @@ class Halloween(commands.Cog):
 
     @commands.Cog.listener(name="on_message")
     async def random_treat_drop(self, message: Message) -> None:
+        """Add a reaction of a treat to a member's message.
+
+        This will only add a treat if the message was sent by a member (not a bot)
+        and is in the correct guild (not a DM, and in the TRICK_OR_TREAT_CHANNEL's
+        guild).
+        """
+        trick_or_treat_channel = self.bot.get_channel(TRICK_OR_TREAT_CHANNEL)
+        assert isinstance(trick_or_treat_channel, GuildChannel)
         if (
             message.author.bot
             or message.interaction_metadata is not None
             or message.channel.guild is None
+            or message.guild != trick_or_treat_channel.guild
         ):
             return
 
@@ -176,6 +192,17 @@ class Halloween(commands.Cog):
     @commands.command()
     @commands.is_owner()
     async def halloween_start(self, ctx: Context, channel: TextChannel) -> None:
+        """Send the message to start the Halloween event.
+
+        The message will be sent in the provided channel.
+        This command is Owner only.
+
+        Parameters
+        ----------
+        channel : TextChannel
+            The channel to send the message in.
+
+        """
         view = HalloweenStartView(self.bot)
         await channel.send(view=view)
         await ctx.message.add_reaction("✅")
@@ -186,17 +213,22 @@ class Halloween(commands.Cog):
         assert isinstance(interaction.user, Member)
 
         loot = await self._get_member_loot(interaction.user)
+        # split the loot in sub-lists by rarity
         loot_list = [
             sorted(item.name for item in loot if item.rarity == rarity)
             for rarity in RARITY
         ]
 
+        # tabulate needs a list of ROWS, so we zip the lists that were split by rarity
+        # and fill with empty values to have enough rows for the longest rarity list
         table_data: list[Sequence[str]] = list(
             itertools.zip_longest(
                 *loot_list,
                 fillvalue="",
             )
         )
+        # create the table. maxcolwidths and tablefmt were chosen to allow sending
+        # a full table in an embed and be under discord' length limit
         table = tabulate(
             table_data or loot_list,  # prevent error when there's no loot
             headers=[rarity.title() for rarity in RARITY],
@@ -255,7 +287,7 @@ class Halloween(commands.Cog):
         """Display the members with the most loot."""
         assert interaction.guild is not None
 
-        scores = await self._get_guild_score(interaction.guild)
+        scores = await self._get_guild_scores(interaction.guild)
 
         table_data: list[tuple[int, int, str]] = []
         for rank, (user_id, amount) in enumerate(scores):
@@ -283,6 +315,24 @@ class Halloween(commands.Cog):
         await interaction.response.send_message(embed=embed, ephemeral=True)
 
     def _get_treat_by_name(self, treat_name: str) -> BaseTreat:
+        """Convert a treat name (str) to a BaseTreat.
+
+        Parameters
+        ----------
+        treat_name : str
+            The name of the treat (all lowercase).
+
+        Returns
+        -------
+        BaseTreat
+            A BaseTreat dataclass instance.
+
+        Raises
+        ------
+        ValueError
+            The provided treat name does not match to a BaseTreat.
+
+        """
         for treat in self.treats:
             if treat.name == treat_name:
                 return treat
@@ -291,11 +341,37 @@ class Halloween(commands.Cog):
         raise ValueError(msg)
 
     def _get_random_treat(self) -> BaseTreat:
+        """Get a random BaseTreat.
+
+        Returns
+        -------
+        BaseTreat
+            The Random BaseTreat.
+
+        """
         return random.choice(self.treats)
 
     def _get_random_loot(
         self, trick_or_treater: TrickOrTreater, *, blessed: bool = False
     ) -> BaseLoot:
+        """Get a random loot item from the trick-or-treater.
+
+        Loot items have a rarity, where common loot is more likely and uncommon,
+        which is more likely than rare.
+
+        Parameters
+        ----------
+        trick_or_treater : TrickOrTreater
+            The trick-or-treater to get the loot from.
+        blessed : bool, optional
+            If the chances should be blessed, by default False
+
+        Returns
+        -------
+        BaseLoot
+            The random loot item.
+
+        """
         rates = self.rarity if not blessed else self.blessed_rarity
         rarity = random_rarity(rates)
         name = trick_or_treater[rarity]
@@ -303,6 +379,17 @@ class Halloween(commands.Cog):
         return {"name": name, "rarity": rarity}
 
     def _get_random_cursed_name(self) -> str:
+        """Get a random Cursed:tm: name.
+
+        It gets the name by assembling a random first name, last name, and halloween
+        themed emoji together.
+
+        Returns
+        -------
+        str
+            The cursed name.
+
+        """
         first_name = random.choice(self.cursed_names["first_names"])
         last_name = random.choice(self.cursed_names["last_names"])
         emoji = random.choice(self.cursed_names["emojis"])
@@ -311,8 +398,23 @@ class Halloween(commands.Cog):
     async def _give_normal_loot(
         self, member: Member, trick_or_treater: TrickOrTreater
     ) -> str:
-        """Give a normal loot item."""
+        """Give a normal loot item.
 
+        This is called when a user gives the requested treat to a trick-or-treater.
+
+        Parameters
+        ----------
+        member : Member
+            The member who receives the loot.
+        trick_or_treater : TrickOrTreater
+            The trick-or-treater to get the loot from
+
+        Returns
+        -------
+        str
+            A message to send back to the user.
+
+        """
         loot = self._get_random_loot(trick_or_treater)
         try:
             await self._add_loot_to_member(loot, member)
@@ -333,6 +435,19 @@ class Halloween(commands.Cog):
 
         Give a higher rarity loot to the member and a treat, or two treats if
         they already have the loot item.
+
+        Parameters
+        ----------
+        member : Member
+            The member who receives the loot.
+        trick_or_treater : TrickOrTreater
+            The trick-or-treater to get the loot from
+
+        Returns
+        -------
+        str
+            A message to send back to the user.
+
         """
         loot = self._get_random_loot(trick_or_treater, blessed=True)
         treat = self._get_random_treat()
@@ -357,6 +472,17 @@ class Halloween(commands.Cog):
 
         Change the nickname of the member to something funny,
         and give them the Cursed role for 15 minutes.
+
+        Parameters
+        ----------
+        member : Member
+            The member who receives the loot.
+
+        Returns
+        -------
+        str
+            A message to send back to the user.
+
         """
         cursed_name = self._get_random_cursed_name()
         task = asyncio.create_task(
@@ -373,6 +499,16 @@ class Halloween(commands.Cog):
         return cursed_name
 
     async def _curse_task(self, member: Member, cursed_name: str) -> None:
+        """Do the curse mechanics.
+
+        Parameters
+        ----------
+        member : Member
+            The member to curse.
+        cursed_name : str
+            The nickname to give to the member.
+
+        """
         LOGGER.debug(f"Cursing {member} for {CURSE_LENGTH} minutes with {cursed_name}.")
         cursed_role = utils.get(member.guild.roles, name="Cursed")
         await self._save_member_display_name(member)
@@ -385,7 +521,7 @@ class Halloween(commands.Cog):
         if cursed_role:
             await member.add_roles(cursed_role, reason="Halloween Curse!")
 
-        await asyncio.sleep(CURSE_LENGTH * 60)  # 15 minutes
+        await asyncio.sleep(CURSE_LENGTH * 60)  # CURSE_LENGTH minutes
 
         LOGGER.debug(f"Resetting {member} to original nickname.")
         original_name = await self._get_member_display_name(member)
@@ -394,6 +530,21 @@ class Halloween(commands.Cog):
             await member.remove_roles(cursed_role)
 
     async def _check_free_treats(self, member: Member) -> bool:
+        """Check if the member can claim their free starting treats.
+
+        If they have already claimed them, they cannot claim some again.
+
+        Parameters
+        ----------
+        member : Member
+            The member that tries to claim the treats
+
+        Returns
+        -------
+        bool
+            If the member is allowed to claim them.
+
+        """
         async with self.bot.db.session() as session:
             check = await session.scalar(
                 select(EventLog).filter_by(
@@ -409,6 +560,16 @@ class Halloween(commands.Cog):
             return check is None
 
     async def _add_treat_to_inventory(self, treat: BaseTreat, member: Member) -> None:
+        """Add the treat to the member's treats inventory.
+
+        Parameters
+        ----------
+        treat : BaseTreat
+            The treat to add to the inventory.
+        member : Member
+            The member to add the treat to their inventory.
+
+        """
         LOGGER.debug(f"Added 1 {treat} to {member}.")
         async with self.bot.db.session() as session, session.begin():
             # check if the member has the treat already
@@ -420,7 +581,7 @@ class Halloween(commands.Cog):
                 )
             )
 
-            # if the member doesn't have it, create the entry
+            # if the member doesn't have it, create the entry with amount at 1
             if treat_count is None:
                 treat_count = TreatCount(
                     name=treat.name,
@@ -441,6 +602,16 @@ class Halloween(commands.Cog):
     async def _remove_treat_from_inventory(
         self, treat: BaseTreat, member: Member
     ) -> None:
+        """Remove the treat from the member's treats inventory.
+
+        Parameters
+        ----------
+        treat : BaseTreat
+            The treat to add to the inventory.
+        member : Member
+            The member to add the treat to their inventory.
+
+        """
         LOGGER.debug(f"Removed 1 {treat} from {member}.")
         async with self.bot.db.session() as session, session.begin():
             treat_count = await session.scalar(
@@ -458,6 +629,19 @@ class Halloween(commands.Cog):
         await self._log_event(Event.GIVE_TREAT, member=member)
 
     async def _get_member_inventory(self, member: Member) -> Inventory:
+        """Get the treats inventory of the member.
+
+        Parameters
+        ----------
+        member : Member
+            The member to get the treats inventory from.
+
+        Returns
+        -------
+        Inventory
+            The treats inventory.
+
+        """
         LOGGER.debug(f"Getting inventory of {member}.")
         async with self.bot.db.session() as session:
             inventory = await session.scalars(
@@ -472,6 +656,18 @@ class Halloween(commands.Cog):
     async def _mark_trick_or_treater_by_member(
         self, member: Member, message: Message
     ) -> None:
+        """Mark a trick-or-treater as being given a treat by the member.
+
+        This will prevent the member to give another treat to the same trick-or-treater.
+
+        Parameters
+        ----------
+        member : Member
+            The member giving the treat.
+        message : Message
+            The discord message containing the trick-or-treater.
+
+        """
         LOGGER.debug(f"Marking {message} responded by {member}.")
         async with self.bot.db.session() as session, session.begin():
             log = TrickOrTreaterMessage(
@@ -485,6 +681,21 @@ class Halloween(commands.Cog):
     async def _check_member_able_to_give(
         self, member: Member, message: Message
     ) -> bool:
+        """Check if the member can give a treat to the trick-or-treater.
+
+        Parameters
+        ----------
+        member : Member
+            The member that tries to give a treat.
+        message : Message
+            The discord message containing the trick-or-treater.
+
+        Returns
+        -------
+        bool
+            If the member is allowed to give a treat.
+
+        """
         LOGGER.debug(f"Checking if allowed to give treat to {message} by {member}.")
         async with self.bot.db.session() as session:
             check = await session.scalar(
@@ -501,6 +712,21 @@ class Halloween(commands.Cog):
             return check is None
 
     async def _add_loot_to_member(self, loot: BaseLoot, member: Member) -> None:
+        """Add the loot item to the member's loot inventory.
+
+        Parameters
+        ----------
+        loot : BaseLoot
+            The loot item to add to the inventory.
+        member : Member
+            The member to add the loot to their inventory
+
+        Raises
+        ------
+        DuplicateLootError
+            If the member already has that loot item.
+
+        """
         async with self.bot.db.session() as session, session.begin():
             session.add(
                 Loot(
@@ -518,6 +744,19 @@ class Halloween(commands.Cog):
         await self._log_event(Event.COLLECT_LOOT, member=member)
 
     async def _get_member_loot(self, member: Member) -> list[Loot]:
+        """Get the loot inventory of the member.
+
+        Parameters
+        ----------
+        member : Member
+            The member to get the loot inventory from.
+
+        Returns
+        -------
+        list[Loot]
+            The loot inventory.
+
+        """
         async with self.bot.db.session() as session:
             loot = await session.scalars(
                 select(Loot).filter_by(
@@ -529,6 +768,14 @@ class Halloween(commands.Cog):
         return list(loot)
 
     async def _save_member_display_name(self, member: Member) -> None:
+        """Save the original display name of the member.
+
+        Parameters
+        ----------
+        member : Member
+            The member to save the name from.
+
+        """
         async with self.bot.db.session() as session, session.begin():
             session.add(
                 OriginalName(
@@ -543,6 +790,19 @@ class Halloween(commands.Cog):
                 LOGGER.debug("Member has their display_name saved already, ignoring.")
 
     async def _get_member_display_name(self, member: Member) -> str:
+        """Get the original display name of the member.
+
+        Parameters
+        ----------
+        member : Member
+            The member to get the name from.
+
+        Returns
+        -------
+        str
+            The original display name of the member.
+
+        """
         async with self.bot.db.session() as session:
             original_name = await session.scalar(
                 select(OriginalName.display_name).filter_by(
@@ -554,7 +814,22 @@ class Halloween(commands.Cog):
         # return the member's display_name in case it is not saved in the database
         return original_name or member.display_name
 
-    async def _get_guild_score(self, guild: Guild) -> list[tuple[int, int]]:
+    async def _get_guild_scores(self, guild: Guild) -> list[tuple[int, int]]:
+        """Get the scores for each member in the guild.
+
+        The score is simply the number of loot items they have collected.
+
+        Parameters
+        ----------
+        guild : Guild
+            The guild to get the score of each member from.
+
+        Returns
+        -------
+        list[tuple[int, int]]
+            A list of (user_id, score) tuple.
+
+        """
         async with self.bot.db.session() as session, session.begin():
             scores = await session.execute(
                 select(Loot.user_id, func.count(Loot.user_id).label("amount"))
@@ -572,6 +847,29 @@ class Halloween(commands.Cog):
         member: Member | None = None,
         guild: Guild | None = None,
     ) -> None:
+        """Log an event to the database.
+
+        Note that the member and guild parameters are mutually exclusive.
+
+        Parameters
+        ----------
+        event_type : Event
+            The type of event to log.
+        member : Member | None, optional
+            The member that triggered the event, by default None.
+            If the event is guild-wide, member will be None.
+        guild : Guild | None, optional
+            The guild that the event is from, by default None.
+            If the event was triggered by a member, guild will be None.
+
+        Raises
+        ------
+        ValueError
+            The member and guild parameters are both provided.
+        ValueError
+            None of member or guild is provided.
+
+        """
         if member is not None and guild is not None:
             msg = "member and guild cannot both be set."
             raise ValueError(msg)
