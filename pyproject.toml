@@ -23,7 +23,7 @@
 
 [tool.ruff.lint]
     ignore = [
-        "D",       # docstrings
+        "D417",    # undocumented-param
         "G004",    # logging-f-strings
         "PLR2004", # magic-value-comparison
         "S101",    # assert
