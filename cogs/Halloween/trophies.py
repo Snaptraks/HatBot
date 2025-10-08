@@ -77,13 +77,13 @@ class TrophiesModal(ui.Modal, title="Claim trophies on Minecraft"):
     able to claim trophies if they are not logged in at the time of claiming.
     """
 
-    # warning = ui.TextDisplay(
-    #     ":warning: **NOTE**: You need to be logged in on the "
-    #     "Hatventures Community Minecraft server to receive your trophies.\n\n"
-    #     "You can get trophies for reaching certain milestones, but can only claim "
-    #     "one per milestone. Reaching more milestones after claiming your trophies "
-    #     "will allow you to claim some more by running the command again."
-    # )
+    warning = ui.TextDisplay(
+        ":warning: **NOTE**: You need to be logged in on the "
+        "Hatventures Community Minecraft server to receive your trophies.\n\n"
+        "You can get trophies for reaching certain milestones, but can only claim "
+        "one per milestone. Reaching more milestones after claiming your trophies "
+        "will allow you to claim some more by running the command again."
+    )
     mc_username = ui.TextInput(label="Your Minecraft Username", max_length=16)
 
     async def on_submit(self, interaction: Interaction[Bot]) -> None:
