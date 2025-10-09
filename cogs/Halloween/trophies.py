@@ -182,6 +182,7 @@ class Trophies(commands.Cog):
             A dict of Milestone to bool, indicating if the milestone is reached.
 
         """
+        LOGGER.debug(f"Getting milestones for {member}.")
         milestones: dict[Milestone, bool] = {}
         get_milestone = {
             Milestone.ALL_TREATS: self._get_milestone_all_treats,
@@ -197,6 +198,10 @@ class Trophies(commands.Cog):
         }
         for milestone, get_fn in get_milestone.items():
             milestones[milestone] = await get_fn(member)
+
+        LOGGER.debug(
+            f"{len([m for m, b in milestones.items() if b])} milestones for {member}"
+        )
 
         return milestones
 
