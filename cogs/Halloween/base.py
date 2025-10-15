@@ -57,7 +57,8 @@ TREAT_SPAWN_RATE = 0.75
 TRICK_OR_TREATER_LENGTH = 3  # minutes
 CURSE_LENGTH = 15  # minutes
 
-TRICK_OR_TREAT_CHANNEL = 588171779957063680  # Bot Testing Server
+TRICK_OR_TREAT_CHANNEL = 766092475902853131  # Hatventures Community
+# TRICK_OR_TREAT_CHANNEL = 588171779957063680  # Bot Testing Server
 
 
 def random_integer(max_value: int) -> int:

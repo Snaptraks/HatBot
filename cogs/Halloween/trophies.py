@@ -6,7 +6,16 @@ from enum import Enum, auto
 from pathlib import Path
 from typing import TYPE_CHECKING
 
-from discord import Color, Embed, Interaction, Member, TextChannel, app_commands, ui
+from discord import (
+    Color,
+    DiscordException,
+    Embed,
+    Interaction,
+    Member,
+    TextChannel,
+    app_commands,
+    ui,
+)
 from discord.ext import commands
 from snapcogs.database import Base
 from sqlalchemy import select
@@ -24,7 +33,8 @@ if TYPE_CHECKING:
 
 PATH = Path(__file__).parent
 LOGGER = logging.getLogger(__name__)
-MC_CONSOLE_CHANNEL = 588171779957063680  # Bot Testing Server
+MC_CONSOLE_CHANNEL = 1420817181721104415  # Hatventures Community
+# MC_CONSOLE_CHANNEL = 588171779957063680  # Bot Testing Server
 
 
 # Maybe add milestones if the event is very popular?
