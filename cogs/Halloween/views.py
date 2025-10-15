@@ -16,7 +16,7 @@ from discord import (
     ui,
 )
 
-from .base import TRICK_OR_TREATER_LENGTH
+from .base import TRICK_OR_TREAT_CHANNEL, TRICK_OR_TREATER_LENGTH
 from .models import Event
 
 if TYPE_CHECKING:
@@ -86,7 +86,8 @@ class HalloweenStartView(ui.LayoutView):
             "### It is time for Halloween! Starting today and for the following weeks, "
             "There will be **treats** popping up when chatting with the community! "
             "Make sure to collect them, as some **trick-or-treaters** will start "
-            "knocking in #bot-0 asking for them, and trading for unique **loot**! \n"
+            f"knocking in <#{TRICK_OR_TREAT_CHANNEL}> asking for them, and trading "
+            "for unique **loot**! \n"
             "[Click Here for more information.](https://github.com/Snaptraks/HatBot/blob/master/cogs/Halloween/README.md)"
         )
         self.image = ui.MediaGallery(
