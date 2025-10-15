@@ -142,8 +142,13 @@ class Trophies(commands.Cog):
                 )
                 mc_console_channel = self.bot.get_channel(MC_CONSOLE_CHANNEL)
                 assert isinstance(mc_console_channel, TextChannel)
-                await mc_console_channel.send(trophy_command)
-                await self._mark_milestone(interaction.user, milestone)
+                try:
+                    await mc_console_channel.send(trophy_command)
+                    await self._mark_milestone(interaction.user, milestone)
+                except DiscordException:
+                    LOGGER.warning(
+                        "Could not send message to the Minecraft Console Channel."
+                    )
 
         if all(milestones.values()) and len(new_milestones) == 0:
             content = "You reached all milestones!"
