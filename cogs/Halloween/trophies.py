@@ -33,6 +33,7 @@ class Milestone(Enum):
     FIRST_LOOT = auto()
     TEN_LOOT = auto()
     TWENTY_LOOT = auto()
+    FIFTY_LOOT = auto()
     FIRST_RARE = auto()
     FIVE_RARE = auto()
     TEN_RARE = auto()
@@ -46,6 +47,7 @@ MILESTONE_DESCRIPTION = {
     Milestone.FIRST_LOOT: "Receive your first loot.",
     Milestone.TEN_LOOT: "Receive 10 loot items.",
     Milestone.TWENTY_LOOT: "Receive 20 loot items.",
+    Milestone.FIFTY_LOOT: "Receive 50 loot items.",
     Milestone.FIRST_RARE: "Receive your first Rare loot items.",
     Milestone.FIVE_RARE: "Receive 5 Rare loot items.",
     Milestone.TEN_RARE: "Receive 10 Rare loot items.",
@@ -189,6 +191,7 @@ class Trophies(commands.Cog):
             Milestone.FIRST_LOOT: self._get_milestone_first_loot,
             Milestone.TEN_LOOT: self._get_milestone_ten_loot,
             Milestone.TWENTY_LOOT: self._get_milestone_twenty_loot,
+            Milestone.FIFTY_LOOT: self._get_milestone_fifty_loot,
             Milestone.FIRST_RARE: self._get_milestone_first_rare,
             Milestone.FIVE_RARE: self._get_milestone_five_rare,
             Milestone.TEN_RARE: self._get_milestone_ten_rare,
@@ -348,6 +351,22 @@ class Trophies(commands.Cog):
 
         """
         return await self._get_milestone_n_loot(member, 20)
+
+    async def _get_milestone_fifty_loot(self, member: Member) -> bool:
+        """Check if the milestone for collecting 50 loot items is reached.
+
+        Parameters
+        ----------
+        member : Member
+            The member to check the milestone from.
+
+        Returns
+        -------
+        bool
+            Whether the milestone was reached by the member or not.
+
+        """
+        return await self._get_milestone_n_loot(member, 50)
 
     async def _get_milestone_n_rare(self, member: Member, amount: int) -> bool:
         """Check if the milestone for collecting `amount` rare loot items is reached.
