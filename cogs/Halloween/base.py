@@ -54,7 +54,7 @@ TRICK_OR_TREATER_SPAWN_RATE = 30
 # will have a 100*value % chance of spawning
 TREAT_SPAWN_RATE = 0.75
 
-TRICK_OR_TREATER_LENGTH = 3  # minutes
+TRICK_OR_TREATER_LENGTH = 10  # minutes
 CURSE_LENGTH = 15  # minutes
 
 TRICK_OR_TREAT_CHANNEL = 766092475902853131  # Hatventures Community
