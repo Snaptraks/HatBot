@@ -835,6 +835,7 @@ class Halloween(commands.Cog):
                 .filter_by(guild_id=guild.id)
                 .group_by(Loot.user_id)
                 .order_by(desc("amount"))
+                .limit(20)
             )
 
         return list(scores)  # type: ignore[reportReturnType]
