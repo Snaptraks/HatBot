@@ -233,6 +233,13 @@
     uncommon = "Eight Tiny Shoes"
 
 [[trick_or_treaters]]
+    common   = "Chewed Up Tenis Ball"
+    image    = "https://archives.snaptraks.phd/Halloween/Stabby-Corgi.png"
+    name     = "Stabby Corgi"
+    rare     = "Slobber Covered Knife"
+    uncommon = "Half Eaten Block of Cheese"
+
+[[trick_or_treaters]]
     common   = "Spare Button"
     image    = "https://archives.snaptraks.phd/Halloween/Teddy-Bear.png"
     name     = "Teddy Bear"
