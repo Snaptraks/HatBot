@@ -510,6 +510,7 @@ class Halloween(commands.Cog):
         """
         LOGGER.debug(f"Cursing {member} for {CURSE_LENGTH} minutes with {cursed_name}.")
         cursed_role = utils.get(member.guild.roles, name="Cursed")
+        bot_top_role = member.guild.me.top_role
         await self._save_member_display_name(member)
         try:
             await member.edit(nick=cursed_name)
@@ -517,16 +518,25 @@ class Halloween(commands.Cog):
             LOGGER.warning(f"Could not change nickname of {member}, returning early")
             return
 
-        if cursed_role:
+        if cursed_role and cursed_role < bot_top_role:
             await member.add_roles(cursed_role, reason="Halloween Curse!")
+        elif cursed_role > bot_top_role:
+            LOGGER.warning(
+                "Cursed role is above the bot's top role, can't add it to members."
+            )
 
         await asyncio.sleep(CURSE_LENGTH * 60)  # CURSE_LENGTH minutes
 
         LOGGER.debug(f"Resetting {member} to original nickname.")
         original_name = await self._get_member_display_name(member)
         await member.edit(nick=original_name)
-        if cursed_role:
+
+        if cursed_role and cursed_role < bot_top_role:
             await member.remove_roles(cursed_role)
+        elif cursed_role > bot_top_role:
+            LOGGER.warning(
+                "Cursed role is above the bot's top role, can't remove it from members."
+            )
 
     async def _check_free_treats(self, member: Member) -> bool:
         """Check if the member can claim their free starting treats.
