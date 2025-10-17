@@ -91,6 +91,7 @@ class Halloween(commands.Cog):
 
         self.increate_trick_or_treater_spawn_rate.start()
 
+        # TODO @Snaptraks: Have curses stack
         self.curse_tasks: set[asyncio.Task] = set()
 
         self.trick_or_treater_timer: int = 0
