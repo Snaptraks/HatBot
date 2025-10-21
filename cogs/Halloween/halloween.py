@@ -187,7 +187,7 @@ class Halloween(commands.Cog):
             await self.bot.wait_for("reaction_add", check=check)
 
             await self._add_treat_to_inventory(treat, message.author)
-            await message.clear_reactions()
+            await message.clear_reaction(treat.emoji)
 
     @commands.command()
     @commands.is_owner()
