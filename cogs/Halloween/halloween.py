@@ -91,8 +91,7 @@ class Halloween(commands.Cog):
 
         self.increate_trick_or_treater_spawn_rate.start()
 
-        # TODO @Snaptraks: Have curses stack
-        self.curse_tasks: set[asyncio.Task] = set()
+        self.curse_tasks: dict[Member, asyncio.Task] = {}
 
         self.trick_or_treater_timer: int = 0
 
@@ -484,6 +483,10 @@ class Halloween(commands.Cog):
             A message to send back to the user.
 
         """
+        if (previous_task := self.curse_tasks.get(member)) is not None:
+            LOGGER.debug(f"Canceling previous curse on {member}.")
+            previous_task.cancel()
+
         cursed_name = self._get_random_cursed_name()
         task = asyncio.create_task(
             self._curse_task(
@@ -491,8 +494,8 @@ class Halloween(commands.Cog):
                 cursed_name,
             )
         )
-        self.curse_tasks.add(task)
-        task.add_done_callback(self.curse_tasks.discard)
+
+        self.curse_tasks[member] = task
 
         await self._log_event(Event.GET_CURSE, member=member)
 
@@ -538,6 +541,8 @@ class Halloween(commands.Cog):
             LOGGER.warning(
                 "Cursed role is above the bot's top role, can't remove it from members."
             )
+
+        del self.curse_tasks[member]
 
     async def _check_free_treats(self, member: Member) -> bool:
         """Check if the member can claim their free starting treats.
