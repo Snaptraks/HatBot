@@ -40,8 +40,7 @@ class FreeTreatsButton(ui.Button):
             label="Free Treats!",
             emoji="🪅",
             style=ButtonStyle.green,
-            # TODO @Snaptraks: wow there's a typo here
-            custom_id="halloweeh:free_treats",
+            custom_id="halloween:free_treats",
         )
         self.view: HalloweenStartView
 
