@@ -182,6 +182,8 @@ class Trophies(commands.Cog):
             description=(
                 f"You have reached the following milestones:\n{milestones_str}"
             ),
+        ).set_footer(
+            text="Claim your trophies with the **/halloween trophies** command."
         )
         await interaction.response.send_message(embed=embed, ephemeral=True)
 
