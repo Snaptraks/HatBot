@@ -279,7 +279,7 @@
     image    = "https://archives.snaptraks.phd/Halloween/Wumpus-Dino.png"
     name     = "Wumpus Dino"
     rare     = "Meteorite Chunk"
-    uncommon = "Corprolite"
+    uncommon = "Coprolite"
 
 [[trick_or_treaters]]
     common   = "Gnawed Bones"
