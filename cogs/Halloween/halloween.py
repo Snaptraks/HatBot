@@ -89,7 +89,7 @@ class Halloween(commands.Cog):
             ]
             self.cursed_names: CursedNames = data["cursed_names"]
 
-        self.increate_trick_or_treater_spawn_rate.start()
+        # self.increate_trick_or_treater_spawn_rate.start()
 
         self.curse_tasks: dict[Member, asyncio.Task] = {}
 
@@ -97,7 +97,7 @@ class Halloween(commands.Cog):
 
         self.halloween_start_view_added: bool = False
 
-    @commands.Cog.listener()
+    # @commands.Cog.listener()
     async def on_ready(self) -> None:
         if not self.halloween_start_view_added:
             halloween_start_view = HalloweenStartView(self.bot)
@@ -108,7 +108,7 @@ class Halloween(commands.Cog):
     async def increate_trick_or_treater_spawn_rate(self) -> None:
         self.trick_or_treater_timer += 1
 
-    @commands.Cog.listener(name="on_message")
+    # @commands.Cog.listener(name="on_message")
     async def send_trick_or_treater(self, message: Message) -> None:
         """Randomly spawn a trick-or-treater when a message in sent.
 
@@ -150,7 +150,7 @@ class Halloween(commands.Cog):
         else:
             LOGGER.debug(f"No spawn. {r=} {self.trick_or_treater_timer=}")
 
-    @commands.Cog.listener(name="on_message")
+    # @commands.Cog.listener(name="on_message")
     async def random_treat_drop(self, message: Message) -> None:
         """Add a reaction of a treat to a member's message.
 
