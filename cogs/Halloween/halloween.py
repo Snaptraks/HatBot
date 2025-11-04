@@ -90,7 +90,7 @@ class Halloween(commands.Cog):
             ]
             self.cursed_names: CursedNames = data["cursed_names"]
 
-        # self.increate_trick_or_treater_spawn_rate.start()
+        self.increase_trick_or_treater_spawn_rate.start()
 
         self.curse_tasks: dict[Member, asyncio.Task] = {}
 
@@ -106,7 +106,7 @@ class Halloween(commands.Cog):
             self.halloween_start_view_added = True
 
     @tasks.loop(minutes=1)
-    async def increate_trick_or_treater_spawn_rate(self) -> None:
+    async def increase_trick_or_treater_spawn_rate(self) -> None:
         self.trick_or_treater_timer += 1
 
     # @commands.Cog.listener(name="on_message")
