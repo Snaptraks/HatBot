@@ -74,6 +74,7 @@ class Halloween(commands.Cog):
     halloween = app_commands.Group(
         name="halloween",
         description="Halloween Event commands!",
+        guild_only=True,
     )
 
     def __init__(self, bot: Bot) -> None:
