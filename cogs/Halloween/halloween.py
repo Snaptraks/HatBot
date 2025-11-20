@@ -611,7 +611,8 @@ class Halloween(commands.Cog):
             # if they do, increment by one
             else:
                 treat_count.amount += 1
-                await session.commit()
+
+            await session.commit()
 
         await self._log_event(Event.COLLECT_TREAT, member=member)
 
