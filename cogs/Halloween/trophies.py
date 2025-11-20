@@ -44,12 +44,15 @@ class Milestone(Enum):
     TEN_LOOT = auto()
     TWENTY_LOOT = auto()
     FIFTY_LOOT = auto()
+    HUNDRED_LOOT = auto()
     FIRST_RARE = auto()
     FIVE_RARE = auto()
     TEN_RARE = auto()
     FIRST_CURSE = auto()
     TEN_CURSE = auto()
     TWENTY_CURSE = auto()
+    FIFTY_CURSE = auto()
+    HUNDRED_CURSE = auto()
 
 
 MILESTONE_DESCRIPTION = {
@@ -58,12 +61,15 @@ MILESTONE_DESCRIPTION = {
     Milestone.TEN_LOOT: "Receive 10 loot items.",
     Milestone.TWENTY_LOOT: "Receive 20 loot items.",
     Milestone.FIFTY_LOOT: "Receive 50 loot items.",
+    Milestone.HUNDRED_LOOT: "Receive 100 loot items.",
     Milestone.FIRST_RARE: "Receive your first Rare loot items.",
     Milestone.FIVE_RARE: "Receive 5 Rare loot items.",
     Milestone.TEN_RARE: "Receive 10 Rare loot items.",
     Milestone.FIRST_CURSE: "Get cursed for the first time.",
     Milestone.TEN_CURSE: "Get cursed 10 times.",
     Milestone.TWENTY_CURSE: "Get cursed 20 times.",
+    Milestone.FIFTY_CURSE: "Get cursed 50 times.",
+    Milestone.HUNDRED_CURSE: "Get cursed 100 times.",
 }
 
 
@@ -209,12 +215,15 @@ class Trophies(commands.Cog):
             Milestone.TEN_LOOT: self._get_milestone_ten_loot,
             Milestone.TWENTY_LOOT: self._get_milestone_twenty_loot,
             Milestone.FIFTY_LOOT: self._get_milestone_fifty_loot,
+            Milestone.HUNDRED_LOOT: self._get_milestone_hundred_loot,
             Milestone.FIRST_RARE: self._get_milestone_first_rare,
             Milestone.FIVE_RARE: self._get_milestone_five_rare,
             Milestone.TEN_RARE: self._get_milestone_ten_rare,
             Milestone.FIRST_CURSE: self._get_milestone_first_curse,
             Milestone.TEN_CURSE: self._get_milestone_ten_curse,
             Milestone.TWENTY_CURSE: self._get_milestone_twenty_curse,
+            Milestone.FIFTY_CURSE: self._get_milestone_fifty_curse,
+            Milestone.HUNDRED_CURSE: self._get_milestone_hundred_curse,
         }
         for milestone, get_fn in get_milestone.items():
             milestones[milestone] = await get_fn(member)
@@ -385,6 +394,22 @@ class Trophies(commands.Cog):
         """
         return await self._get_milestone_n_loot(member, 50)
 
+    async def _get_milestone_hundred_loot(self, member: Member) -> bool:
+        """Check if the milestone for collecting 100 loot items is reached.
+
+        Parameters
+        ----------
+        member : Member
+            The member to check the milestone from.
+
+        Returns
+        -------
+        bool
+            Whether the milestone was reached by the member or not.
+
+        """
+        return await self._get_milestone_n_loot(member, 100)
+
     async def _get_milestone_n_rare(self, member: Member, amount: int) -> bool:
         """Check if the milestone for collecting `amount` rare loot items is reached.
 
@@ -516,7 +541,7 @@ class Trophies(commands.Cog):
         return await self._get_milestone_n_curse(member, 10)
 
     async def _get_milestone_twenty_curse(self, member: Member) -> bool:
-        """Check if the milestone for getting cursed 20 is reached.
+        """Check if the milestone for getting cursed 20 times is reached.
 
         Parameters
         ----------
@@ -530,3 +555,35 @@ class Trophies(commands.Cog):
 
         """
         return await self._get_milestone_n_curse(member, 20)
+
+    async def _get_milestone_fifty_curse(self, member: Member) -> bool:
+        """Check if the milestone for getting cursed 50 times is reached.
+
+        Parameters
+        ----------
+        member : Member
+            The member to check the milestone from.
+
+        Returns
+        -------
+        bool
+            Whether the milestone was reached by the member or not.
+
+        """
+        return await self._get_milestone_n_curse(member, 50)
+
+    async def _get_milestone_hundred_curse(self, member: Member) -> bool:
+        """Check if the milestone for getting cursed 100 times is reached.
+
+        Parameters
+        ----------
+        member : Member
+            The member to check the milestone from.
+
+        Returns
+        -------
+        bool
+            Whether the milestone was reached by the member or not.
+
+        """
+        return await self._get_milestone_n_curse(member, 100)
