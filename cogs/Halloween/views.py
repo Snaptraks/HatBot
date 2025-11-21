@@ -27,7 +27,7 @@ if TYPE_CHECKING:
 
     from .base import BaseTreat, Inventory, TrickOrTreater
     from .halloween import Halloween
-    from .models import TreatCount
+    from .models import Treat
 
 LOGGER = logging.getLogger(__name__)
 
@@ -320,7 +320,7 @@ class TreatsView(ui.View):
     command output.
     """
 
-    def __init__(self, treats: list[TreatCount]) -> None:
+    def __init__(self, treats: list[Treat]) -> None:
         super().__init__()
         self.treats = treats
 

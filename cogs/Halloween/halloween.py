@@ -31,7 +31,6 @@ from .base import (
     TRICK_OR_TREATER_LENGTH,
     TRICK_OR_TREATER_SPAWN_RATE,
     BaseTreat,
-    DuplicateLootError,
     fmt_loot,
     random_integer,
 )
@@ -40,7 +39,7 @@ from .models import (
     EventLog,
     Loot,
     OriginalName,
-    TreatCount,
+    Treat,
     TrickOrTreaterMessage,
 )
 from .views import HalloweenStartView, TreatsView, TrickOrTreaterView
@@ -109,7 +108,7 @@ class Halloween(commands.Cog):
     async def increase_trick_or_treater_spawn_rate(self) -> None:
         self.trick_or_treater_timer += 1
 
-    # @commands.Cog.listener(name="on_message")
+    @commands.Cog.listener(name="on_message")
     async def send_trick_or_treater(self, message: Message) -> None:
         """Randomly spawn a trick-or-treater when a message in sent.
 
@@ -151,7 +150,7 @@ class Halloween(commands.Cog):
         else:
             LOGGER.debug(f"No spawn. {r=} {self.trick_or_treater_timer=}")
 
-    # @commands.Cog.listener(name="on_message")
+    @commands.Cog.listener(name="on_message")
     async def random_treat_drop(self, message: Message) -> None:
         """Add a reaction of a treat to a member's message.
 
@@ -416,15 +415,9 @@ class Halloween(commands.Cog):
 
         """
         loot = self._get_random_loot(trick_or_treater)
-        try:
-            await self._add_loot_to_member(loot, member)
+        await self._add_loot_to_member(loot, member)
 
-        except DuplicateLootError:
-            success_message = (
-                f"You already had a {fmt_loot(loot)}, you don't get another one."
-            )
-        else:
-            success_message = f"Here's a {fmt_loot(loot)} as a gift!"
+        success_message = f"Here's a {fmt_loot(loot)} as a gift!"
 
         return success_message
 
@@ -453,17 +446,9 @@ class Halloween(commands.Cog):
         treat = self._get_random_treat()
         await self._add_treat_to_inventory(treat, member)
 
-        try:
-            await self._add_loot_to_member(loot, member)
+        await self._add_loot_to_member(loot, member)
 
-        except DuplicateLootError:
-            success_message = (
-                f"You already had a {fmt_loot(loot)}, so you get two {treat}s!"
-            )
-            await self._add_treat_to_inventory(treat, member)
-
-        else:
-            success_message = f"You can have my {fmt_loot(loot)} and {treat} as a gift!"
+        success_message = f"You can have my {fmt_loot(loot)} and {treat} as a gift!"
 
         return success_message
 
@@ -590,7 +575,7 @@ class Halloween(commands.Cog):
         async with self.bot.db.session() as session, session.begin():
             # check if the member has the treat already
             treat_count = await session.scalar(
-                select(TreatCount).filter_by(
+                select(Treat).filter_by(
                     name=treat.name,
                     guild_id=member.guild.id,
                     user_id=member.id,
@@ -599,7 +584,7 @@ class Halloween(commands.Cog):
 
             # if the member doesn't have it, create the entry with amount at 1
             if treat_count is None:
-                treat_count = TreatCount(
+                treat_count = Treat(
                     name=treat.name,
                     emoji=treat.emoji,
                     guild_id=member.guild.id,
@@ -632,7 +617,7 @@ class Halloween(commands.Cog):
         LOGGER.debug(f"Removed 1 {treat} from {member}.")
         async with self.bot.db.session() as session, session.begin():
             treat_count = await session.scalar(
-                select(TreatCount).filter_by(
+                select(Treat).filter_by(
                     name=treat.name,
                     guild_id=member.guild.id,
                     user_id=member.id,
@@ -662,11 +647,11 @@ class Halloween(commands.Cog):
         LOGGER.debug(f"Getting inventory of {member}.")
         async with self.bot.db.session() as session:
             inventory = await session.scalars(
-                select(TreatCount)
-                .order_by(TreatCount.name)
+                select(Treat)
+                .order_by(Treat.name)
                 .filter_by(guild_id=member.guild.id)
                 .filter_by(user_id=member.id)
-                .where(TreatCount.amount > 0)
+                .where(Treat.amount > 0)
             )
             return list(inventory)
 
@@ -738,25 +723,32 @@ class Halloween(commands.Cog):
         member : Member
             The member to add the loot to their inventory
 
-        Raises
-        ------
-        DuplicateLootError
-            If the member already has that loot item.
-
         """
         async with self.bot.db.session() as session, session.begin():
-            session.add(
-                Loot(
+            loot_count = await session.scalar(
+                select(Loot).filter_by(
                     guild_id=member.guild.id,
                     user_id=member.id,
                     name=loot["name"],
                     rarity=loot["rarity"],
                 )
             )
-            try:
-                await session.commit()
-            except IntegrityError as e:
-                raise DuplicateLootError from e
+
+            # if the member doesn't have it, create the entry with amount at 1
+            if loot_count is None:
+                loot_count = Loot(
+                    name=loot["name"],
+                    rarity=loot["rarity"],
+                    guild_id=member.guild.id,
+                    user_id=member.id,
+                    amount=1,
+                )
+                session.add(loot_count)
+
+            else:
+                loot_count.amount += 1
+
+            await session.commit()
 
         await self._log_event(Event.COLLECT_LOOT, member=member)
 

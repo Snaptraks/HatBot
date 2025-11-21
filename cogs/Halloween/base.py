@@ -7,9 +7,9 @@ from typing import TYPE_CHECKING, TypedDict
 from discord.app_commands import AppCommandError
 
 if TYPE_CHECKING:
-    from .models import TreatCount
+    from .models import Treat
 
-    type Inventory = list[TreatCount]
+    type Inventory = list[Treat]
 
     class Rarity(TypedDict):
         common: int
@@ -42,10 +42,6 @@ class BaseTreat:
         return f"{self.emoji} {self.name}"
 
 
-class DuplicateLootError(AppCommandError):
-    pass
-
-
 RARITY = ["common", "uncommon", "rare"]
 
 # will have a chance of 1 over the value
@@ -57,8 +53,8 @@ TREAT_SPAWN_RATE = 0.75
 TRICK_OR_TREATER_LENGTH = 10  # minutes
 CURSE_LENGTH = 15  # minutes
 
-TRICK_OR_TREAT_CHANNEL = 766092475902853131  # Hatventures Community
-# TRICK_OR_TREAT_CHANNEL = 588171779957063680  # Bot Testing Server
+# TRICK_OR_TREAT_CHANNEL = 766092475902853131  # Hatventures Community
+TRICK_OR_TREAT_CHANNEL = 588171779957063680  # Bot Testing Server
 
 
 def random_integer(max_value: int) -> int:

@@ -36,13 +36,13 @@ class Loot(HalloweenBase):
     """The loot that a member has."""
 
     __tablename__ = "halloween_loot"
-    __table_args__ = (UniqueConstraint("guild_id", "user_id", "name"),)
 
     name: Mapped[str]
     rarity: Mapped[str]
+    amount: Mapped[int] = mapped_column(default=0)
 
 
-class TreatCount(HalloweenBase):
+class Treat(HalloweenBase):
     """The number of treats a member has."""
 
     __tablename__ = "halloween_treat_count"

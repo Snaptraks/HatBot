@@ -21,7 +21,7 @@ from snapcogs.database import Base
 from sqlalchemy import select
 from sqlalchemy.orm import Mapped  # noqa: TC002
 
-from .models import Event, EventLog, Loot, TreatCount
+from .models import Event, EventLog, Loot, Treat
 
 if TYPE_CHECKING:
     from collections.abc import Mapping
@@ -299,7 +299,7 @@ class Trophies(commands.Cog):
         """
         async with self.bot.db.session() as session:
             type_of_treats = await session.scalars(
-                select(TreatCount).filter_by(
+                select(Treat).filter_by(
                     guild_id=member.guild.id,
                     user_id=member.id,
                 )
