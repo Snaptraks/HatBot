@@ -342,11 +342,11 @@ class TreatsView(ui.View):
         random.shuffle(treats_list)
         batch_size = math.ceil(len(treats_list) ** 0.5) + 1
         formatted_treats = "\n".join(
-            "# " + "".join(batch)
+            "".join(batch)
             for batch in itertools.batched(treats_list, batch_size, strict=False)
         )
 
         await interaction.response.send_message(
-            content=formatted_treats,
+            content=f"```\n{formatted_treats}\n```",
             ephemeral=True,
         )
