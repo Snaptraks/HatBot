@@ -173,7 +173,7 @@ class TreatModal(ui.Modal, title="Select a treat!"):
                     SelectOption(
                         label=f"{treat_count.name}",
                         value=treat_count.name,
-                        description=f"You have {treat_count.amount}",
+                        description=f"You have {treat_count.amount}.",
                         emoji=treat_count.emoji,
                     )
                     for treat_count in user_inventory
