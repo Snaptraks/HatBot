@@ -97,7 +97,7 @@ class Halloween(commands.Cog):
 
         self.halloween_start_view_added: bool = False
 
-    # @commands.Cog.listener()
+    @commands.Cog.listener()
     async def on_ready(self) -> None:
         if not self.halloween_start_view_added:
             halloween_start_view = HalloweenStartView(self.bot)
