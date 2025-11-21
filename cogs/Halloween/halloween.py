@@ -26,6 +26,7 @@ from tabulate import tabulate
 from .base import (
     CURSE_LENGTH,
     RARITY,
+    REQUIRED_AMOUNT_TO_TRADE,
     TREAT_SPAWN_RATE,
     TRICK_OR_TREAT_CHANNEL,
     TRICK_OR_TREATER_LENGTH,
@@ -42,7 +43,7 @@ from .models import (
     Treat,
     TrickOrTreaterMessage,
 )
-from .views import HalloweenStartView, TreatsView, TrickOrTreaterView
+from .views import HalloweenStartView, TradeModal, TreatsView, TrickOrTreaterView
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
@@ -255,6 +256,63 @@ class Halloween(commands.Cog):
             ephemeral=True,
         )
 
+    @halloween.command(name="trade")
+    async def halloween_trade(self, interaction: Interaction[Bot]) -> None:
+        """Trade the duplicated loot for rare loot items."""
+        assert isinstance(interaction.user, Member)
+
+        loot = await self._get_member_loot(interaction.user)
+        tradeable_loot = [
+            item
+            for item in loot
+            if item.amount > REQUIRED_AMOUNT_TO_TRADE and item.rarity != "rare"
+        ]
+
+        if len(tradeable_loot) == 0:
+            await interaction.response.send_message(
+                "Not enough loot to trade up ☹️", ephemeral=True
+            )
+            return
+
+        # make modal to select items to trade up
+        modal = TradeModal(tradeable_loot)
+        await interaction.response.send_modal(modal)
+        await modal.wait()
+
+        to_trade: list[str] = modal.loot_select.component.values  # type: ignore[reportAttributeAccessIssue]
+
+        trades_content: list[str] = []
+        for traded in to_trade:
+            tot_source = self._get_trick_or_treater_by_loot(traded)
+            rarity_source = self._get_loot_rarity(traded, tot_source)
+
+            rarity_up = RARITY[RARITY.index(rarity_source) + 1]
+            trade_up: str = tot_source[rarity_up]
+
+            trade_out: BaseLoot = {"name": traded, "rarity": rarity_source}
+            trade_in: BaseLoot = {"name": trade_up, "rarity": rarity_up}
+
+            trades_content.append(
+                f"- {REQUIRED_AMOUNT_TO_TRADE} {fmt_loot(trade_out)} "
+                f"➡️ 1 {fmt_loot(trade_in)}"
+            )
+
+            await self._remove_loot_from_member(
+                trade_out,
+                interaction.user,
+                amount=REQUIRED_AMOUNT_TO_TRADE,
+            )
+            await self._add_loot_to_member(
+                trade_in,
+                interaction.user,
+            )
+            await self._log_event(Event.TRADE_LOOT, member=interaction.user)
+
+        await modal.interaction.response.send_message(
+            f"🔄️ Successfully traded:\n{'\n'.join(trades_content)}",
+            ephemeral=True,
+        )
+
     @halloween.command(name="treats")
     async def halloween_treats(self, interaction: Interaction[Bot]) -> None:
         """See the treats you have collected."""
@@ -339,6 +397,63 @@ class Halloween(commands.Cog):
         msg = f"Unknown treat {treat_name}"
         raise ValueError(msg)
 
+    def _get_trick_or_treater_by_loot(self, loot_name: str) -> TrickOrTreater:
+        """Get the trick-or-treater that gives this loot item.
+
+        Parameters
+        ----------
+        loot_name : str
+            The name of the loot item.
+
+        Returns
+        -------
+        TrickOrTreater
+            The trick-or-treater that gives the loot item.
+
+        Raises
+        ------
+        ValueError
+            The loot item is not given by a trick-or-treater.
+
+        """
+        for trick_or_treater in self.trick_or_treaters:
+            if loot_name in {trick_or_treater[rarity] for rarity in RARITY}:
+                return trick_or_treater
+
+        msg = f"No trick-or-treater has the loot {loot_name}"
+        raise ValueError(msg)
+
+    def _get_loot_rarity(self, loot_name: str, trick_or_treater: TrickOrTreater) -> str:
+        """Get the rarity of a loot item.
+
+        Parameters
+        ----------
+        loot_name : str
+            The name of the loot item.
+        trick_or_treater : TrickOrTreater
+            The trick-or-treater that gives the loot item.
+
+        Returns
+        -------
+        str
+            The rarity of the loot item.
+
+        Raises
+        ------
+        ValueError
+            The trick-or-treater does not give this loot item.
+
+        """
+        for rarity in RARITY:
+            if trick_or_treater[rarity] == loot_name:
+                return rarity
+
+        msg = (
+            f"No loot with name {loot_name} found for "
+            f"trick-or-treater {trick_or_treater['name']}"
+        )
+        raise ValueError(msg)
+
     def _get_random_treat(self) -> BaseTreat:
         """Get a random BaseTreat.
 
@@ -417,9 +532,7 @@ class Halloween(commands.Cog):
         loot = self._get_random_loot(trick_or_treater)
         await self._add_loot_to_member(loot, member)
 
-        success_message = f"Here's a {fmt_loot(loot)} as a gift!"
-
-        return success_message
+        return f"Here's a {fmt_loot(loot)} as a gift!"
 
     async def _give_blessing(
         self, member: Member, trick_or_treater: TrickOrTreater
@@ -448,9 +561,7 @@ class Halloween(commands.Cog):
 
         await self._add_loot_to_member(loot, member)
 
-        success_message = f"You can have my {fmt_loot(loot)} and {treat} as a gift!"
-
-        return success_message
+        return f"You can have my {fmt_loot(loot)} and {treat} as a gift!"
 
     async def _give_curse(self, member: Member) -> str:
         """Curse the member.
@@ -751,6 +862,22 @@ class Halloween(commands.Cog):
             await session.commit()
 
         await self._log_event(Event.COLLECT_LOOT, member=member)
+
+    async def _remove_loot_from_member(
+        self, loot: BaseLoot, member: Member, amount: int = 1
+    ) -> None:
+        async with self.bot.db.session() as session, session.begin():
+            loot_count = await session.scalar(
+                select(Loot).filter_by(
+                    name=loot["name"],
+                    guild_id=member.guild.id,
+                    user_id=member.id,
+                )
+            )
+            if loot_count is not None:
+                loot_count.amount -= amount
+
+            await session.commit()
 
     async def _get_member_loot(self, member: Member) -> list[Loot]:
         """Get the loot inventory of the member.

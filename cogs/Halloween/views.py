@@ -27,7 +27,7 @@ if TYPE_CHECKING:
 
     from .base import BaseTreat, Inventory, TrickOrTreater
     from .halloween import Halloween
-    from .models import Treat
+    from .models import Loot, Treat
 
 LOGGER = logging.getLogger(__name__)
 
@@ -350,3 +350,36 @@ class TreatsView(ui.View):
             content=f"```\n{formatted_treats}\n```",
             ephemeral=True,
         )
+
+
+class TradeModal(ui.Modal, title="Select items to trade for rarer ones!"):
+    """The modal that asks which loot items to trade up.
+
+    The modal contains a dropdown select menu with the loot items the member
+    has enough of to trade for rarer ones from the trick-or-treater.
+    """
+
+    def __init__(self, tradeable_loot: list[Loot]) -> None:
+        super().__init__()
+        self.loot_select: ui.Label = ui.Label(
+            text="Select items!",
+            description=(
+                "This will trade 10 of the selected items for 1 "
+                "rarer item from the trick-or-treater."
+            ),
+            component=ui.Select(
+                options=[
+                    SelectOption(
+                        label=f"{item.rarity.title()} {item.name}",
+                        value=item.name,
+                        description=f"You have {item.amount}.",
+                    )
+                    for item in tradeable_loot
+                ],
+                max_values=min(len(tradeable_loot), 25),
+            ),
+        )
+        self.add_item(self.loot_select)
+
+    async def on_submit(self, interaction: Interaction[Bot]) -> None:
+        self.interaction = interaction

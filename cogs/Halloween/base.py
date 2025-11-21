@@ -4,8 +4,6 @@ import random
 from dataclasses import dataclass
 from typing import TYPE_CHECKING, TypedDict
 
-from discord.app_commands import AppCommandError
-
 if TYPE_CHECKING:
     from .models import Treat
 
@@ -53,8 +51,10 @@ TREAT_SPAWN_RATE = 0.75
 TRICK_OR_TREATER_LENGTH = 10  # minutes
 CURSE_LENGTH = 15  # minutes
 
-# TRICK_OR_TREAT_CHANNEL = 766092475902853131  # Hatventures Community
-TRICK_OR_TREAT_CHANNEL = 588171779957063680  # Bot Testing Server
+REQUIRED_AMOUNT_TO_TRADE = 10  # 10 loot items to trade up for a single rarer one
+
+TRICK_OR_TREAT_CHANNEL = 766092475902853131  # Hatventures Community
+# TRICK_OR_TREAT_CHANNEL = 588171779957063680  # Bot Testing Server
 
 
 def random_integer(max_value: int) -> int:
