@@ -47,9 +47,8 @@ class Giveaways(commands.Cog):
         for t in self._tasks.values():
             t.cancel()
 
-    async def interaction_check(self, interaction: discord.Interaction) -> bool:
+    async def interaction_check(self, interaction: discord.Interaction) -> bool:  # ty:ignore[invalid-method-override]
         """Check to make sure commands for this Cog are only run in servers we want."""
-
         name = getattr(interaction.command, "qualified_name", "Unknown")
         LOGGER.debug(f"Running check for interaction {name}")
         guild_ids = {
@@ -89,8 +88,10 @@ class Giveaways(commands.Cog):
         interaction: discord.Interaction | None,
         giveaway: Giveaway,
     ) -> None:
-        """Main task that handles the giveaways."""
+        """Handle the giveaways.
 
+        This is the main task that is called whens tarting a giveaway.
+        """
         ends_in = discord.utils.format_dt(giveaway.trigger_at, style="R")
         ends_at = discord.utils.format_dt(giveaway.trigger_at, style="F")
         game_title_link = giveaway.game.title_link
@@ -202,6 +203,7 @@ class Giveaways(commands.Cog):
         self, interaction: discord.Interaction, attachment: discord.Attachment
     ) -> None:
         """Add game keys to the database for the giveaways.
+
         A file must be attached to the command when running it.
         This is an Owner Only command, as only the bot's owner can run it.
         """
@@ -221,12 +223,12 @@ class Giveaways(commands.Cog):
     @is_owner()
     async def giveaway_readd(self, interaction: discord.Interaction, key: str) -> None:
         """Re-add a game key in the database for the giveaways.
+
         The key must be a string as it is entered in the database.
         It is useful when someone did not want the key, already had the game, and
         wants to give it back.
         This is an Owner Only command, as only the bot's owner can run it.
         """
-
         view = Confirm()
         await interaction.response.send_message(
             "Really add back the key?", view=view, ephemeral=True
@@ -245,7 +247,6 @@ class Giveaways(commands.Cog):
         self, interaction: discord.Interaction, error: app_commands.AppCommandError
     ) -> None:
         """Error handler for the giveaway add command."""
-
         error = getattr(error, "original", error)
 
         if isinstance(error, NotOwner):
@@ -263,7 +264,6 @@ class Giveaways(commands.Cog):
         self, interaction: discord.Interaction, page: int = 1
     ) -> None:
         """List the remaining games for the giveaway."""
-
         remaining_games = await self._get_remaining_games()
         n_remaining_games = len(remaining_games)
         games_counter = Counter([game.title for game in remaining_games])
@@ -306,7 +306,6 @@ class Giveaways(commands.Cog):
     @app_commands.checks.has_any_role(*HVC_STAFF_ROLES)
     async def giveaway_start(self, interaction: discord.Interaction) -> None:
         """Start one Giveaway event."""
-
         game = await self._get_random_game()
         if game is None:
             await interaction.response.send_message(
@@ -330,7 +329,6 @@ class Giveaways(commands.Cog):
 
     async def _get_ongoing_giveaways(self) -> list[Giveaway]:
         """Return the list of Giveaways that are not done yet."""
-
         async with self.bot.db.session() as session:
             giveaways = await session.scalars(
                 select(Giveaway)
@@ -353,7 +351,6 @@ class Giveaways(commands.Cog):
 
     async def _end_giveaway(self, giveaway: Giveaway) -> None:
         """Mark the Giveaway as done."""
-
         async with self.bot.db.session() as session, session.begin():
             giveaway.is_done = True
             session.add(giveaway)
@@ -362,6 +359,7 @@ class Giveaways(commands.Cog):
 
     async def _get_random_game(self) -> Game | None:
         """Return a random game that is not given yet.
+
         If None is returned, it means there are no available games yet.
         """
         async with self.bot.db.session() as session:
@@ -385,7 +383,6 @@ class Giveaways(commands.Cog):
 
     async def _edit_game(self, game: Game, *, given: bool) -> None:
         """Mark the game as given (or not, if no one wins it)."""
-
         async with self.bot.db.session() as session, session.begin():
             game.given = given
             session.add(game)
@@ -394,7 +391,6 @@ class Giveaways(commands.Cog):
 
     async def _get_remaining_games(self) -> list[Game]:
         """Return the list of remaining games."""
-
         async with self.bot.db.session() as session:
             games = await session.scalars(
                 select(Game)
@@ -410,7 +406,6 @@ class Giveaways(commands.Cog):
 
     async def _insert_games(self, games_data: list[dict[str, str]]) -> None:
         """Add a list of games and keys to the database."""
-
         # this is the least hackish way I could find that actually works.
         # this is a limitation qith SQLAlchemy where the "ON CONFLICT IGNORE"
         # is not well implemented in the ORM
@@ -428,7 +423,6 @@ class Giveaways(commands.Cog):
 
     async def _re_add_game_key(self, key: str) -> None:
         """Mark the game key as not given."""
-
         async with self.bot.db.session() as session, session.begin():
             await session.execute(
                 update(Game)
@@ -443,7 +437,6 @@ class Giveaways(commands.Cog):
 
     async def _get_random_winner(self, giveaway: Giveaway) -> discord.User | None:
         """Return one random entry for the giveaway."""
-
         async with self.bot.db.session() as session:
             entries = await session.scalars(
                 select(Entry)
@@ -471,7 +464,6 @@ class Giveaways(commands.Cog):
         self, view: GiveawayView, message: discord.InteractionMessage
     ) -> None:
         """Save the information needed to reconstruct later to the database."""
-
         LOGGER.debug(f"Saving View data for message {message.id}.")
 
         async with self.bot.db.session() as session, session.begin():
@@ -487,7 +479,6 @@ class Giveaways(commands.Cog):
 
     async def _get_view(self, giveaway: Giveaway) -> GiveawayView:
         """Get the View associated with the Giveaway."""
-
         async with self.bot.db.session() as session:
             view_model = await session.scalar(
                 select(View)
@@ -509,7 +500,6 @@ class Giveaways(commands.Cog):
         self, user: discord.User | discord.Member, giveaway_id: int
     ) -> None:
         """Add the entry to the DB."""
-
         LOGGER.debug(f"Saving entry for Giveaway {giveaway_id} for {user}.")
         async with self.bot.db.session() as session, session.begin():
             session.add(
@@ -521,7 +511,6 @@ class Giveaways(commands.Cog):
 
     async def _count_entries(self, giveaway_id: int) -> int:
         """Count the number of entries for the current giveaway."""
-
         LOGGER.debug(f"Counting entries for Giveaway {giveaway_id}.")
         async with self.bot.db.session() as session:
             entries = await session.scalar(
