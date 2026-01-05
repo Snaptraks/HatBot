@@ -35,6 +35,8 @@ LOGGER = logging.getLogger(__name__)
 class FreeTreatsButton(ui.Button):
     """A button that gives free treats to who pressed it."""
 
+    view: HalloweenStartView
+
     def __init__(self) -> None:
         super().__init__(
             label="Free Treats!",
@@ -42,7 +44,6 @@ class FreeTreatsButton(ui.Button):
             style=ButtonStyle.green,
             custom_id="halloween:free_treats",
         )
-        self.view: HalloweenStartView
 
     async def callback(self, interaction: Interaction[Bot]) -> None:
         assert isinstance(interaction.user, Member)
@@ -117,9 +118,10 @@ class HalloweenStartView(ui.LayoutView):
 class TreatButton(ui.Button["TrickOrTreaterView"]):
     """The button to give a treat to the trick-or-treater."""
 
+    view: TrickOrTreaterView
+
     def __init__(self) -> None:
         super().__init__(label="Give a treat!", emoji="🎃", style=ButtonStyle.green)
-        self.view: TrickOrTreaterView
 
     async def callback(self, interaction: Interaction[Bot]) -> None:
         assert isinstance(interaction.user, Member)
