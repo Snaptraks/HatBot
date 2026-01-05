@@ -42,7 +42,7 @@ class GiveawayView(ui.View):
             style=discord.ButtonStyle.green,
             custom_id=components_id["button"],
         )
-        enter_button.callback = self.on_enter
+        enter_button.callback = self.on_enter  # ty:ignore[invalid-assignment]
         self.add_item(enter_button)
 
     @property

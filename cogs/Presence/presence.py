@@ -33,7 +33,7 @@ class Presence(commands.Cog):
         self.change_presence.cancel()
         await self.bot.change_presence(activity=None)
 
-    async def cog_check(self, ctx: Context) -> bool:
+    async def cog_check(self, ctx: Context) -> bool:  # ty:ignore[invalid-method-override]
         return await self.bot.is_owner(ctx.author)
 
     @tasks.loop(hours=1)

@@ -52,7 +52,14 @@ if TYPE_CHECKING:
     from discord.ext.commands import Context
     from snapcogs.bot import Bot
 
-    from .base import BaseLoot, CursedNames, Inventory, Rarity, TrickOrTreater
+    from .base import (
+        BaseLoot,
+        CursedNames,
+        Inventory,
+        Rarity,
+        RarityLiteral,
+        TrickOrTreater,
+    )
 
 
 PATH = Path(__file__).parent
@@ -423,7 +430,9 @@ class Halloween(commands.Cog):
         msg = f"No trick-or-treater has the loot {loot_name}"
         raise ValueError(msg)
 
-    def _get_loot_rarity(self, loot_name: str, trick_or_treater: TrickOrTreater) -> str:
+    def _get_loot_rarity(
+        self, loot_name: str, trick_or_treater: TrickOrTreater
+    ) -> RarityLiteral:
         """Get the rarity of a loot item.
 
         Parameters

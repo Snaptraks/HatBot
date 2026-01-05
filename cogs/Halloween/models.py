@@ -5,6 +5,8 @@ from snapcogs.database import Base
 from sqlalchemy import DateTime, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column
 
+from .base import RarityLiteral
+
 
 class Event(Enum):
     CLAIM_FREE_TREATS = auto()
@@ -40,7 +42,7 @@ class Loot(HalloweenBase):
     __tablename__ = "halloween_loot"
 
     name: Mapped[str]
-    rarity: Mapped[str]
+    rarity: Mapped[RarityLiteral]
     amount: Mapped[int] = mapped_column(default=0)
 
 

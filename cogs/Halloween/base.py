@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import random
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, TypedDict
+from typing import TYPE_CHECKING, Literal, TypedDict
 
 if TYPE_CHECKING:
     from .models import Treat
@@ -30,6 +30,8 @@ if TYPE_CHECKING:
         last_names: list[str]
         emojis: list[str]
 
+    RarityLiteral = Literal["common", "uncommon", "rare"]
+
 
 @dataclass(frozen=True)
 class BaseTreat:
@@ -40,7 +42,7 @@ class BaseTreat:
         return f"{self.emoji} {self.name}"
 
 
-RARITY = ["common", "uncommon", "rare"]
+RARITY: list[RarityLiteral] = ["common", "uncommon", "rare"]
 
 # will have a chance of 1 over the value
 TRICK_OR_TREATER_SPAWN_RATE = 30
