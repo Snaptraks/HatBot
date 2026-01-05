@@ -39,7 +39,6 @@ class Presence(commands.Cog):
     @tasks.loop(hours=1)
     async def change_presence(self) -> None:
         """Change the Bot's presence periodically with a random activity."""
-
         await self.bot.change_presence(activity=random.choice(self.activities))
 
     @change_presence.before_loop
