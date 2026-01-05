@@ -13,7 +13,9 @@ class NotOwner(app_commands.CheckFailure):
 
 
 def has_role_or_above[T](item: int | str) -> Callable[[T], T]:
-    """A check decorator that checks if the member invoking the command
+    """Check the roles of the member invoking the command.
+
+    A check decorator that checks if the member invoking the command
     has their top role equal or above the role specified via the name
     or ID specified.
 
@@ -47,7 +49,6 @@ def has_role_or_above[T](item: int | str) -> Callable[[T], T]:
 
 async def _is_owner(interaction: discord.Interaction) -> bool:
     """Interaction based version of the discord.ext.commands.Bot.is_owner method."""
-
     if isinstance(interaction.client, commands.Bot):
         return await interaction.client.is_owner(interaction.user)
 
@@ -61,7 +62,9 @@ async def _is_owner(interaction: discord.Interaction) -> bool:
 
 
 def is_owner[T]() -> Callable[[T], T]:
-    """A check decorator that checks if the user invoking the command
+    """Check ownership of the bot.
+
+    A check decorator that checks if the user invoking the command
     is the owner of the bot.
     """
 

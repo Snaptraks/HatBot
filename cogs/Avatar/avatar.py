@@ -28,19 +28,17 @@ DATE_FMT = "%B %d %Y"
 class EventCache:
     """Class that encapsulates the handling of the event caching."""
 
-    path = PATH / "event_cache.txt"
+    path: Path = PATH / "event_cache.txt"
 
     @classmethod
     def set_cache(cls, event: str) -> None:
         """Save the current event name to disk."""
-
         with cls.path.open("w") as f:
             f.write(event)
 
     @classmethod
     def get_cache(cls) -> str | None:
         """Read the last event name from disk if it exists, else return None."""
-
         if cls.path.exists():
             with cls.path.open() as f:
                 return f.read()
@@ -61,10 +59,10 @@ class Event:
 
 def parse_events(config_raw: bytes) -> list[Event]:
     """Parse the raw bytes of the config.toml file in the HatBot-Avatar repository.
+
     Return a list of Events, with the appropriate values converted to rich types,
     like datetime.date.
     """
-
     events_raw = tomllib.loads(config_raw.decode())
     events = []
 
@@ -95,6 +93,7 @@ class AvatarRepository:
 
     async def get_current_event(self) -> Event | None:
         """Get the event from the present date and return the attached data.
+
         If no special event was found, return the fallback one (default avatar).
         """
         events = parse_events(await self.fetch_events_config())
@@ -123,24 +122,22 @@ class AvatarRepository:
 
     async def fetch_events_config(self) -> bytes:
         """Get the raw data from the config.toml file in the repository."""
-
         config_url = f"{self.base_url}/config.toml"
         LOGGER.debug("Fetching events config.")
         return await self.fetch_file(config_url)
 
     async def fetch_event_avatar(self, event: Event) -> bytes:
         """Get the event avatar file from the repository."""
-
         avatar_url = f"{self.base_url}/{event.name}/{event.file_name}"
         LOGGER.debug(f"Fetching {event.name} avatar.")
         return await self.fetch_file(avatar_url)
 
     async def fetch_file(self, download_url: str) -> bytes:
         """Abstract downloading a file from the repository.
+
         Get the file from the given URL and return the raw bytes.
         It might raise an exception in the case of an incorrect URL.
         """
-
         LOGGER.debug(f"Fetching {download_url}")
         async with self.bot.http_session.get(download_url) as response:
             if response.status != 200:
@@ -159,10 +156,10 @@ class Avatar(commands.Cog):
 
     @tasks.loop(time=time(hour=0, minute=1, tzinfo=UTC))
     async def event_avatars(self) -> None:
-        """Task to check if we have entered a new event, and possibly change
-        the bot's avatar.
-        """
+        """Task to check if we have entered a new event.
 
+        This will possibly change the bot's avatar.
+        """
         event = await self.repository.get_current_event()
         if event is None:
             LOGGER.warning("No event found. Maybe the config file is wrong?")
@@ -175,16 +172,13 @@ class Avatar(commands.Cog):
 
     @event_avatars.before_loop
     async def event_avatars_before(self) -> None:
-        """Call the event_avatars task once immediately to make sure the
-        avatar is up to date.
-        """
+        """Call the event_avatars task once immediately."""
         await self.bot.wait_until_ready()
         LOGGER.debug("Running event_avatars once at startup.")
         await self.event_avatars()
 
     async def edit_avatar(self, event: Event) -> None:
         """Fetch the event's avatar from the repository and edit the bot's avatar."""
-
         avatar = await self.repository.fetch_event_avatar(event)
         # we ignore type here since we will always try to edit the avatar
         # only if the bot is logged in (self.bot.user is not None)
@@ -195,7 +189,6 @@ class Avatar(commands.Cog):
     @commands.is_owner()
     async def avatar_refresh(self, ctx: commands.Context) -> None:
         """Refresh the bot's current avatar by fetching it from the repository."""
-
         event = await self.repository.get_current_event()
         if event is None:
             LOGGER.warning("No event found. Maybe the config file is wrong?")
