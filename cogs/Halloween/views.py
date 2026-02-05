@@ -163,6 +163,8 @@ class TreatModal(ui.Modal, title="Select a treat!"):
     The modal contains a dropdown select menu with the treats the member owns.
     """
 
+    view: TrickOrTreaterView
+
     def __init__(self, view: TrickOrTreaterView, user_inventory: Inventory) -> None:
         super().__init__()
         self.view = view
