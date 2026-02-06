@@ -667,8 +667,8 @@ wheels = [
 
 [[package]]
 name = "snapcogs"
-version = "2026.2.5"
-source = { git = "https://github.com/Snaptraks/SnapCogs.git?rev=master#56453a390c26002fa9cea99b858dd33be5caca8b" }
+version = "2026.2.6"
+source = { git = "https://github.com/Snaptraks/SnapCogs.git?rev=master#affd161c7057704934bb37583f0db8820b0c3b4d" }
 dependencies = [
     { name = "aiosqlite" },
     { name = "discord-py" },
