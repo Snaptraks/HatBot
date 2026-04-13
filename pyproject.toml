@@ -15,7 +15,7 @@
 
 [dependency-groups]
     dev = [
-        "rich>=14.1.0",
+        "rich>=15.0.0",
     ]
 
 [tool.uv.sources]
