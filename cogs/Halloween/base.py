@@ -30,8 +30,6 @@ if TYPE_CHECKING:
         last_names: list[str]
         emojis: list[str]
 
-    RarityLiteral = Literal["common", "uncommon", "rare"]
-
 
 @dataclass(frozen=True)
 class BaseTreat:
@@ -42,7 +40,8 @@ class BaseTreat:
         return f"{self.emoji} {self.name}"
 
 
-RARITY: list[RarityLiteral] = ["common", "uncommon", "rare"]
+RarityLiteral = Literal["common", "uncommon", "rare"]
+RARITY: list[RarityLiteral] = list(get_args(RarityLiteral))
 
 # will have a chance of 1 over the value
 TRICK_OR_TREATER_SPAWN_RATE = 30
