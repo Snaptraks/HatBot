@@ -28,6 +28,11 @@ from .views import GiveawayView
 LOGGER = logging.getLogger(__name__)
 
 
+class NoEntriesError(Exception):
+    def __init__(self) -> None:
+        super().__init__("There was no entries to the giveaway.")
+
+
 class Giveaways(commands.Cog):
     """Cog for giving away games back to the community."""
 
@@ -125,11 +130,13 @@ class Giveaways(commands.Cog):
         await discord.utils.sleep_until(giveaway.trigger_at)
         view.stop()
 
-        winner = await self._get_random_winner(giveaway)
+        try:
+            winner = await self._get_random_winner(giveaway)
 
-        if winner is None:
+        except NoEntriesError:
             LOGGER.info(
-                f"No winner for {giveaway.id}, marking game as still available."
+                f"No winner for giveaway {giveaway.id}, "
+                "marking game as still available."
             )
             await self._edit_game(giveaway.game, given=False)
             embed = discord.Embed(
@@ -435,7 +442,7 @@ class Giveaways(commands.Cog):
             )
         LOGGER.debug(f"Marked the key {key} as given=False.")
 
-    async def _get_random_winner(self, giveaway: Giveaway) -> discord.User | None:
+    async def _get_random_winner(self, giveaway: Giveaway) -> discord.User:
         """Return one random entry for the giveaway."""
         async with self.bot.db.session() as session:
             entries = await session.scalars(
@@ -451,14 +458,23 @@ class Giveaways(commands.Cog):
         entries = list(entries)
 
         if len(entries) == 0:
-            return None
+            raise NoEntriesError
 
         LOGGER.debug(f"Selecting a random winner from {len(entries)} entries.")
         winning_entry = random.choice(entries)
+        await self._set_entry_winning(winning_entry)
 
         return self.bot.get_user(winning_entry.user_id) or await self.bot.fetch_user(
             winning_entry.user_id
         )
+
+    async def _set_entry_winning(self, entry: Entry) -> None:
+        """Mark the entry as winning."""
+        async with self.bot.db.session() as session, session.begin():
+            entry.winning = True
+            session.add(entry)
+
+        LOGGER.debug(f"Winning entry saved: {entry}")
 
     async def _save_presistent_view(
         self, view: GiveawayView, message: discord.InteractionMessage

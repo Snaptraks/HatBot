@@ -58,3 +58,4 @@ class Entry(Base):
 
     user_id: Mapped[int]
     giveaway_id: Mapped[int] = mapped_column(ForeignKey("giveaways_giveaway.id"))
+    winning: Mapped[bool] = mapped_column(default=False)
