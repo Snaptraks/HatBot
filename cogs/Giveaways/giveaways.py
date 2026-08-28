@@ -4,13 +4,14 @@ import logging
 import random
 from collections import Counter
 from datetime import date
+from typing import TYPE_CHECKING
 
 import discord
 from discord import app_commands
 from discord.ext import commands
 from snapcogs.bot import Bot
 from snapcogs.utils.views import Confirm
-from sqlalchemy import asc, func, not_, select, update
+from sqlalchemy import asc, delete, func, not_, select, update
 from sqlalchemy.dialects.sqlite import insert
 from sqlalchemy.exc import OperationalError
 from sqlalchemy.orm import joinedload
@@ -24,6 +25,9 @@ from .base import (
 )
 from .models import Component, Entry, Game, Giveaway, View
 from .views import GiveawayView
+
+if TYPE_CHECKING:
+    from sqlalchemy.engine import CursorResult
 
 LOGGER = logging.getLogger(__name__)
 
@@ -110,7 +114,7 @@ class Giveaways(commands.Cog):
                     "### Press the button to enter!\n"
                     f"This giveaway ends at {ends_at} ({ends_in})"
                 ),
-            ).set_footer(text="No entries yet")
+            ).set_footer(text="0 entries")
 
             view = GiveawayView(self.bot, giveaway)
             await interaction.response.send_message(embed=embed, view=view)
@@ -180,7 +184,9 @@ class Giveaways(commands.Cog):
                     "### Congrats to them!\n"
                     f"This giveaway ended {ends_in}."
                 ),
-            ).set_footer(text=f"{await self._count_entries(giveaway.id)} entries")
+            ).set_footer(
+                text=f"{await self._count_giveaway_entries(giveaway.id)} entries"
+            )
 
             # send to mc-server-chatter
             mc_server_chatter = self.bot.get_partial_messageable(HVC_MC_SERVER_CHATTER)
@@ -525,7 +531,30 @@ class Giveaways(commands.Cog):
                 )
             )
 
-    async def _count_entries(self, giveaway_id: int) -> int:
+    async def _remove_entry(
+        self, user: discord.User | discord.Member, giveaway_id: int
+    ) -> bool:
+        """Remove the entry from the DB."""
+        async with self.bot.db.session() as session, session.begin():
+            result: CursorResult = await session.execute(
+                delete(Entry).where(
+                    Entry.user_id == user.id,
+                    Entry.giveaway_id == giveaway_id,
+                )
+            )  # pyright: ignore[reportAssignmentType]
+
+        if result.rowcount == 0:
+            LOGGER.debug(f"No entry to remove for {user} on giveaway {giveaway_id}")
+            return False
+        if result.rowcount == 1:
+            LOGGER.debug(f"Removed entry for {user} on giveaway {giveaway_id}.")
+            return True
+
+        msg = "Removed too many entries in the DB."
+        LOGGER.error(msg)
+        raise RuntimeError(msg)
+
+    async def _count_giveaway_entries(self, giveaway_id: int) -> int:
         """Count the number of entries for the current giveaway."""
         LOGGER.debug(f"Counting entries for Giveaway {giveaway_id}.")
         async with self.bot.db.session() as session:
@@ -535,6 +564,23 @@ class Giveaways(commands.Cog):
                 .where(
                     Entry.giveaway_id == giveaway_id,
                 )
+            )
+
+        return entries or 0
+
+    async def _count_user_pending_entries(
+        self, user: discord.User | discord.Member
+    ) -> int:
+        """Count the number of pending entries of the given user.
+
+        A pending entry is an entry in a giveaway that is still active.
+        """
+        LOGGER.debug(f"Counting the number of pending entries for {user}.")
+        async with self.bot.db.session() as session:
+            entries = await session.scalar(
+                select(func.count(Entry.id))
+                .join(Giveaway, Entry.giveaway_id == Giveaway.id)
+                .where(Entry.user_id == user.id, Giveaway.is_done.is_(False))
             )
 
         return entries or 0
