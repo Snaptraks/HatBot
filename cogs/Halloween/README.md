@@ -13,6 +13,7 @@ Table of content
   - [Blessing](#blessing)
   - [Curse!](#curse)
   - [Loot!](#loot)
+  - [Trading!](#trading)
   - [Scoreboard](#scoreboard)
   - [Milestones](#milestones)
   - [Trophies](#trophies)
@@ -98,9 +99,17 @@ You can check the loot you have gained with the command **``/halloween loot``**.
 It will show as a table, with the level of completion at the bottom.
 Try to get as many unique items as possible!
 
+### Trading!
+
+You will soon realize that **trick-or-treaters** might give you **loot items** you already own.
+Collecting them will eventually allow you to **trade** them up, for the item one level above in rarity (commons traded up for an uncommon, and uncommons traded up for a rare).
+You can trade with the ``/halloween trade`` command, which will open up a menu for you to select which items to trade.
+
 ### Scoreboard
 
-As the community gathers loot items,
+As the community gathers loot items, a **scoreboard** will get filled up with the people who have gathered the most loot.
+You can check the table with the ``/halloween scoreboard`` command.
+Aim for the top spot, or just enjoy the chill **trick-or-treating**, it's up to you!
 
 ### Milestones
 
@@ -126,6 +135,7 @@ You can claim your **trophies** for newly reached **milestones** with the **``/h
 | ------------------------- | --------------------------------------- |
 | ``/halloween treats``     | See the treats you have collected.      |
 | ``/halloween loot``       | See the loot items you have collected.  |
+| ``/halloween trade``      | Trade loot for rarer loot items.        |
 | ``/halloween scoreboard`` | Display the members with the most loot. |
 | ``/halloween milestones`` | View your milestones.                   |
 | ``/halloween trophies``   | Claim trophies on Minecraft!            |
@@ -138,7 +148,7 @@ A: Just send messages in any channel (while respecting the community's rules), a
 
 Q: Are the frequency of the **trick-or-treaters** based on chat activity?
 
-A: No, the frequency is random, with increasing probabilities as time passes, which resets at spawn. However, a message needs to be sent to trigger a **trick-or-treater** spawn.
+A: No, the frequency is random, with increasing probabilities as time passes, which resets at **trick-or-treater** spawn. However, a message needs to be sent to trigger a **trick-or-treater** spawn.
 
 Q: How long does this event last?
 
@@ -146,7 +156,7 @@ A: Probably two weeks, but it might last longer if it is appreciated!
 
 Q: How many unique **loot** items are there?
 
-A: 120 unique **loot** items! However, the **trick-or-treaters** may drop duplicate items!
+A: 123 unique **loot** items! However, the **trick-or-treaters** may drop duplicate items!
 
 Q: How do I reach **milestones**?
 
@@ -158,4 +168,4 @@ A: We don't know how many **trophies** there are, but the most skilled of detect
 
 Q: I did not read all the warnings that were very visible when claiming my **trophies**, and I did not receive them, can I run the command again to get them?
 
-A: No. Once the command is sent the **milestones** are marked as completed and you cannot get a second trophy for that **milestone**.
+A: No. Once the command is sent the **milestones** are marked as completed and you cannot get a second trophy for that **milestone**. However, you might be wise to ask @snaptraks on Discord, he might have some extra **trophies** to hand out, if he's feeling generous!

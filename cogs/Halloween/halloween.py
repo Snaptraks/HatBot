@@ -265,7 +265,7 @@ class Halloween(commands.Cog):
 
     @halloween.command(name="trade")
     async def halloween_trade(self, interaction: Interaction[Bot]) -> None:
-        """Trade the duplicated loot for rare loot items."""
+        """Trade the duplicated loot for rarer loot items."""
         assert isinstance(interaction.user, Member)
 
         loot = await self._get_member_loot(interaction.user)
