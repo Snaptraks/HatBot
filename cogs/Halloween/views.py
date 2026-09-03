@@ -84,7 +84,7 @@ class HalloweenStartView(ui.LayoutView):
 
         self.title = ui.TextDisplay("# 🎃 Happy Halloween!")
         self.description = ui.TextDisplay(
-            "### It is time for Halloween! Starting today and for the following weeks, "
+            "### It is time for Halloween! Starting today and for a limited time, "
             "There will be **treats** popping up when chatting with the community! "
             "Make sure to collect them, as some **trick-or-treaters** will start "
             f"knocking in <#{TRICK_OR_TREAT_CHANNEL}> asking for them, and trading "
