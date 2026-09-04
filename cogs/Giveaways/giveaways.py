@@ -17,6 +17,7 @@ from sqlalchemy.exc import OperationalError
 from sqlalchemy.orm import joinedload
 
 from ..utils.checks import NotOwner, is_owner
+from . import steam
 from .base import (
     EMBED_COLOR,
     GIVEAWAY_TIME,
@@ -104,17 +105,22 @@ class Giveaways(commands.Cog):
         ends_in = discord.utils.format_dt(giveaway.trigger_at, style="R")
         ends_at = discord.utils.format_dt(giveaway.trigger_at, style="F")
         game_title_link = giveaway.game.title_link
+        game_image_url = await steam.get_header_from_steam_url(giveaway.game.url)
         if interaction is not None:
             # send initial message
-            embed = discord.Embed(
-                color=EMBED_COLOR,
-                description=(
-                    "# Hatventures Game Giveaway!\n"
-                    f"### We are giving away {game_title_link}.\n"
-                    "### Press the button to enter!\n"
-                    f"This giveaway ends at {ends_at} ({ends_in})"
-                ),
-            ).set_footer(text="0 entries")
+            embed = (
+                discord.Embed(
+                    color=EMBED_COLOR,
+                    description=(
+                        "# Hatventures Game Giveaway!\n"
+                        f"### We are giving away {game_title_link}.\n"
+                        "### Press the button to enter!\n"
+                        f"This giveaway ends at {ends_at} ({ends_in})"
+                    ),
+                )
+                .set_footer(text="0 entries")
+                .set_image(url=game_image_url)
+            )
 
             view = GiveawayView(self.bot, giveaway)
             await interaction.response.send_message(embed=embed, view=view)
@@ -203,7 +209,7 @@ class Giveaways(commands.Cog):
         # the following attributes should never be None
         channel = self.bot.get_partial_messageable(giveaway.channel_id)  # type: ignore[not-none]
         message = channel.get_partial_message(giveaway.message_id)  # type: ignore[not-none]
-
+        embed.set_image(url=game_image_url)
         try:
             await message.edit(embed=embed, view=None)
         except Exception:
