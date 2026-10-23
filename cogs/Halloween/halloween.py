@@ -978,7 +978,8 @@ class Halloween(commands.Cog):
         async with self.bot.db.session() as session, session.begin():
             scores = await session.execute(
                 select(Loot.user_id, func.count(Loot.user_id).label("amount"))
-                .filter_by(guild_id=guild.id)
+                # .filter_by(guild_id=guild.id)
+                .filter(Loot.guild_id == guild.id)
                 .group_by(Loot.user_id)
                 .order_by(desc("amount"))
                 .limit(20)
