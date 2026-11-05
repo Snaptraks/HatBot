@@ -52,7 +52,7 @@ TREAT_SPAWN_RATE = 0.75
 TRICK_OR_TREATER_LENGTH = 10  # minutes
 CURSE_LENGTH = 15  # minutes
 
-REQUIRED_AMOUNT_TO_TRADE = 10  # 10 loot items to trade up for a single rarer one
+REQUIRED_AMOUNT_TO_TRADE = 5  # 5 loot items to trade up for a single rarer one
 
 TRICK_OR_TREAT_CHANNEL = 766092475902853131  # Hatventures Community
 # TRICK_OR_TREAT_CHANNEL = 588171779957063680  # Bot Testing Server
