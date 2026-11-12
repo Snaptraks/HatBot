@@ -1,4 +1,4 @@
-import datetime
+import datetime as dt
 from enum import Enum, auto
 
 from snapcogs.database import Base
@@ -73,4 +73,4 @@ class EventLog(Base):
     guild_id: Mapped[int]
     user_id: Mapped[int | None]
     event: Mapped[Event]
-    created_at: Mapped[datetime.datetime] = mapped_column(DateTime(timezone=True))
+    created_at: Mapped[dt.datetime] = mapped_column(DateTime(timezone=True))
