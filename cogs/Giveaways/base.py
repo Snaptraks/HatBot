@@ -2,6 +2,9 @@ from datetime import timedelta
 
 GIVEAWAY_TIME = timedelta(hours=24)
 # GIVEAWAY_TIME = timedelta(seconds=60)
+
+MAX_PENDING_GIVEAWAYS = 3
+
 EMBED_COLOR = 0xB3000C
 
 HVC_STAFF_ROLES = [
